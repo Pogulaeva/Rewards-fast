@@ -114,7 +114,7 @@
             this.textBox_location.Name = "textBox_location";
             this.textBox_location.Size = new System.Drawing.Size(794, 22);
             this.textBox_location.TabIndex = 6;
-            this.textBox_location.Text = "С:\\Users";
+            this.textBox_location.Text = "C:\\";
             // 
             // openFileDialog1
             // 

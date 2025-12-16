@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,6 +54,15 @@ namespace Rewards_fast
 
         private void button_your_template_Click(object sender, EventArgs e)
         {
+            //Создание папки в выбранной директории
+            string folderPath = Path.Combine(textBox_location.Text, textBox_folder_name.Text);
+            DirectoryInfo directoryInfo = Directory.CreateDirectory(folderPath);
+            MessageBox.Show($"Папка успешно создана по пути: {directoryInfo.FullName}", "Успех");
+
+            //Передача данных о пути изображения наградного материала и списка ФИО
+            string image = textBox_image_location.Text;
+            string FIO = textBox_Full_Name_list_location.Text;
+
             this.Hide();
         }
     }
