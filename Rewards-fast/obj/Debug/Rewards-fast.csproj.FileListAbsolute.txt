@@ -8,3 +8,15 @@ D:\производственная практика с кораблём\Rewards
 D:\производственная практика с кораблём\Rewards-fast\obj\Debug\Rewards-fast.csproj.CoreCompileInputs.cache
 D:\производственная практика с кораблём\Rewards-fast\obj\Debug\Rewards-fast.exe
 D:\производственная практика с кораблём\Rewards-fast\obj\Debug\Rewards-fast.pdb
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\bin\Debug\Rewards-fast.exe.config
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\bin\Debug\Rewards-fast.exe
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\bin\Debug\Rewards-fast.pdb
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards-fast.csproj.AssemblyReference.cache
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards-fast.exe.config
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards_fast.Initial_form.resources
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards_fast.Properties.Resources.resources
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards-fast.csproj.GenerateResource.cache
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards-fast.csproj.CoreCompileInputs.cache
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards-fast.exe
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards-fast.pdb
+D:\производственная практика с кораблём\репозиторий приложения 1\Rewards-fast\Rewards-fast\obj\Debug\Rewards_fast.Additional_information.resources

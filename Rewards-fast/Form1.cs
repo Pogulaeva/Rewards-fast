@@ -16,5 +16,17 @@ namespace Rewards_fast
         {
             InitializeComponent();
         }
+
+        private void button_your_template_Click(object sender, EventArgs e)
+        {
+            Additional_information newForm = new Additional_information();
+            newForm.Show();
+            this.Hide();
+        }
+
+        private void button_available_template_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+        }
     }
 }
