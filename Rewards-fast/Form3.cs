@@ -34,6 +34,12 @@ namespace Rewards_fast
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
+
+                Additional_information2 newForm = new Additional_information2();
+                newForm.ShowDialog();
+
+                //После завершения работы Additional_information2, закрываем текущую
+                this.Close();
             }
         }
 
@@ -46,6 +52,12 @@ namespace Rewards_fast
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
+
+                Additional_information2 newForm = new Additional_information2();
+                newForm.ShowDialog();
+
+                //После завершения работы Additional_information2, закрываем текущую
+                this.Close();
             }
         }
 
@@ -58,6 +70,12 @@ namespace Rewards_fast
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
+
+                Additional_information2 newForm = new Additional_information2();
+                newForm.ShowDialog();
+
+                //После завершения работы Additional_information2, закрываем текущую
+                this.Close();
             }
         }
 
@@ -70,6 +88,12 @@ namespace Rewards_fast
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
+
+                Additional_information2 newForm = new Additional_information2();
+                newForm.ShowDialog();
+
+                //После завершения работы Additional_information2, закрываем текущую
+                this.Close();
             }
         }
 
@@ -82,6 +106,12 @@ namespace Rewards_fast
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
+
+                Additional_information2 newForm = new Additional_information2();
+                newForm.ShowDialog();
+
+                //После завершения работы Additional_information2, закрываем текущую
+                this.Close();
             }
         }
 
@@ -94,6 +124,12 @@ namespace Rewards_fast
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
+
+                Additional_information2 newForm = new Additional_information2();
+                newForm.ShowDialog();
+
+                //После завершения работы Additional_information2, закрываем текущую
+                this.Close();
             }
         }
     }
