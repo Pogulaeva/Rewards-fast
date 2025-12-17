@@ -14,9 +14,32 @@ namespace Rewards_fast
     public partial class Choosing_template : Form
     {
         Image selectedImage;
+
+        private Form imagePreview;
+
+        private Timer hoverTimer;
+        private bool isHoverActive = false;
+        private PictureBox activePicBox;
+
         public Choosing_template()
         {
             InitializeComponent();
+
+            // Инициализация таймера с интервалом 2 секунды
+            hoverTimer = new Timer();
+            hoverTimer.Interval = 2000; //Интервал: 2 секунды
+            hoverTimer.Tick += HoverTimer_Tick;
+
+            // Назначаем общие обработчики для всех PictureBox
+            foreach (Control control in Controls)
+            {
+                if (control is PictureBox picBox)
+                {
+                    picBox.MouseHover += (sender, args) => OnMouseHover(picBox);
+                    picBox.MouseMove += (sender, args) => OnMouseMove(picBox);
+                    picBox.Click += (sender, args) => OnClick(picBox);
+                }
+            }
         }
 
         private void button_Back_Click(object sender, EventArgs e)
@@ -28,6 +51,11 @@ namespace Rewards_fast
 
         private void pictureBox_template1_Click(object sender, EventArgs e)
         {
+            // Если происходит клик, останавливаем таймер и скрываем увеличенное изображение
+            hoverTimer.Stop();
+            isHoverActive = false;
+            CloseCurrentPreview();
+
             if (pictureBox_template1.Image != null)
             {
                 // Запоминаем выбранное изображение
@@ -46,6 +74,11 @@ namespace Rewards_fast
 
         private void pictureBox_template2_Click(object sender, EventArgs e)
         {
+            // Если происходит клик, останавливаем таймер и скрываем увеличенное изображение
+            hoverTimer.Stop();
+            isHoverActive = false;
+            CloseCurrentPreview();
+
             if (pictureBox_template2.Image != null)
             {
                 // Запоминаем выбранное изображение
@@ -64,6 +97,11 @@ namespace Rewards_fast
 
         private void pictureBox_template3_Click(object sender, EventArgs e)
         {
+            // Если происходит клик, останавливаем таймер и скрываем увеличенное изображение
+            hoverTimer.Stop();
+            isHoverActive = false;
+            CloseCurrentPreview();
+
             if (pictureBox_template3.Image != null)
             {
                 // Запоминаем выбранное изображение
@@ -82,6 +120,11 @@ namespace Rewards_fast
 
         private void pictureBox_template4_Click(object sender, EventArgs e)
         {
+            // Если происходит клик, останавливаем таймер и скрываем увеличенное изображение
+            hoverTimer.Stop();
+            isHoverActive = false;
+            CloseCurrentPreview();
+
             if (pictureBox_template4.Image != null)
             {
                 // Запоминаем выбранное изображение
@@ -100,6 +143,11 @@ namespace Rewards_fast
 
         private void pictureBox_template5_Click(object sender, EventArgs e)
         {
+            // Если происходит клик, останавливаем таймер и скрываем увеличенное изображение
+            hoverTimer.Stop();
+            isHoverActive = false;
+            CloseCurrentPreview();
+
             if (pictureBox_template5.Image != null)
             {
                 // Запоминаем выбранное изображение
@@ -118,6 +166,11 @@ namespace Rewards_fast
 
         private void pictureBox_template6_Click(object sender, EventArgs e)
         {
+            // Если происходит клик, останавливаем таймер и скрываем увеличенное изображение
+            hoverTimer.Stop();
+            isHoverActive = false;
+            CloseCurrentPreview();
+
             if (pictureBox_template6.Image != null)
             {
                 // Запоминаем выбранное изображение
@@ -134,62 +187,85 @@ namespace Rewards_fast
             }
         }
 
-        private Form imagePreview;
-
-        private void pictureBox_template2_MouseHover(object sender, EventArgs e)
+        // Обработчик события MouseHover
+        private void OnMouseHover(PictureBox picBox)
         {
-            // Показываем увеличенное изображение при наведении мыши
-            PictureBox pb = sender as PictureBox;
-            if (pb != null && pb.Image != null)
+            // Активируем активную картинку и начинаем отсчёт времени
+            activePicBox = picBox;
+            hoverTimer.Start();
+        }
+
+        // Обработчик события MouseMove
+        private void OnMouseMove(PictureBox picBox)
+        {
+            // Останавливаем таймер при движении мыши
+            hoverTimer.Stop();
+        }
+
+        // Обработчик события Click
+        private void OnClick(PictureBox picBox)
+        {
+            // Останавливаем таймер и закрываем форму
+            hoverTimer.Stop();
+            ClosePreview();
+        }
+
+        // Обработчик завершения таймера
+        private void HoverTimer_Tick(object sender, EventArgs e)
+        {
+            hoverTimer.Stop();
+
+            // Проверяем, что активная картинка доступна
+            if (activePicBox != null && activePicBox.Image != null)
             {
-                ShowImagePreview2(pb.Image);
+                ShowImagePreview(activePicBox.Image);
             }
         }
 
-        private void ShowImagePreview2(Image img)
+        // Показ увеличенного изображения
+        private void ShowImagePreview(Image img)
         {
-            // Перед созданием новой формы убедимся, что прежняя закрыта
-            ClosePreviousPreview();
+            ClosePreview();
 
-            // Создание новой формы для отображения увеличенного изображения
-            imagePreview = new Form()
+            if (img != null)
             {
-                FormBorderStyle = FormBorderStyle.None,
-                StartPosition = FormStartPosition.Manual,
-                TopMost = true,
-                BackColor = Color.Black,
-                ShowInTaskbar = false
-            };
+                imagePreview = new Form
+                {
+                    FormBorderStyle = FormBorderStyle.None,
+                    StartPosition = FormStartPosition.Manual,
+                    TopMost = true,
+                    BackColor = Color.Black,
+                    ShowInTaskbar = false
+                };
 
-            // Настройка размеров формы под размеры изображения
-            imagePreview.ClientSize = new Size(img.Width, img.Height);
+                imagePreview.ClientSize = new Size(img.Width, img.Height);
 
-            // Подготовка компонента PictureBox для показа изображения
-            var previewPictureBox = new PictureBox()
-            {
-                Dock = DockStyle.Fill,
-                Image = img,
-                SizeMode = PictureBoxSizeMode.Zoom
-            };
+                var previewPictureBox = new PictureBox
+                {
+                    Dock = DockStyle.Fill,
+                    Image = img,
+                    SizeMode = PictureBoxSizeMode.Zoom
+                };
 
-            // Добавление элемента PictureBox на форму
-            imagePreview.Controls.Add(previewPictureBox);
+                imagePreview.Controls.Add(previewPictureBox);
 
-            // Центрирование формы на рабочем столе
-            var screen = Screen.PrimaryScreen.WorkingArea;
-            imagePreview.Location = new Point((screen.Width - imagePreview.Width) / 2, (screen.Height - imagePreview.Height) / 2);
+                var screen = Screen.PrimaryScreen.WorkingArea;
+                imagePreview.Location = new Point(
+                    (screen.Width - imagePreview.Width) / 2,
+                    (screen.Height - imagePreview.Height) / 2
+                );
 
-            // Реакция на потерю фокуса формы (закрытие при переходе внимания на другое окно)
-            imagePreview.Deactivate += (s, ev) =>
-            {
-                CloseCurrentPreview();
-            };
+                imagePreview.Deactivate += (s, ev) =>
+                {
+                    ClosePreview();
+                };
 
-            // Отображение формы
-            imagePreview.Show();
+                imagePreview.Show();
+            }
         }
 
-        private void ClosePreviousPreview()
+        // Закрытие формы с увеличенным изображением
+        private void ClosePreview()
         {
             if (imagePreview != null)
             {
@@ -203,7 +279,7 @@ namespace Rewards_fast
                 }
                 finally
                 {
-                    imagePreview = null; // Сброс ссылки на форму
+                    imagePreview = null;
                 }
             }
         }
@@ -222,58 +298,8 @@ namespace Rewards_fast
                 }
                 finally
                 {
-                    imagePreview = null; // Сброс ссылки на форму
+                    imagePreview = null;
                 }
-            }
-        }
-
-        private void pictureBox_template1_MouseHover(object sender, EventArgs e)
-        {
-            // Показываем увеличенное изображение при наведении мыши
-            PictureBox pb = sender as PictureBox;
-            if (pb != null && pb.Image != null)
-            {
-                ShowImagePreview2(pb.Image);
-            }
-        }
-
-        private void pictureBox_template3_MouseHover(object sender, EventArgs e)
-        {
-            // Показываем увеличенное изображение при наведении мыши
-            PictureBox pb = sender as PictureBox;
-            if (pb != null && pb.Image != null)
-            {
-                ShowImagePreview2(pb.Image);
-            }
-        }
-
-        private void pictureBox_template4_MouseHover(object sender, EventArgs e)
-        {
-            // Показываем увеличенное изображение при наведении мыши
-            PictureBox pb = sender as PictureBox;
-            if (pb != null && pb.Image != null)
-            {
-                ShowImagePreview2(pb.Image);
-            }
-        }
-
-        private void pictureBox_template5_MouseHover(object sender, EventArgs e)
-        {
-            // Показываем увеличенное изображение при наведении мыши
-            PictureBox pb = sender as PictureBox;
-            if (pb != null && pb.Image != null)
-            {
-                ShowImagePreview2(pb.Image);
-            }
-        }
-
-        private void pictureBox_template6_MouseHover(object sender, EventArgs e)
-        {
-            // Показываем увеличенное изображение при наведении мыши
-            PictureBox pb = sender as PictureBox;
-            if (pb != null && pb.Image != null)
-            {
-                ShowImagePreview2(pb.Image);
             }
         }
     }
