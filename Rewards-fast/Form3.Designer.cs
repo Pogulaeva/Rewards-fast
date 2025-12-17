@@ -66,6 +66,7 @@
             this.pictureBox_template4.TabIndex = 5;
             this.pictureBox_template4.TabStop = false;
             this.pictureBox_template4.Click += new System.EventHandler(this.pictureBox_template4_Click);
+            this.pictureBox_template4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PictureBox_template4_MouseDown);
             // 
             // pictureBox_template3
             // 
@@ -78,6 +79,7 @@
             this.pictureBox_template3.TabIndex = 4;
             this.pictureBox_template3.TabStop = false;
             this.pictureBox_template3.Click += new System.EventHandler(this.pictureBox_template3_Click);
+            this.pictureBox_template3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_template3_MouseDown);
             // 
             // pictureBox_template2
             // 
@@ -90,6 +92,7 @@
             this.pictureBox_template2.TabIndex = 3;
             this.pictureBox_template2.TabStop = false;
             this.pictureBox_template2.Click += new System.EventHandler(this.pictureBox_template2_Click);
+            this.pictureBox_template2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_template2_MouseDown);
             // 
             // pictureBox_template1
             // 
@@ -102,6 +105,7 @@
             this.pictureBox_template1.TabIndex = 2;
             this.pictureBox_template1.TabStop = false;
             this.pictureBox_template1.Click += new System.EventHandler(this.pictureBox_template1_Click);
+            this.pictureBox_template1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_template1_MouseDown_1);
             // 
             // pictureBox_template5
             // 
@@ -114,6 +118,7 @@
             this.pictureBox_template5.TabIndex = 6;
             this.pictureBox_template5.TabStop = false;
             this.pictureBox_template5.Click += new System.EventHandler(this.pictureBox_template5_Click);
+            this.pictureBox_template5.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_template5_MouseDown);
             // 
             // pictureBox_template6
             // 
@@ -126,6 +131,8 @@
             this.pictureBox_template6.TabIndex = 7;
             this.pictureBox_template6.TabStop = false;
             this.pictureBox_template6.Click += new System.EventHandler(this.pictureBox_template6_Click);
+            this.pictureBox_template6.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_template6_MouseDown);
+            this.pictureBox_template6.MouseHover += new System.EventHandler(this.pictureBox_template6_MouseHover);
             // 
             // button_Back
             // 
