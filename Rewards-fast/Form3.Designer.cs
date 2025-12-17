@@ -65,6 +65,7 @@
             this.pictureBox_template4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_template4.TabIndex = 5;
             this.pictureBox_template4.TabStop = false;
+            this.pictureBox_template4.Click += new System.EventHandler(this.pictureBox_template4_Click);
             // 
             // pictureBox_template3
             // 
@@ -76,6 +77,7 @@
             this.pictureBox_template3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_template3.TabIndex = 4;
             this.pictureBox_template3.TabStop = false;
+            this.pictureBox_template3.Click += new System.EventHandler(this.pictureBox_template3_Click);
             // 
             // pictureBox_template2
             // 
@@ -87,6 +89,7 @@
             this.pictureBox_template2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_template2.TabIndex = 3;
             this.pictureBox_template2.TabStop = false;
+            this.pictureBox_template2.Click += new System.EventHandler(this.pictureBox_template2_Click);
             // 
             // pictureBox_template1
             // 
@@ -98,6 +101,7 @@
             this.pictureBox_template1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_template1.TabIndex = 2;
             this.pictureBox_template1.TabStop = false;
+            this.pictureBox_template1.Click += new System.EventHandler(this.pictureBox_template1_Click);
             // 
             // pictureBox_template5
             // 
@@ -109,6 +113,7 @@
             this.pictureBox_template5.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_template5.TabIndex = 6;
             this.pictureBox_template5.TabStop = false;
+            this.pictureBox_template5.Click += new System.EventHandler(this.pictureBox_template5_Click);
             // 
             // pictureBox_template6
             // 
@@ -120,6 +125,7 @@
             this.pictureBox_template6.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox_template6.TabIndex = 7;
             this.pictureBox_template6.TabStop = false;
+            this.pictureBox_template6.Click += new System.EventHandler(this.pictureBox_template6_Click);
             // 
             // button_Back
             // 
@@ -135,6 +141,7 @@
             this.button_Back.TabIndex = 15;
             this.button_Back.Text = "Назад";
             this.button_Back.UseVisualStyleBackColor = false;
+            this.button_Back.Click += new System.EventHandler(this.button_Back_Click);
             // 
             // Choosing_template
             // 
