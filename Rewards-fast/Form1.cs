@@ -26,6 +26,8 @@ namespace Rewards_fast
 
         private void button_available_template_Click(object sender, EventArgs e)
         {
+            Choosing_template newForm2 = new Choosing_template();
+            newForm2.Show();
             this.Hide();
         }
     }

@@ -43,7 +43,7 @@
             this.label_Full_Name_list = new System.Windows.Forms.Label();
             this.button_Full_Name_list_location = new System.Windows.Forms.Button();
             this.button_your_template = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.button_Back = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label_explanatory_text2
@@ -207,28 +207,29 @@
             this.button_your_template.UseVisualStyleBackColor = false;
             this.button_your_template.Click += new System.EventHandler(this.button_your_template_Click);
             // 
-            // button1
+            // button_Back
             // 
-            this.button1.BackColor = System.Drawing.Color.Green;
-            this.button1.FlatAppearance.BorderColor = System.Drawing.Color.Black;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Nirmala UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(664, 394);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(93, 31);
-            this.button1.TabIndex = 14;
-            this.button1.Text = "Назад";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button_Back.BackColor = System.Drawing.Color.Green;
+            this.button_Back.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.button_Back.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button_Back.Font = new System.Drawing.Font("Nirmala UI", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button_Back.ForeColor = System.Drawing.Color.White;
+            this.button_Back.Location = new System.Drawing.Point(664, 394);
+            this.button_Back.Name = "button_Back";
+            this.button_Back.Size = new System.Drawing.Size(93, 31);
+            this.button_Back.TabIndex = 14;
+            this.button_Back.Text = "Назад";
+            this.button_Back.UseVisualStyleBackColor = false;
+            this.button_Back.Click += new System.EventHandler(this.button1_Click);
             // 
             // Additional_information
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScroll = true;
             this.BackColor = System.Drawing.Color.SeaGreen;
             this.ClientSize = new System.Drawing.Size(897, 450);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.button_Back);
             this.Controls.Add(this.button_your_template);
             this.Controls.Add(this.textBox_Full_Name_list_location);
             this.Controls.Add(this.label_Full_Name_list);
@@ -266,6 +267,6 @@
         private System.Windows.Forms.Label label_Full_Name_list;
         private System.Windows.Forms.Button button_Full_Name_list_location;
         private System.Windows.Forms.Button button_your_template;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button_Back;
     }
 }
