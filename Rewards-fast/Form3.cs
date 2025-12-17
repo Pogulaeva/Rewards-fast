@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -135,127 +136,144 @@ namespace Rewards_fast
 
         private Form imagePreview;
 
-        private void PictureBox_template4_MouseDown(object sender, MouseEventArgs e)
+        private void pictureBox_template2_MouseHover(object sender, EventArgs e)
         {
-            // Правой кнопкой мыши показать увеличенное изображение
-            if (e.Button == MouseButtons.Right)
+            // Показываем увеличенное изображение при наведении мыши
+            PictureBox pb = sender as PictureBox;
+            if (pb != null && pb.Image != null)
             {
-                PictureBox pb = sender as PictureBox;
-                if (pb != null && pb.Image != null)
-                {
-                    ShowImagePreview(pb.Image);
-                }
+                ShowImagePreview2(pb.Image);
             }
         }
 
-        private void pictureBox_template1_MouseDown_1(object sender, MouseEventArgs e)
+        private void ShowImagePreview2(Image img)
         {
-            // Правой кнопкой мыши показать увеличенное изображение
-            if (e.Button == MouseButtons.Right)
-            {
-                PictureBox pb = sender as PictureBox;
-                if (pb != null && pb.Image != null)
-                {
-                    ShowImagePreview(pb.Image);
-                }
-            }
-        }
+            // Перед созданием новой формы убедимся, что прежняя закрыта
+            ClosePreviousPreview();
 
-        private void pictureBox_template2_MouseDown(object sender, MouseEventArgs e)
-        {
-            // Правой кнопкой мыши показать увеличенное изображение
-            if (e.Button == MouseButtons.Right)
-            {
-                PictureBox pb = sender as PictureBox;
-                if (pb != null && pb.Image != null)
-                {
-                    ShowImagePreview(pb.Image);
-                }
-            }
-        }
-
-
-
-        private void ShowImagePreview(Image img)
-        {
-            // Если уже есть открытое предпросмотре - можно закрыть его и открыть снова
-            if (imagePreview != null)
-            {
-                imagePreview.Close();
-                imagePreview.Dispose();
-                imagePreview = null;
-            }
-
-            imagePreview = new Form
+            // Создание новой формы для отображения увеличенного изображения
+            imagePreview = new Form()
             {
                 FormBorderStyle = FormBorderStyle.None,
                 StartPosition = FormStartPosition.Manual,
                 TopMost = true,
                 BackColor = Color.Black,
-                ShowInTaskbar = false,
+                ShowInTaskbar = false
             };
 
+            // Настройка размеров формы под размеры изображения
             imagePreview.ClientSize = new Size(img.Width, img.Height);
 
-            var previewPictureBox = new PictureBox
+            // Подготовка компонента PictureBox для показа изображения
+            var previewPictureBox = new PictureBox()
             {
                 Dock = DockStyle.Fill,
                 Image = img,
                 SizeMode = PictureBoxSizeMode.Zoom
             };
 
+            // Добавление элемента PictureBox на форму
             imagePreview.Controls.Add(previewPictureBox);
 
-            // Центрируем форму на экране
+            // Центрирование формы на рабочем столе
             var screen = Screen.PrimaryScreen.WorkingArea;
-            imagePreview.Location = new Point(
-                (screen.Width - imagePreview.Width) / 2,
-                (screen.Height - imagePreview.Height) / 2
-            );
+            imagePreview.Location = new Point((screen.Width - imagePreview.Width) / 2, (screen.Height - imagePreview.Height) / 2);
 
-            // Закрыть при клике вне окна
-            imagePreview.Deactivate += (s, e) => imagePreview.Close();
+            // Реакция на потерю фокуса формы (закрытие при переходе внимания на другое окно)
+            imagePreview.Deactivate += (s, ev) =>
+            {
+                CloseCurrentPreview();
+            };
 
-
+            // Отображение формы
             imagePreview.Show();
         }
 
-        private void pictureBox_template3_MouseDown(object sender, MouseEventArgs e)
+        private void ClosePreviousPreview()
         {
-            // Правой кнопкой мыши показать увеличенное изображение
-            if (e.Button == MouseButtons.Right)
+            if (imagePreview != null)
             {
-                PictureBox pb = sender as PictureBox;
-                if (pb != null && pb.Image != null)
+                try
                 {
-                    ShowImagePreview(pb.Image);
+                    imagePreview.Close();
+                }
+                catch (ObjectDisposedException)
+                {
+                    Debug.WriteLine("Форма уже была удалена.");
+                }
+                finally
+                {
+                    imagePreview = null; // Сброс ссылки на форму
                 }
             }
         }
 
-        private void pictureBox_template5_MouseDown(object sender, MouseEventArgs e)
+        private void CloseCurrentPreview()
         {
-            // Правой кнопкой мыши показать увеличенное изображение
-            if (e.Button == MouseButtons.Right)
+            if (imagePreview != null)
             {
-                PictureBox pb = sender as PictureBox;
-                if (pb != null && pb.Image != null)
+                try
                 {
-                    ShowImagePreview(pb.Image);
+                    imagePreview.Close();
+                }
+                catch (ObjectDisposedException)
+                {
+                    Debug.WriteLine("Форма уже была удалена.");
+                }
+                finally
+                {
+                    imagePreview = null; // Сброс ссылки на форму
                 }
             }
         }
 
-        private void pictureBox_template6_MouseDown(object sender, MouseEventArgs e)
+        private void pictureBox_template1_MouseHover(object sender, EventArgs e)
         {
-            // Правой кнопкой мыши показать увеличенное изображение
-            if (e.Button == MouseButtons.Right)
+            // Показываем увеличенное изображение при наведении мыши
+            PictureBox pb = sender as PictureBox;
+            if (pb != null && pb.Image != null)
             {
-                PictureBox pb = sender as PictureBox;
-                if (pb != null && pb.Image != null)
-                {
-                    ShowImagePreview(pb.Image);
-                }
+                ShowImagePreview2(pb.Image);
+            }
+        }
+
+        private void pictureBox_template3_MouseHover(object sender, EventArgs e)
+        {
+            // Показываем увеличенное изображение при наведении мыши
+            PictureBox pb = sender as PictureBox;
+            if (pb != null && pb.Image != null)
+            {
+                ShowImagePreview2(pb.Image);
+            }
+        }
+
+        private void pictureBox_template4_MouseHover(object sender, EventArgs e)
+        {
+            // Показываем увеличенное изображение при наведении мыши
+            PictureBox pb = sender as PictureBox;
+            if (pb != null && pb.Image != null)
+            {
+                ShowImagePreview2(pb.Image);
+            }
+        }
+
+        private void pictureBox_template5_MouseHover(object sender, EventArgs e)
+        {
+            // Показываем увеличенное изображение при наведении мыши
+            PictureBox pb = sender as PictureBox;
+            if (pb != null && pb.Image != null)
+            {
+                ShowImagePreview2(pb.Image);
+            }
+        }
+
+        private void pictureBox_template6_MouseHover(object sender, EventArgs e)
+        {
+            // Показываем увеличенное изображение при наведении мыши
+            PictureBox pb = sender as PictureBox;
+            if (pb != null && pb.Image != null)
+            {
+                ShowImagePreview2(pb.Image);
             }
         }
     }
