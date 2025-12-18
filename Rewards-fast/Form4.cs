@@ -20,7 +20,6 @@ namespace Rewards_fast
             InitializeComponent();
 
             ImageToShow = its;
-            Console.WriteLine($"ImageToShow = {ImageToShow}");
         }
 
         private void button_Full_Name_list_location_Click(object sender, EventArgs e)
