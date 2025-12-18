@@ -46,6 +46,8 @@ namespace Rewards_fast
             //Передача данных о пути списка ФИО
             string FIO = textBox_Full_Name_list_location.Text;
 
+            Template_Constructor newForm = new Template_Constructor();
+            newForm.Show();
             this.Close();         // закрываем текущую форму
         }
     }
