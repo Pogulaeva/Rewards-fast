@@ -13,6 +13,7 @@ namespace Rewards_fast
 {
     public partial class Choosing_template : Form
     {
+
         Image selectedImage;
 
         private Form imagePreview;
@@ -58,13 +59,11 @@ namespace Rewards_fast
 
             if (pictureBox_template1.Image != null)
             {
-                // Запоминаем выбранное изображение
-                selectedImage = pictureBox_template1.Image;
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
 
-                Additional_information2 newForm = new Additional_information2();
+                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -81,13 +80,11 @@ namespace Rewards_fast
 
             if (pictureBox_template2.Image != null)
             {
-                // Запоминаем выбранное изображение
-                selectedImage = pictureBox_template2.Image;
 
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
 
-                Additional_information2 newForm = new Additional_information2();
+                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -104,13 +101,10 @@ namespace Rewards_fast
 
             if (pictureBox_template3.Image != null)
             {
-                // Запоминаем выбранное изображение
-                selectedImage = pictureBox_template3.Image;
-
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
 
-                Additional_information2 newForm = new Additional_information2();
+                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -127,13 +121,10 @@ namespace Rewards_fast
 
             if (pictureBox_template4.Image != null)
             {
-                // Запоминаем выбранное изображение
-                selectedImage = pictureBox_template4.Image;
-
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
 
-                Additional_information2 newForm = new Additional_information2();
+                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -150,13 +141,10 @@ namespace Rewards_fast
 
             if (pictureBox_template5.Image != null)
             {
-                // Запоминаем выбранное изображение
-                selectedImage = pictureBox_template5.Image;
-
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
 
-                Additional_information2 newForm = new Additional_information2();
+                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -173,13 +161,10 @@ namespace Rewards_fast
 
             if (pictureBox_template6.Image != null)
             {
-                // Запоминаем выбранное изображение
-                selectedImage = pictureBox_template6.Image;
-
                 // Для проверки можно вывести сообщение
                 MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
 
-                Additional_information2 newForm = new Additional_information2();
+                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
