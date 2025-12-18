@@ -18,9 +18,21 @@ namespace Rewards_fast
         Image image;
         string image2;
 
+        class CustomToolStripProfessionalRenderer : ProfessionalColorTable
+        {
+            // Переопределяем нужные нам свойства для изменения цветов
+            public override Color MenuItemSelectedGradientBegin => Color.GreenYellow;   // Цвет нажатого пункта меню сверху
+            public override Color MenuItemSelectedGradientEnd => Color.LightGreen;       // Цвет нажатого пункта меню снизу
+            public override Color MenuItemPressedGradientBegin => Color.DarkSeaGreen;   // Цвет фокуса пункт меню сверху
+            public override Color MenuItemPressedGradientEnd => Color.MediumSpringGreen;// Цвет фокуса пункт меню снизу
+            public override Color MenuItemBorder => Color.Black;                         // Границы пунктов меню
+        }
+
         public Template_Constructor(string param1, string param2, object objParam)
         {
             InitializeComponent();
+            // Назначаем рендереру своё оформление
+            menuStrip1.Renderer = new ToolStripProfessionalRenderer(new CustomToolStripProfessionalRenderer());
 
             FIO = param1;
             foldername = param2;
