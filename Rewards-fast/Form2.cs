@@ -59,9 +59,13 @@ namespace Rewards_fast
             DirectoryInfo directoryInfo = Directory.CreateDirectory(folderPath);
             MessageBox.Show($"Папка успешно создана по пути: {directoryInfo.FullName}", "Успех");
 
-            //Передача данных о пути изображения наградного материала и списка ФИО
-            string image = textBox_image_location.Text;
-            string FIO = textBox_Full_Name_list_location.Text;
+            Template_Constructor newForm = new Template_Constructor();
+
+            newForm.Txt = textBox_Full_Name_list_location.Text;
+            newForm.Txt2 = textBox_Full_Name_list_location.Text;
+            newForm.Txt3 = folderPath;
+
+            newForm.Show();
 
             this.Hide();
         }
