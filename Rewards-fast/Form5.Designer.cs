@@ -41,8 +41,12 @@
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-            this.template_image = new System.Windows.Forms.PictureBox();
+            this.label_City_year = new System.Windows.Forms.Label();
+            this.label_final_speech = new System.Windows.Forms.Label();
+            this.label_FIO = new System.Windows.Forms.Label();
+            this.label_initial_speech = new System.Windows.Forms.Label();
             this.splitter1 = new System.Windows.Forms.Splitter();
+            this.template_image = new System.Windows.Forms.PictureBox();
             this.splitter2 = new System.Windows.Forms.Splitter();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -66,7 +70,7 @@
             this.справкаToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1218, 30);
+            this.menuStrip1.Size = new System.Drawing.Size(1218, 28);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -158,8 +162,9 @@
             // 
             // splitContainer1
             // 
+            this.splitContainer1.AllowDrop = true;
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 30);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 28);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -169,7 +174,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
-            this.splitContainer1.Size = new System.Drawing.Size(1218, 642);
+            this.splitContainer1.Size = new System.Drawing.Size(1218, 644);
             this.splitContainer1.SplitterDistance = 307;
             this.splitContainer1.TabIndex = 1;
             // 
@@ -182,6 +187,10 @@
             // splitContainer2.Panel1
             // 
             this.splitContainer2.Panel1.AutoScroll = true;
+            this.splitContainer2.Panel1.Controls.Add(this.label_City_year);
+            this.splitContainer2.Panel1.Controls.Add(this.label_final_speech);
+            this.splitContainer2.Panel1.Controls.Add(this.label_FIO);
+            this.splitContainer2.Panel1.Controls.Add(this.label_initial_speech);
             this.splitContainer2.Panel1.Controls.Add(this.splitter1);
             this.splitContainer2.Panel1.Controls.Add(this.template_image);
             // 
@@ -189,12 +198,65 @@
             // 
             this.splitContainer2.Panel2.AutoScroll = true;
             this.splitContainer2.Panel2.Controls.Add(this.splitter2);
-            this.splitContainer2.Size = new System.Drawing.Size(907, 642);
+            this.splitContainer2.Size = new System.Drawing.Size(907, 644);
             this.splitContainer2.SplitterDistance = 598;
             this.splitContainer2.TabIndex = 0;
             // 
+            // label_City_year
+            // 
+            this.label_City_year.AllowDrop = true;
+            this.label_City_year.AutoSize = true;
+            this.label_City_year.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_City_year.Location = new System.Drawing.Point(232, 308);
+            this.label_City_year.Name = "label_City_year";
+            this.label_City_year.Size = new System.Drawing.Size(79, 15);
+            this.label_City_year.TabIndex = 5;
+            this.label_City_year.Text = "Город, ГГГГ";
+            // 
+            // label_final_speech
+            // 
+            this.label_final_speech.AllowDrop = true;
+            this.label_final_speech.AutoSize = true;
+            this.label_final_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_final_speech.Location = new System.Drawing.Point(222, 251);
+            this.label_final_speech.Name = "label_final_speech";
+            this.label_final_speech.Size = new System.Drawing.Size(87, 15);
+            this.label_final_speech.TabIndex = 4;
+            this.label_final_speech.Text = "Какой-то текст";
+            // 
+            // label_FIO
+            // 
+            this.label_FIO.AllowDrop = true;
+            this.label_FIO.AutoSize = true;
+            this.label_FIO.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_FIO.Location = new System.Drawing.Point(195, 196);
+            this.label_FIO.Name = "label_FIO";
+            this.label_FIO.Size = new System.Drawing.Size(137, 15);
+            this.label_FIO.TabIndex = 3;
+            this.label_FIO.Text = "Иванов Иван Иванович";
+            // 
+            // label_initial_speech
+            // 
+            this.label_initial_speech.AllowDrop = true;
+            this.label_initial_speech.AutoSize = true;
+            this.label_initial_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_initial_speech.Location = new System.Drawing.Point(222, 145);
+            this.label_initial_speech.Name = "label_initial_speech";
+            this.label_initial_speech.Size = new System.Drawing.Size(87, 15);
+            this.label_initial_speech.TabIndex = 2;
+            this.label_initial_speech.Text = "Какой-то текст";
+            // 
+            // splitter1
+            // 
+            this.splitter1.Location = new System.Drawing.Point(0, 0);
+            this.splitter1.Name = "splitter1";
+            this.splitter1.Size = new System.Drawing.Size(3, 644);
+            this.splitter1.TabIndex = 1;
+            this.splitter1.TabStop = false;
+            // 
             // template_image
             // 
+            this.template_image.AllowDrop = true;
             this.template_image.Location = new System.Drawing.Point(3, 3);
             this.template_image.Name = "template_image";
             this.template_image.Size = new System.Drawing.Size(592, 638);
@@ -202,24 +264,17 @@
             this.template_image.TabIndex = 0;
             this.template_image.TabStop = false;
             // 
-            // splitter1
-            // 
-            this.splitter1.Location = new System.Drawing.Point(0, 0);
-            this.splitter1.Name = "splitter1";
-            this.splitter1.Size = new System.Drawing.Size(3, 642);
-            this.splitter1.TabIndex = 1;
-            this.splitter1.TabStop = false;
-            // 
             // splitter2
             // 
             this.splitter2.Location = new System.Drawing.Point(0, 0);
             this.splitter2.Name = "splitter2";
-            this.splitter2.Size = new System.Drawing.Size(3, 642);
+            this.splitter2.Size = new System.Drawing.Size(3, 644);
             this.splitter2.TabIndex = 0;
             this.splitter2.TabStop = false;
             // 
             // Template_Constructor
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SeaGreen;
@@ -236,6 +291,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel1.PerformLayout();
             this.splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
@@ -263,5 +319,9 @@
         private System.Windows.Forms.PictureBox template_image;
         private System.Windows.Forms.Splitter splitter1;
         private System.Windows.Forms.Splitter splitter2;
+        private System.Windows.Forms.Label label_City_year;
+        private System.Windows.Forms.Label label_final_speech;
+        private System.Windows.Forms.Label label_FIO;
+        private System.Windows.Forms.Label label_initial_speech;
     }
 }

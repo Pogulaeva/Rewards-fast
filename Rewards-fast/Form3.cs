@@ -59,7 +59,7 @@ namespace Rewards_fast
 
             if (pictureBox_template1.Image != null)
             {
-                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
+                Additional_information2 newForm = new Additional_information2(pictureBox_template1.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -93,7 +93,7 @@ namespace Rewards_fast
 
             if (pictureBox_template3.Image != null)
             {
-                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
+                Additional_information2 newForm = new Additional_information2(pictureBox_template3.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -110,7 +110,7 @@ namespace Rewards_fast
 
             if (pictureBox_template4.Image != null)
             {
-                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
+                Additional_information2 newForm = new Additional_information2(pictureBox_template4.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -127,7 +127,7 @@ namespace Rewards_fast
 
             if (pictureBox_template5.Image != null)
             {
-                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
+                Additional_information2 newForm = new Additional_information2(pictureBox_template5.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
@@ -144,7 +144,7 @@ namespace Rewards_fast
 
             if (pictureBox_template6.Image != null)
             {
-                Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
+                Additional_information2 newForm = new Additional_information2(pictureBox_template6.Image);
                 newForm.ShowDialog();
 
                 //После завершения работы Additional_information2, закрываем текущую
