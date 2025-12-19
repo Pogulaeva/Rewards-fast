@@ -59,10 +59,6 @@ namespace Rewards_fast
 
             if (pictureBox_template1.Image != null)
             {
-
-                // Для проверки можно вывести сообщение
-                MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
-
                 Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
@@ -80,10 +76,6 @@ namespace Rewards_fast
 
             if (pictureBox_template2.Image != null)
             {
-
-                // Для проверки можно вывести сообщение
-                MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
-
                 Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
@@ -101,9 +93,6 @@ namespace Rewards_fast
 
             if (pictureBox_template3.Image != null)
             {
-                // Для проверки можно вывести сообщение
-                MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
-
                 Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
@@ -121,9 +110,6 @@ namespace Rewards_fast
 
             if (pictureBox_template4.Image != null)
             {
-                // Для проверки можно вывести сообщение
-                MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
-
                 Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
@@ -141,9 +127,6 @@ namespace Rewards_fast
 
             if (pictureBox_template5.Image != null)
             {
-                // Для проверки можно вывести сообщение
-                MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
-
                 Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 
@@ -161,9 +144,6 @@ namespace Rewards_fast
 
             if (pictureBox_template6.Image != null)
             {
-                // Для проверки можно вывести сообщение
-                MessageBox.Show("Изображение выбрано и сохранено для дальнейшей работы.");
-
                 Additional_information2 newForm = new Additional_information2(pictureBox_template2.Image);
                 newForm.ShowDialog();
 

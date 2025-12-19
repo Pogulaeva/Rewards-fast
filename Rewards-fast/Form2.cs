@@ -57,7 +57,6 @@ namespace Rewards_fast
             //Создание папки в выбранной директории
             string folderPath = Path.Combine(textBox_location.Text, textBox_folder_name.Text);
             DirectoryInfo directoryInfo = Directory.CreateDirectory(folderPath);
-            MessageBox.Show($"Папка успешно создана по пути: {directoryInfo.FullName}", "Успех");
 
             Template_Constructor newForm = new Template_Constructor(textBox_Full_Name_list_location.Text, folderPath, textBox_image_location.Text);
             newForm.Show();

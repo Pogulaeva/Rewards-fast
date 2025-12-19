@@ -37,9 +37,18 @@ namespace Rewards_fast
             FIO = param1;
             foldername = param2;
             if (objParam is Image)
+            {
                 image = (Image)objParam;
-            else if (objParam is string)
-                image2 = (string)objParam;
+                template_image.Image = image;
+            }
+            else
+            {
+                if (objParam is string)
+                {
+                    image2 = (string)objParam;
+                    template_image.Image = Image.FromFile(image2);
+                } 
+            }
         }
     }
 
