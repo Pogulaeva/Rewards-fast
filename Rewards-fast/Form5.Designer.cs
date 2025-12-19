@@ -41,13 +41,21 @@
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.label_signature_decryption = new System.Windows.Forms.Label();
+            this.label_post = new System.Windows.Forms.Label();
             this.label_City_year = new System.Windows.Forms.Label();
-            this.label_final_speech = new System.Windows.Forms.Label();
-            this.label_FIO = new System.Windows.Forms.Label();
             this.label_initial_speech = new System.Windows.Forms.Label();
-            this.splitter1 = new System.Windows.Forms.Splitter();
+            this.label_FIO = new System.Windows.Forms.Label();
+            this.label_final_speech = new System.Windows.Forms.Label();
             this.template_image = new System.Windows.Forms.PictureBox();
-            this.splitter2 = new System.Windows.Forms.Splitter();
+            this.textBox_Size = new System.Windows.Forms.TextBox();
+            this.label_Size = new System.Windows.Forms.Label();
+            this.textBox_Changing_font = new System.Windows.Forms.TextBox();
+            this.label_Changing_font = new System.Windows.Forms.Label();
+            this.richTextBox_Changing_text = new System.Windows.Forms.RichTextBox();
+            this.label_text = new System.Windows.Forms.Label();
+            this.fontDialog1 = new System.Windows.Forms.FontDialog();
+            this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -163,6 +171,7 @@
             // splitContainer1
             // 
             this.splitContainer1.AllowDrop = true;
+            this.splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 28);
             this.splitContainer1.Name = "splitContainer1";
@@ -170,107 +179,218 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.AutoScroll = true;
+            this.splitContainer1.Panel1.BackColor = System.Drawing.Color.Transparent;
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.AllowDrop = true;
+            this.splitContainer1.Panel2.AutoScroll = true;
+            this.splitContainer1.Panel2.BackColor = System.Drawing.Color.Transparent;
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer1.Size = new System.Drawing.Size(1218, 644);
-            this.splitContainer1.SplitterDistance = 307;
+            this.splitContainer1.SplitterDistance = 327;
             this.splitContainer1.TabIndex = 1;
             // 
             // splitContainer2
             // 
+            this.splitContainer2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
             this.splitContainer2.Location = new System.Drawing.Point(0, 0);
             this.splitContainer2.Name = "splitContainer2";
             // 
             // splitContainer2.Panel1
             // 
             this.splitContainer2.Panel1.AutoScroll = true;
+            this.splitContainer2.Panel1.Controls.Add(this.label_signature_decryption);
+            this.splitContainer2.Panel1.Controls.Add(this.label_post);
             this.splitContainer2.Panel1.Controls.Add(this.label_City_year);
-            this.splitContainer2.Panel1.Controls.Add(this.label_final_speech);
-            this.splitContainer2.Panel1.Controls.Add(this.label_FIO);
             this.splitContainer2.Panel1.Controls.Add(this.label_initial_speech);
-            this.splitContainer2.Panel1.Controls.Add(this.splitter1);
+            this.splitContainer2.Panel1.Controls.Add(this.label_FIO);
+            this.splitContainer2.Panel1.Controls.Add(this.label_final_speech);
             this.splitContainer2.Panel1.Controls.Add(this.template_image);
             // 
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.AutoScroll = true;
-            this.splitContainer2.Panel2.Controls.Add(this.splitter2);
-            this.splitContainer2.Size = new System.Drawing.Size(907, 644);
-            this.splitContainer2.SplitterDistance = 598;
+            this.splitContainer2.Panel2.Controls.Add(this.textBox_Size);
+            this.splitContainer2.Panel2.Controls.Add(this.label_Size);
+            this.splitContainer2.Panel2.Controls.Add(this.textBox_Changing_font);
+            this.splitContainer2.Panel2.Controls.Add(this.label_Changing_font);
+            this.splitContainer2.Panel2.Controls.Add(this.richTextBox_Changing_text);
+            this.splitContainer2.Panel2.Controls.Add(this.label_text);
+            this.splitContainer2.Panel2.Controls.Add(this.label_Changing_parameters);
+            this.splitContainer2.Size = new System.Drawing.Size(887, 644);
+            this.splitContainer2.SplitterDistance = 569;
             this.splitContainer2.TabIndex = 0;
+            // 
+            // label_signature_decryption
+            // 
+            this.label_signature_decryption.AllowDrop = true;
+            this.label_signature_decryption.AutoSize = true;
+            this.label_signature_decryption.BackColor = System.Drawing.Color.Transparent;
+            this.label_signature_decryption.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label_signature_decryption.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_signature_decryption.Location = new System.Drawing.Point(392, 441);
+            this.label_signature_decryption.Name = "label_signature_decryption";
+            this.label_signature_decryption.Size = new System.Drawing.Size(90, 17);
+            this.label_signature_decryption.TabIndex = 7;
+            this.label_signature_decryption.Text = "Фамилия И. О.";
+            // 
+            // label_post
+            // 
+            this.label_post.AllowDrop = true;
+            this.label_post.AutoSize = true;
+            this.label_post.BackColor = System.Drawing.Color.Transparent;
+            this.label_post.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label_post.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_post.Location = new System.Drawing.Point(140, 441);
+            this.label_post.Name = "label_post";
+            this.label_post.Size = new System.Drawing.Size(71, 17);
+            this.label_post.TabIndex = 6;
+            this.label_post.Text = "Должность";
             // 
             // label_City_year
             // 
             this.label_City_year.AllowDrop = true;
             this.label_City_year.AutoSize = true;
+            this.label_City_year.BackColor = System.Drawing.Color.Transparent;
+            this.label_City_year.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_City_year.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label_City_year.Location = new System.Drawing.Point(232, 308);
+            this.label_City_year.Location = new System.Drawing.Point(272, 545);
             this.label_City_year.Name = "label_City_year";
-            this.label_City_year.Size = new System.Drawing.Size(79, 15);
+            this.label_City_year.Size = new System.Drawing.Size(81, 17);
             this.label_City_year.TabIndex = 5;
             this.label_City_year.Text = "Город, ГГГГ";
-            // 
-            // label_final_speech
-            // 
-            this.label_final_speech.AllowDrop = true;
-            this.label_final_speech.AutoSize = true;
-            this.label_final_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label_final_speech.Location = new System.Drawing.Point(222, 251);
-            this.label_final_speech.Name = "label_final_speech";
-            this.label_final_speech.Size = new System.Drawing.Size(87, 15);
-            this.label_final_speech.TabIndex = 4;
-            this.label_final_speech.Text = "Какой-то текст";
-            // 
-            // label_FIO
-            // 
-            this.label_FIO.AllowDrop = true;
-            this.label_FIO.AutoSize = true;
-            this.label_FIO.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label_FIO.Location = new System.Drawing.Point(195, 196);
-            this.label_FIO.Name = "label_FIO";
-            this.label_FIO.Size = new System.Drawing.Size(137, 15);
-            this.label_FIO.TabIndex = 3;
-            this.label_FIO.Text = "Иванов Иван Иванович";
             // 
             // label_initial_speech
             // 
             this.label_initial_speech.AllowDrop = true;
             this.label_initial_speech.AutoSize = true;
+            this.label_initial_speech.BackColor = System.Drawing.Color.Transparent;
+            this.label_initial_speech.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_initial_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label_initial_speech.Location = new System.Drawing.Point(222, 145);
+            this.label_initial_speech.Location = new System.Drawing.Point(264, 198);
             this.label_initial_speech.Name = "label_initial_speech";
-            this.label_initial_speech.Size = new System.Drawing.Size(87, 15);
+            this.label_initial_speech.Size = new System.Drawing.Size(89, 17);
             this.label_initial_speech.TabIndex = 2;
             this.label_initial_speech.Text = "Какой-то текст";
             // 
-            // splitter1
+            // label_FIO
             // 
-            this.splitter1.Location = new System.Drawing.Point(0, 0);
-            this.splitter1.Name = "splitter1";
-            this.splitter1.Size = new System.Drawing.Size(3, 644);
-            this.splitter1.TabIndex = 1;
-            this.splitter1.TabStop = false;
+            this.label_FIO.AllowDrop = true;
+            this.label_FIO.AutoSize = true;
+            this.label_FIO.BackColor = System.Drawing.Color.Transparent;
+            this.label_FIO.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label_FIO.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_FIO.Location = new System.Drawing.Point(241, 282);
+            this.label_FIO.Name = "label_FIO";
+            this.label_FIO.Size = new System.Drawing.Size(139, 17);
+            this.label_FIO.TabIndex = 3;
+            this.label_FIO.Text = "Иванов Иван Иванович";
+            // 
+            // label_final_speech
+            // 
+            this.label_final_speech.AllowDrop = true;
+            this.label_final_speech.AutoSize = true;
+            this.label_final_speech.BackColor = System.Drawing.Color.Transparent;
+            this.label_final_speech.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.label_final_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_final_speech.Location = new System.Drawing.Point(264, 367);
+            this.label_final_speech.Name = "label_final_speech";
+            this.label_final_speech.Size = new System.Drawing.Size(89, 17);
+            this.label_final_speech.TabIndex = 4;
+            this.label_final_speech.Text = "Какой-то текст";
             // 
             // template_image
             // 
             this.template_image.AllowDrop = true;
-            this.template_image.Location = new System.Drawing.Point(3, 3);
+            this.template_image.BackColor = System.Drawing.Color.Transparent;
+            this.template_image.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.template_image.Location = new System.Drawing.Point(0, 0);
             this.template_image.Name = "template_image";
-            this.template_image.Size = new System.Drawing.Size(592, 638);
+            this.template_image.Size = new System.Drawing.Size(565, 640);
             this.template_image.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.template_image.TabIndex = 0;
             this.template_image.TabStop = false;
             // 
-            // splitter2
+            // textBox_Size
             // 
-            this.splitter2.Location = new System.Drawing.Point(0, 0);
-            this.splitter2.Name = "splitter2";
-            this.splitter2.Size = new System.Drawing.Size(3, 644);
-            this.splitter2.TabIndex = 0;
-            this.splitter2.TabStop = false;
+            this.textBox_Size.BackColor = System.Drawing.Color.SeaGreen;
+            this.textBox_Size.Location = new System.Drawing.Point(90, 249);
+            this.textBox_Size.Name = "textBox_Size";
+            this.textBox_Size.ReadOnly = true;
+            this.textBox_Size.Size = new System.Drawing.Size(44, 22);
+            this.textBox_Size.TabIndex = 7;
+            this.textBox_Size.TabStop = false;
+            this.textBox_Size.Click += new System.EventHandler(this.textBox_Size_Click);
+            // 
+            // label_Size
+            // 
+            this.label_Size.AutoSize = true;
+            this.label_Size.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Size.ForeColor = System.Drawing.Color.White;
+            this.label_Size.Location = new System.Drawing.Point(3, 242);
+            this.label_Size.Name = "label_Size";
+            this.label_Size.Size = new System.Drawing.Size(82, 28);
+            this.label_Size.TabIndex = 6;
+            this.label_Size.Text = "Размер:";
+            // 
+            // textBox_Changing_font
+            // 
+            this.textBox_Changing_font.BackColor = System.Drawing.Color.SeaGreen;
+            this.textBox_Changing_font.Location = new System.Drawing.Point(90, 204);
+            this.textBox_Changing_font.Name = "textBox_Changing_font";
+            this.textBox_Changing_font.ReadOnly = true;
+            this.textBox_Changing_font.Size = new System.Drawing.Size(210, 22);
+            this.textBox_Changing_font.TabIndex = 5;
+            this.textBox_Changing_font.TabStop = false;
+            this.textBox_Changing_font.Click += new System.EventHandler(this.textBox_Changing_font_Clik);
+            // 
+            // label_Changing_font
+            // 
+            this.label_Changing_font.AutoSize = true;
+            this.label_Changing_font.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Changing_font.ForeColor = System.Drawing.Color.White;
+            this.label_Changing_font.Location = new System.Drawing.Point(3, 198);
+            this.label_Changing_font.Name = "label_Changing_font";
+            this.label_Changing_font.Size = new System.Drawing.Size(81, 28);
+            this.label_Changing_font.TabIndex = 4;
+            this.label_Changing_font.Text = "Шрифт:";
+            // 
+            // richTextBox_Changing_text
+            // 
+            this.richTextBox_Changing_text.BackColor = System.Drawing.Color.SeaGreen;
+            this.richTextBox_Changing_text.ForeColor = System.Drawing.Color.White;
+            this.richTextBox_Changing_text.Location = new System.Drawing.Point(8, 77);
+            this.richTextBox_Changing_text.Name = "richTextBox_Changing_text";
+            this.richTextBox_Changing_text.Size = new System.Drawing.Size(292, 93);
+            this.richTextBox_Changing_text.TabIndex = 3;
+            this.richTextBox_Changing_text.Text = "";
+            // 
+            // label_text
+            // 
+            this.label_text.AutoSize = true;
+            this.label_text.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_text.ForeColor = System.Drawing.Color.White;
+            this.label_text.Location = new System.Drawing.Point(3, 46);
+            this.label_text.Name = "label_text";
+            this.label_text.Size = new System.Drawing.Size(63, 28);
+            this.label_text.TabIndex = 2;
+            this.label_text.Text = "Текст:";
+            // 
+            // label_Changing_parameters
+            // 
+            this.label_Changing_parameters.AutoSize = true;
+            this.label_Changing_parameters.BackColor = System.Drawing.Color.MediumSeaGreen;
+            this.label_Changing_parameters.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label_Changing_parameters.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 13F);
+            this.label_Changing_parameters.ForeColor = System.Drawing.Color.White;
+            this.label_Changing_parameters.Location = new System.Drawing.Point(-2, 0);
+            this.label_Changing_parameters.Name = "label_Changing_parameters";
+            this.label_Changing_parameters.Size = new System.Drawing.Size(310, 24);
+            this.label_Changing_parameters.TabIndex = 1;
+            this.label_Changing_parameters.Text = "Изменение параметров элемента";
             // 
             // Template_Constructor
             // 
@@ -293,6 +413,7 @@
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel1.PerformLayout();
             this.splitContainer2.Panel2.ResumeLayout(false);
+            this.splitContainer2.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.template_image)).EndInit();
@@ -317,11 +438,19 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.PictureBox template_image;
-        private System.Windows.Forms.Splitter splitter1;
-        private System.Windows.Forms.Splitter splitter2;
         private System.Windows.Forms.Label label_City_year;
         private System.Windows.Forms.Label label_final_speech;
         private System.Windows.Forms.Label label_FIO;
         private System.Windows.Forms.Label label_initial_speech;
+        private System.Windows.Forms.Label label_signature_decryption;
+        private System.Windows.Forms.Label label_post;
+        private System.Windows.Forms.Label label_text;
+        private System.Windows.Forms.RichTextBox richTextBox_Changing_text;
+        private System.Windows.Forms.Label label_Changing_font;
+        private System.Windows.Forms.TextBox textBox_Changing_font;
+        private System.Windows.Forms.FontDialog fontDialog1;
+        private System.Windows.Forms.TextBox textBox_Size;
+        private System.Windows.Forms.Label label_Size;
+        private System.Windows.Forms.Label label_Changing_parameters;
     }
 }

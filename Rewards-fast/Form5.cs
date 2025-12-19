@@ -115,5 +115,33 @@ namespace Rewards_fast
             var label = (System.Windows.Forms.Label)sender;
             draggingLabels[label] = false;
         }
+
+        private void textBox_Changing_font_Clik(object sender, EventArgs e)
+        {
+            using (var fontDialog = new FontDialog())
+            {
+                if (fontDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Вместо применения нового шрифта, показываем только его название
+                    textBox_Changing_font.Text = fontDialog.Font.Name;
+                    // Получаем размер шрифта и выводим его во второе текстовое поле
+                    textBox_Size.Text = fontDialog.Font.Size.ToString();
+                }
+            }
+        }
+
+        private void textBox_Size_Click(object sender, EventArgs e)
+        {
+            using (var fontDialog = new FontDialog())
+            {
+                if (fontDialog.ShowDialog() == DialogResult.OK)
+                {
+                    // Вместо применения нового шрифта, показываем только его название
+                    textBox_Changing_font.Text = fontDialog.Font.Name;
+                    // Получаем размер шрифта и выводим его во второе текстовое поле
+                    textBox_Size.Text = fontDialog.Font.Size.ToString();
+                }
+            }
+        }
     }
 }
