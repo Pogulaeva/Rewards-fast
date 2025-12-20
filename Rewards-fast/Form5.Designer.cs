@@ -61,6 +61,7 @@
             this.label_text = new System.Windows.Forms.Label();
             this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
+            this.button_Apply_changes = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -218,6 +219,7 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.AutoScroll = true;
+            this.splitContainer2.Panel2.Controls.Add(this.button_Apply_changes);
             this.splitContainer2.Panel2.Controls.Add(this.label_case);
             this.splitContainer2.Panel2.Controls.Add(this.comboBox_case);
             this.splitContainer2.Panel2.Controls.Add(this.label_Underlined);
@@ -240,10 +242,10 @@
             this.label_signature_decryption.AutoSize = true;
             this.label_signature_decryption.BackColor = System.Drawing.Color.Transparent;
             this.label_signature_decryption.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label_signature_decryption.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_signature_decryption.Font = new System.Drawing.Font("Times New Roman", 7F);
             this.label_signature_decryption.Location = new System.Drawing.Point(392, 441);
             this.label_signature_decryption.Name = "label_signature_decryption";
-            this.label_signature_decryption.Size = new System.Drawing.Size(90, 17);
+            this.label_signature_decryption.Size = new System.Drawing.Size(84, 17);
             this.label_signature_decryption.TabIndex = 7;
             this.label_signature_decryption.Text = "Фамилия И. О.";
             this.label_signature_decryption.Click += new System.EventHandler(this.label_signature_decryption_Click);
@@ -254,10 +256,10 @@
             this.label_post.AutoSize = true;
             this.label_post.BackColor = System.Drawing.Color.Transparent;
             this.label_post.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label_post.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_post.Font = new System.Drawing.Font("Times New Roman", 7F);
             this.label_post.Location = new System.Drawing.Point(140, 441);
             this.label_post.Name = "label_post";
-            this.label_post.Size = new System.Drawing.Size(71, 17);
+            this.label_post.Size = new System.Drawing.Size(65, 17);
             this.label_post.TabIndex = 6;
             this.label_post.Text = "Должность";
             this.label_post.Click += new System.EventHandler(this.label_post_Click);
@@ -268,10 +270,10 @@
             this.label_City_year.AutoSize = true;
             this.label_City_year.BackColor = System.Drawing.Color.Transparent;
             this.label_City_year.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label_City_year.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_City_year.Font = new System.Drawing.Font("Times New Roman", 7F);
             this.label_City_year.Location = new System.Drawing.Point(272, 545);
             this.label_City_year.Name = "label_City_year";
-            this.label_City_year.Size = new System.Drawing.Size(81, 17);
+            this.label_City_year.Size = new System.Drawing.Size(74, 17);
             this.label_City_year.TabIndex = 5;
             this.label_City_year.Text = "Город, ГГГГ";
             this.label_City_year.Click += new System.EventHandler(this.label_City_year_Click);
@@ -282,10 +284,10 @@
             this.label_initial_speech.AutoSize = true;
             this.label_initial_speech.BackColor = System.Drawing.Color.Transparent;
             this.label_initial_speech.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label_initial_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_initial_speech.Font = new System.Drawing.Font("Times New Roman", 7F);
             this.label_initial_speech.Location = new System.Drawing.Point(264, 198);
             this.label_initial_speech.Name = "label_initial_speech";
-            this.label_initial_speech.Size = new System.Drawing.Size(89, 17);
+            this.label_initial_speech.Size = new System.Drawing.Size(83, 17);
             this.label_initial_speech.TabIndex = 2;
             this.label_initial_speech.Text = "Какой-то текст";
             this.label_initial_speech.Click += new System.EventHandler(this.label_initial_speech_Click);
@@ -296,10 +298,10 @@
             this.label_FIO.AutoSize = true;
             this.label_FIO.BackColor = System.Drawing.Color.Transparent;
             this.label_FIO.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label_FIO.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_FIO.Font = new System.Drawing.Font("Times New Roman", 7F);
             this.label_FIO.Location = new System.Drawing.Point(241, 282);
             this.label_FIO.Name = "label_FIO";
-            this.label_FIO.Size = new System.Drawing.Size(139, 17);
+            this.label_FIO.Size = new System.Drawing.Size(129, 17);
             this.label_FIO.TabIndex = 3;
             this.label_FIO.Text = "Иванов Иван Иванович";
             this.label_FIO.Click += new System.EventHandler(this.label_FIO_Click);
@@ -310,10 +312,10 @@
             this.label_final_speech.AutoSize = true;
             this.label_final_speech.BackColor = System.Drawing.Color.Transparent;
             this.label_final_speech.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.label_final_speech.Font = new System.Drawing.Font("Times New Roman", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_final_speech.Font = new System.Drawing.Font("Times New Roman", 7F);
             this.label_final_speech.Location = new System.Drawing.Point(264, 367);
             this.label_final_speech.Name = "label_final_speech";
-            this.label_final_speech.Size = new System.Drawing.Size(89, 17);
+            this.label_final_speech.Size = new System.Drawing.Size(83, 17);
             this.label_final_speech.TabIndex = 4;
             this.label_final_speech.Text = "Какой-то текст";
             this.label_final_speech.Click += new System.EventHandler(this.label_final_speech_Click);
@@ -410,6 +412,7 @@
             this.textBox_Size.TabIndex = 7;
             this.textBox_Size.TabStop = false;
             this.textBox_Size.Click += new System.EventHandler(this.textBox_Size_Click);
+            this.textBox_Size.TextChanged += new System.EventHandler(this.textBox_Size_TextChanged);
             // 
             // label_Size
             // 
@@ -432,6 +435,7 @@
             this.textBox_Changing_font.TabIndex = 5;
             this.textBox_Changing_font.TabStop = false;
             this.textBox_Changing_font.Click += new System.EventHandler(this.textBox_Changing_font_Clik);
+            this.textBox_Changing_font.TextChanged += new System.EventHandler(this.textBox_Changing_font_TextChanged);
             // 
             // label_Changing_font
             // 
@@ -477,6 +481,19 @@
             this.label_Changing_parameters.Size = new System.Drawing.Size(310, 24);
             this.label_Changing_parameters.TabIndex = 1;
             this.label_Changing_parameters.Text = "Изменение параметров элемента";
+            // 
+            // button_Apply_changes
+            // 
+            this.button_Apply_changes.BackColor = System.Drawing.Color.Green;
+            this.button_Apply_changes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button_Apply_changes.ForeColor = System.Drawing.Color.White;
+            this.button_Apply_changes.Location = new System.Drawing.Point(115, 594);
+            this.button_Apply_changes.Name = "button_Apply_changes";
+            this.button_Apply_changes.Size = new System.Drawing.Size(171, 28);
+            this.button_Apply_changes.TabIndex = 13;
+            this.button_Apply_changes.Text = "Применить изменения";
+            this.button_Apply_changes.UseVisualStyleBackColor = false;
+            this.button_Apply_changes.Click += new System.EventHandler(this.button_Apply_changes_Click);
             // 
             // Template_Constructor
             // 
@@ -543,5 +560,6 @@
         private System.Windows.Forms.Label label_Underlined;
         private System.Windows.Forms.ComboBox comboBox_case;
         private System.Windows.Forms.Label label_case;
+        private System.Windows.Forms.Button button_Apply_changes;
     }
 }
