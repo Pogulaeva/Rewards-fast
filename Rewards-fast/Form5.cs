@@ -126,7 +126,23 @@ namespace Rewards_fast
                     textBox_Changing_font.Text = fontDialog.Font.Name;
                     // Получаем размер шрифта и выводим его во второе текстовое поле
                     textBox_Size.Text = fontDialog.Font.Size.ToString();
+
+                    ChangeLabelColor(label_Bold, fontDialog.Font.Bold);
+                    ChangeLabelColor(label_Italics, fontDialog.Font.Italic);
+                    ChangeLabelColor(label_Underlined, fontDialog.Font.Underline);
                 }
+            }
+        }
+
+        private void ChangeLabelColor(System.Windows.Forms.Label label, bool isSelected)
+        {
+            if (isSelected)
+            {
+                label.BackColor = Color.MediumSeaGreen; // Меняем цвет на яркий зеленый
+            }
+            else
+            {
+                label.BackColor = Color.SeaGreen; // Возвращаемся к обычному цвету
             }
         }
 
@@ -142,6 +158,68 @@ namespace Rewards_fast
                     textBox_Size.Text = fontDialog.Font.Size.ToString();
                 }
             }
+        }
+        private void label_Bold_Click(object sender, EventArgs e)
+        {
+            label_Bold.BackColor = Color.MediumSeaGreen;
+        }
+
+        private void label_Italics_Click(object sender, EventArgs e)
+        {
+            label_Italics.BackColor = Color.MediumSeaGreen;
+        }
+
+        private void label_Underlined_Click(object sender, EventArgs e)
+        {
+            label_Underlined.BackColor = Color.MediumSeaGreen;
+        }
+
+        private void label_FIO_Click(object sender, EventArgs e)
+        {
+            // Делаем текстовое поле доступным только для чтения
+            richTextBox_Changing_text.ReadOnly = true;
+            label_case.Visible = true;
+            comboBox_case.Visible = true;
+        }
+
+        private void label_initial_speech_Click(object sender, EventArgs e)
+        {
+            // Делаем текстовое поле доступным только для чтения
+            richTextBox_Changing_text.ReadOnly = false;
+            label_case.Visible = false;
+            comboBox_case.Visible = false;
+        }
+
+        private void label_final_speech_Click(object sender, EventArgs e)
+        {
+            // Делаем текстовое поле доступным только для чтения
+            richTextBox_Changing_text.ReadOnly = false;
+            label_case.Visible = false;
+            comboBox_case.Visible = false;
+        }
+
+        private void label_post_Click(object sender, EventArgs e)
+        {
+            // Делаем текстовое поле доступным только для чтения
+            richTextBox_Changing_text.ReadOnly = false;
+            label_case.Visible = false;
+            comboBox_case.Visible = false;
+        }
+
+        private void label_signature_decryption_Click(object sender, EventArgs e)
+        {
+            // Делаем текстовое поле доступным только для чтения
+            richTextBox_Changing_text.ReadOnly = false;
+            label_case.Visible = false;
+            comboBox_case.Visible = false;
+        }
+
+        private void label_City_year_Click(object sender, EventArgs e)
+        {
+            // Делаем текстовое поле доступным только для чтения
+            richTextBox_Changing_text.ReadOnly = false;
+            label_case.Visible = false;
+            comboBox_case.Visible = false;
         }
     }
 }

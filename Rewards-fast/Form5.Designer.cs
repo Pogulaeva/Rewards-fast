@@ -48,14 +48,19 @@
             this.label_FIO = new System.Windows.Forms.Label();
             this.label_final_speech = new System.Windows.Forms.Label();
             this.template_image = new System.Windows.Forms.PictureBox();
+            this.label_case = new System.Windows.Forms.Label();
+            this.comboBox_case = new System.Windows.Forms.ComboBox();
+            this.label_Underlined = new System.Windows.Forms.Label();
+            this.label_Italics = new System.Windows.Forms.Label();
+            this.label_Bold = new System.Windows.Forms.Label();
             this.textBox_Size = new System.Windows.Forms.TextBox();
             this.label_Size = new System.Windows.Forms.Label();
             this.textBox_Changing_font = new System.Windows.Forms.TextBox();
             this.label_Changing_font = new System.Windows.Forms.Label();
             this.richTextBox_Changing_text = new System.Windows.Forms.RichTextBox();
             this.label_text = new System.Windows.Forms.Label();
-            this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.label_Changing_parameters = new System.Windows.Forms.Label();
+            this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -213,6 +218,11 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.AutoScroll = true;
+            this.splitContainer2.Panel2.Controls.Add(this.label_case);
+            this.splitContainer2.Panel2.Controls.Add(this.comboBox_case);
+            this.splitContainer2.Panel2.Controls.Add(this.label_Underlined);
+            this.splitContainer2.Panel2.Controls.Add(this.label_Italics);
+            this.splitContainer2.Panel2.Controls.Add(this.label_Bold);
             this.splitContainer2.Panel2.Controls.Add(this.textBox_Size);
             this.splitContainer2.Panel2.Controls.Add(this.label_Size);
             this.splitContainer2.Panel2.Controls.Add(this.textBox_Changing_font);
@@ -236,6 +246,7 @@
             this.label_signature_decryption.Size = new System.Drawing.Size(90, 17);
             this.label_signature_decryption.TabIndex = 7;
             this.label_signature_decryption.Text = "Фамилия И. О.";
+            this.label_signature_decryption.Click += new System.EventHandler(this.label_signature_decryption_Click);
             // 
             // label_post
             // 
@@ -249,6 +260,7 @@
             this.label_post.Size = new System.Drawing.Size(71, 17);
             this.label_post.TabIndex = 6;
             this.label_post.Text = "Должность";
+            this.label_post.Click += new System.EventHandler(this.label_post_Click);
             // 
             // label_City_year
             // 
@@ -262,6 +274,7 @@
             this.label_City_year.Size = new System.Drawing.Size(81, 17);
             this.label_City_year.TabIndex = 5;
             this.label_City_year.Text = "Город, ГГГГ";
+            this.label_City_year.Click += new System.EventHandler(this.label_City_year_Click);
             // 
             // label_initial_speech
             // 
@@ -275,6 +288,7 @@
             this.label_initial_speech.Size = new System.Drawing.Size(89, 17);
             this.label_initial_speech.TabIndex = 2;
             this.label_initial_speech.Text = "Какой-то текст";
+            this.label_initial_speech.Click += new System.EventHandler(this.label_initial_speech_Click);
             // 
             // label_FIO
             // 
@@ -288,6 +302,7 @@
             this.label_FIO.Size = new System.Drawing.Size(139, 17);
             this.label_FIO.TabIndex = 3;
             this.label_FIO.Text = "Иванов Иван Иванович";
+            this.label_FIO.Click += new System.EventHandler(this.label_FIO_Click);
             // 
             // label_final_speech
             // 
@@ -301,6 +316,7 @@
             this.label_final_speech.Size = new System.Drawing.Size(89, 17);
             this.label_final_speech.TabIndex = 4;
             this.label_final_speech.Text = "Какой-то текст";
+            this.label_final_speech.Click += new System.EventHandler(this.label_final_speech_Click);
             // 
             // template_image
             // 
@@ -313,6 +329,76 @@
             this.template_image.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.template_image.TabIndex = 0;
             this.template_image.TabStop = false;
+            // 
+            // label_case
+            // 
+            this.label_case.AutoSize = true;
+            this.label_case.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_case.ForeColor = System.Drawing.Color.White;
+            this.label_case.Location = new System.Drawing.Point(3, 360);
+            this.label_case.Name = "label_case";
+            this.label_case.Size = new System.Drawing.Size(76, 28);
+            this.label_case.TabIndex = 12;
+            this.label_case.Text = "Падеж:";
+            this.label_case.Visible = false;
+            // 
+            // comboBox_case
+            // 
+            this.comboBox_case.BackColor = System.Drawing.Color.SeaGreen;
+            this.comboBox_case.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBox_case.ForeColor = System.Drawing.Color.White;
+            this.comboBox_case.FormattingEnabled = true;
+            this.comboBox_case.Items.AddRange(new object[] {
+            "Именительный",
+            "Родительный",
+            "Дательный",
+            "Винительный",
+            "Творительный",
+            "Предложный"});
+            this.comboBox_case.Location = new System.Drawing.Point(90, 367);
+            this.comboBox_case.Name = "comboBox_case";
+            this.comboBox_case.Size = new System.Drawing.Size(210, 24);
+            this.comboBox_case.TabIndex = 11;
+            this.comboBox_case.Visible = false;
+            // 
+            // label_Underlined
+            // 
+            this.label_Underlined.AutoSize = true;
+            this.label_Underlined.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label_Underlined.Font = new System.Drawing.Font("Segoe UI Light", 12F, System.Drawing.FontStyle.Underline, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Underlined.ForeColor = System.Drawing.Color.White;
+            this.label_Underlined.Location = new System.Drawing.Point(138, 295);
+            this.label_Underlined.Name = "label_Underlined";
+            this.label_Underlined.Size = new System.Drawing.Size(26, 30);
+            this.label_Underlined.TabIndex = 10;
+            this.label_Underlined.Text = "Ч";
+            this.label_Underlined.Click += new System.EventHandler(this.label_Underlined_Click);
+            // 
+            // label_Italics
+            // 
+            this.label_Italics.AutoSize = true;
+            this.label_Italics.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label_Italics.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Italics.ForeColor = System.Drawing.Color.White;
+            this.label_Italics.Location = new System.Drawing.Point(90, 295);
+            this.label_Italics.Name = "label_Italics";
+            this.label_Italics.Size = new System.Drawing.Size(26, 30);
+            this.label_Italics.TabIndex = 9;
+            this.label_Italics.Text = "К";
+            this.label_Italics.Click += new System.EventHandler(this.label_Italics_Click);
+            // 
+            // label_Bold
+            // 
+            this.label_Bold.AutoSize = true;
+            this.label_Bold.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label_Bold.Font = new System.Drawing.Font("Segoe UI Black", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label_Bold.ForeColor = System.Drawing.Color.White;
+            this.label_Bold.Location = new System.Drawing.Point(34, 295);
+            this.label_Bold.Name = "label_Bold";
+            this.label_Bold.Size = new System.Drawing.Size(34, 30);
+            this.label_Bold.TabIndex = 8;
+            this.label_Bold.Text = "Ж";
+            this.label_Bold.Click += new System.EventHandler(this.label_Bold_Click);
             // 
             // textBox_Size
             // 
@@ -452,5 +538,10 @@
         private System.Windows.Forms.TextBox textBox_Size;
         private System.Windows.Forms.Label label_Size;
         private System.Windows.Forms.Label label_Changing_parameters;
+        private System.Windows.Forms.Label label_Italics;
+        private System.Windows.Forms.Label label_Bold;
+        private System.Windows.Forms.Label label_Underlined;
+        private System.Windows.Forms.ComboBox comboBox_case;
+        private System.Windows.Forms.Label label_case;
     }
 }
