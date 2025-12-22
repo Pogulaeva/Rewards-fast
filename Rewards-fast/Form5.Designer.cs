@@ -61,7 +61,6 @@
             this.label_text = new System.Windows.Forms.Label();
             this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
-            this.button_Apply_changes = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -219,7 +218,6 @@
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.AutoScroll = true;
-            this.splitContainer2.Panel2.Controls.Add(this.button_Apply_changes);
             this.splitContainer2.Panel2.Controls.Add(this.label_case);
             this.splitContainer2.Panel2.Controls.Add(this.comboBox_case);
             this.splitContainer2.Panel2.Controls.Add(this.label_Underlined);
@@ -374,7 +372,6 @@
             this.label_Underlined.Size = new System.Drawing.Size(26, 30);
             this.label_Underlined.TabIndex = 10;
             this.label_Underlined.Text = "Ч";
-            this.label_Underlined.Click += new System.EventHandler(this.label_Underlined_Click);
             // 
             // label_Italics
             // 
@@ -387,7 +384,6 @@
             this.label_Italics.Size = new System.Drawing.Size(26, 30);
             this.label_Italics.TabIndex = 9;
             this.label_Italics.Text = "К";
-            this.label_Italics.Click += new System.EventHandler(this.label_Italics_Click);
             // 
             // label_Bold
             // 
@@ -400,7 +396,6 @@
             this.label_Bold.Size = new System.Drawing.Size(34, 30);
             this.label_Bold.TabIndex = 8;
             this.label_Bold.Text = "Ж";
-            this.label_Bold.Click += new System.EventHandler(this.label_Bold_Click);
             // 
             // textBox_Size
             // 
@@ -411,8 +406,6 @@
             this.textBox_Size.Size = new System.Drawing.Size(44, 22);
             this.textBox_Size.TabIndex = 7;
             this.textBox_Size.TabStop = false;
-            this.textBox_Size.Click += new System.EventHandler(this.textBox_Size_Click);
-            this.textBox_Size.TextChanged += new System.EventHandler(this.textBox_Size_TextChanged);
             // 
             // label_Size
             // 
@@ -434,8 +427,6 @@
             this.textBox_Changing_font.Size = new System.Drawing.Size(210, 22);
             this.textBox_Changing_font.TabIndex = 5;
             this.textBox_Changing_font.TabStop = false;
-            this.textBox_Changing_font.Click += new System.EventHandler(this.textBox_Changing_font_Clik);
-            this.textBox_Changing_font.TextChanged += new System.EventHandler(this.textBox_Changing_font_TextChanged);
             // 
             // label_Changing_font
             // 
@@ -481,19 +472,6 @@
             this.label_Changing_parameters.Size = new System.Drawing.Size(310, 24);
             this.label_Changing_parameters.TabIndex = 1;
             this.label_Changing_parameters.Text = "Изменение параметров элемента";
-            // 
-            // button_Apply_changes
-            // 
-            this.button_Apply_changes.BackColor = System.Drawing.Color.Green;
-            this.button_Apply_changes.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button_Apply_changes.ForeColor = System.Drawing.Color.White;
-            this.button_Apply_changes.Location = new System.Drawing.Point(115, 594);
-            this.button_Apply_changes.Name = "button_Apply_changes";
-            this.button_Apply_changes.Size = new System.Drawing.Size(171, 28);
-            this.button_Apply_changes.TabIndex = 13;
-            this.button_Apply_changes.Text = "Применить изменения";
-            this.button_Apply_changes.UseVisualStyleBackColor = false;
-            this.button_Apply_changes.Click += new System.EventHandler(this.button_Apply_changes_Click);
             // 
             // Template_Constructor
             // 
@@ -560,6 +538,5 @@
         private System.Windows.Forms.Label label_Underlined;
         private System.Windows.Forms.ComboBox comboBox_case;
         private System.Windows.Forms.Label label_case;
-        private System.Windows.Forms.Button button_Apply_changes;
     }
 }

@@ -26,23 +26,11 @@ namespace Rewards_fast
 
         private const double smoothingFactor = 0.5; // коэффициент сглаживания (от 0 до 1)
 
-        // Переменная для хранения текущего выбранного Label
-        private System.Windows.Forms.Label selectedLabel;
+        // Список всех лейблов
+        private readonly List<System.Windows.Forms.Label> _labelsList;
 
-        // Переменные для сохранения текущего состояния
-        private string originalText;
-        private string originalFontName;
-        private float originalFontSize;
-        private bool originalIsBold;
-        private bool originalIsItalic;
-        private bool originalIsUnderlined;
-
-        // Глобальные переменные
-        string currentFontName = "";
-        float currentFontSize = 0f;
-        bool isBold = false;
-        bool isItalic = false;
-        bool isUnderlined = false;
+        // Активный лейбл (для которого будем вносить изменения)
+        private System.Windows.Forms.Label activeLabel;
 
         class CustomToolStripProfessionalRenderer : ProfessionalColorTable
         {
@@ -103,6 +91,168 @@ namespace Rewards_fast
             label_City_year.MouseDown += new MouseEventHandler(label_MouseDown);
             label_City_year.MouseMove += new MouseEventHandler(label_MouseMove);
             label_City_year.MouseUp += new MouseEventHandler(label_MouseUp);
+
+            // Добавляем лейблы в список для последующего массового редактирования
+            _labelsList = new List<System.Windows.Forms.Label>
+            {
+                label_initial_speech,
+                label_FIO,
+                label_final_speech,
+                label_City_year,
+                label_post,
+                label_signature_decryption
+            };
+
+            // Привязываем обработчик клика для каждого лейбла
+            foreach (var label in _labelsList)
+            {
+                label.Click += OnLabelClick;
+            }
+
+            // Обработчики изменения текста
+            textBox_Changing_font.TextChanged += OnTextBoxChangingFontTextChanged;
+            textBox_Size.TextChanged += OnTextBoxSizeTextChanged;
+
+            // Обработчики изменения стилей
+            label_Bold.Click += OnLabelBoldClick;
+            label_Italics.Click += OnLabelItalicsClick;
+            label_Underlined.Click += OnLabelUnderlinedClick;
+
+            // Обработчики клика для выбора шрифта и размера
+            textBox_Changing_font.Click += textBox_Changing_font_Click;
+            textBox_Size.Click += textBox_Size_Click;
+
+            // Обработчик изменения текста в RichTextBox
+            richTextBox_Changing_text.TextChanged += richTextBox_Changing_text_TextChanged;
+        }
+
+        // Обработчик клика по лейблу
+        private void OnLabelClick(object sender, EventArgs e)
+        {
+            activeLabel = (System.Windows.Forms.Label)sender;
+
+            // Заполняем RichTextBox текстом из лейбла
+            richTextBox_Changing_text.Text = activeLabel.Text;
+
+            // Передача имени шрифта в первый TextBox
+            textBox_Changing_font.Text = activeLabel.Font.Name;
+
+            // Передача размера шрифта во второй TextBox
+            textBox_Size.Text = activeLabel.Font.Size.ToString();
+
+            // Обновление визуального представления стиля шрифта
+            ChangeLabelColor(label_Bold, activeLabel.Font.Bold);
+            ChangeLabelColor(label_Italics, activeLabel.Font.Italic);
+            ChangeLabelColor(label_Underlined, activeLabel.Font.Underline);
+        }
+
+        // Обработчик изменения имени шрифта
+        private void OnTextBoxChangingFontTextChanged(object sender, EventArgs e)
+        {
+            if (activeLabel != null)
+            {
+                activeLabel.Font = new Font(textBox_Changing_font.Text.Trim(), activeLabel.Font.Size, activeLabel.Font.Style);
+            }
+        }
+
+        // Обработчик изменения размера шрифта
+        private void OnTextBoxSizeTextChanged(object sender, EventArgs e)
+        {
+            if (float.TryParse(textBox_Size.Text, out float size) && activeLabel != null)
+            {
+                activeLabel.Font = new Font(activeLabel.Font.Name, size, activeLabel.Font.Style);
+            }
+        }
+
+        // Обработчик двойного клика по текстовому полю
+        private void textBox_Changing_font_Click(object sender, EventArgs e)
+        {
+            using (var fontDialog = new FontDialog())
+            {
+                if (fontDialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (activeLabel != null)
+                    {
+                        activeLabel.Font = fontDialog.Font;
+                        textBox_Changing_font.Text = fontDialog.Font.Name;
+                        textBox_Size.Text = fontDialog.Font.Size.ToString();
+
+                        // Обновляем состояние меток стилей
+                        ChangeLabelColor(label_Bold, fontDialog.Font.Bold);
+                        ChangeLabelColor(label_Italics, fontDialog.Font.Italic);
+                        ChangeLabelColor(label_Underlined, fontDialog.Font.Underline);
+                    }
+                }
+            }
+        }
+
+        private void textBox_Size_Click(object sender, EventArgs e)
+        {
+            using (var fontDialog = new FontDialog())
+            {
+                if (fontDialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (activeLabel != null)
+                    {
+                        activeLabel.Font = fontDialog.Font;
+                        textBox_Changing_font.Text = fontDialog.Font.Name;
+                        textBox_Size.Text = fontDialog.Font.Size.ToString();
+
+                        // Обновляем состояние меток стилей
+                        ChangeLabelColor(label_Bold, fontDialog.Font.Bold);
+                        ChangeLabelColor(label_Italics, fontDialog.Font.Italic);
+                        ChangeLabelColor(label_Underlined, fontDialog.Font.Underline);
+                    }
+                }
+            }
+        }
+
+        // Обработчик включения/отключения Bold
+        private void OnLabelBoldClick(object sender, EventArgs e)
+        {
+            if (activeLabel != null)
+            {
+                activeLabel.Font = new Font(
+                    activeLabel.Font.Name,
+                    activeLabel.Font.Size,
+                    activeLabel.Font.Style ^ FontStyle.Bold); // Переключение флага Bold
+                ChangeLabelColor(label_Bold, activeLabel.Font.Bold);
+            }
+        }
+
+        // Обработчик включения/отключения Italics
+        private void OnLabelItalicsClick(object sender, EventArgs e)
+        {
+            if (activeLabel != null)
+            {
+                activeLabel.Font = new Font(
+                    activeLabel.Font.Name,
+                    activeLabel.Font.Size,
+                    activeLabel.Font.Style ^ FontStyle.Italic); // Переключение флага Italics
+                ChangeLabelColor(label_Italics, activeLabel.Font.Italic);
+            }
+        }
+
+        // Обработчик включения/отключения Underlined
+        private void OnLabelUnderlinedClick(object sender, EventArgs e)
+        {
+            if (activeLabel != null)
+            {
+                activeLabel.Font = new Font(
+                    activeLabel.Font.Name,
+                    activeLabel.Font.Size,
+                    activeLabel.Font.Style ^ FontStyle.Underline); // Переключение флага Underline
+                ChangeLabelColor(label_Underlined, activeLabel.Font.Underline);
+            }
+        }
+
+        // Обработчик изменения текста в RichTextBox
+        private void richTextBox_Changing_text_TextChanged(object sender, EventArgs e)
+        {
+            if (activeLabel != null)
+            {
+                activeLabel.Text = richTextBox_Changing_text.Text.Trim();
+            }
         }
 
         // Универсальный обработчик MouseDown
@@ -129,28 +279,10 @@ namespace Rewards_fast
         }
 
         // Универсальный обработчик MouseUp
-        private void label_MouseUp(object sender, MouseEventArgs e)
+        private void label_MouseUp(object sender, EventArgs e)
         {
             var label = (System.Windows.Forms.Label)sender;
             draggingLabels[label] = false;
-        }
-
-        private void textBox_Changing_font_Clik(object sender, EventArgs e)
-        {
-            using (var fontDialog = new FontDialog())
-            {
-                if (fontDialog.ShowDialog() == DialogResult.OK)
-                {
-                    // Вместо применения нового шрифта, показываем только его название
-                    textBox_Changing_font.Text = fontDialog.Font.Name;
-                    // Получаем размер шрифта и выводим его во второе текстовое поле
-                    textBox_Size.Text = fontDialog.Font.Size.ToString();
-
-                    ChangeLabelColor(label_Bold, fontDialog.Font.Bold);
-                    ChangeLabelColor(label_Italics, fontDialog.Font.Italic);
-                    ChangeLabelColor(label_Underlined, fontDialog.Font.Underline);
-                }
-            }
         }
 
         private void ChangeLabelColor(System.Windows.Forms.Label label, bool isSelected)
@@ -165,295 +297,46 @@ namespace Rewards_fast
             }
         }
 
-        private void textBox_Size_Click(object sender, EventArgs e)
-        {
-            using (var fontDialog = new FontDialog())
-            {
-                if (fontDialog.ShowDialog() == DialogResult.OK)
-                {
-                    // Вместо применения нового шрифта, показываем только его название
-                    textBox_Changing_font.Text = fontDialog.Font.Name;
-                    // Получаем размер шрифта и выводим его во второе текстовое поле
-                    textBox_Size.Text = fontDialog.Font.Size.ToString();
-                }
-            }
-        }
-        private void label_Bold_Click(object sender, EventArgs e)
-        {
-            isBold = !isBold;
-            label_Bold.BackColor = isBold ? Color.MediumSeaGreen : Color.SeaGreen;
-            ApplyCurrentFontSettingsToSelectedLabel(); // Немедленно обновляем шрифт
-        }
-
-        private void label_Italics_Click(object sender, EventArgs e)
-        {
-            isItalic = !isItalic;
-            label_Italics.BackColor = isItalic ? Color.MediumSeaGreen : Color.SeaGreen;
-            ApplyCurrentFontSettingsToSelectedLabel(); // Немедленно обновляем шрифт
-        }
-
-        private void label_Underlined_Click(object sender, EventArgs e)
-        {
-            isUnderlined = !isUnderlined;
-            label_Underlined.BackColor = isUnderlined ? Color.MediumSeaGreen : Color.SeaGreen;
-            ApplyCurrentFontSettingsToSelectedLabel(); // Немедленно обновляем шрифт
-        }
-
-        // Метод для обновления фона индикаторов стиля шрифта
-        private void UpdateLabelIndicators(Font font)
-        {
-            // Проверка и смена цвета для жирного
-            label_Bold.BackColor = font.Bold ? Color.MediumSpringGreen : Color.SeaGreen;
-
-            // Проверка и смена цвета для курсива
-            label_Italics.BackColor = font.Italic ? Color.MediumSpringGreen : Color.SeaGreen;
-
-            // Проверка и смена цвета для подчеркивания
-            label_Underlined.BackColor = font.Underline ? Color.MediumSpringGreen : Color.SeaGreen;
-        }
-
         private void label_FIO_Click(object sender, EventArgs e)
         {
-            // Делаем текстовое поле доступным только для чтения
             richTextBox_Changing_text.ReadOnly = true;
             label_case.Visible = true;
             comboBox_case.Visible = true;
-
-            System.Windows.Forms.Label clickedLabel = (System.Windows.Forms.Label)sender;
-
-            // Сначала очистим предыдущий текст
-            richTextBox_Changing_text.Clear();
-
-            // Теперь запишем новый текст из лейбла
-            richTextBox_Changing_text.AppendText(clickedLabel.Text + Environment.NewLine);
-
-            // Запись названия и размера шрифта в соответствующие текстовые поля
-            textBox_Changing_font.Text = clickedLabel.Font.Name;
-            textBox_Size.Text = clickedLabel.Font.Size.ToString();
-
-            // Обновляем цвета фоновых лейблов, отражающих стиль шрифта
-            UpdateLabelIndicators(clickedLabel.Font);
         }
 
         private void label_initial_speech_Click(object sender, EventArgs e)
         {
-            // Делаем текстовое поле доступным только для чтения
             richTextBox_Changing_text.ReadOnly = false;
             label_case.Visible = false;
             comboBox_case.Visible = false;
-
-            // Получаем ссылку на выбранный Label
-            selectedLabel = (System.Windows.Forms.Label)sender;
-
-            // Сохраняем текущее состояние выбранного Label
-            originalText = selectedLabel.Text;
-            originalFontName = selectedLabel.Font.Name;
-            originalFontSize = selectedLabel.Font.Size;
-            originalIsBold = selectedLabel.Font.Bold;
-            originalIsItalic = selectedLabel.Font.Italic;
-            originalIsUnderlined = selectedLabel.Font.Underline;
-
-            // Загружаем текущее состояние в интерфейс
-            richTextBox_Changing_text.Text = originalText;
-            textBox_Changing_font.Text = originalFontName;
-            textBox_Size.Text = originalFontSize.ToString();
-            label_Bold.BackColor = originalIsBold ? Color.MediumSeaGreen : Color.SeaGreen;
-            label_Italics.BackColor = originalIsItalic ? Color.MediumSeaGreen : Color.SeaGreen;
-            label_Underlined.BackColor = originalIsUnderlined ? Color.MediumSeaGreen : Color.SeaGreen;
         }
 
         private void label_final_speech_Click(object sender, EventArgs e)
         {
-            // Делаем текстовое поле доступным только для чтения
             richTextBox_Changing_text.ReadOnly = false;
             label_case.Visible = false;
             comboBox_case.Visible = false;
-
-            System.Windows.Forms.Label clickedLabel = (System.Windows.Forms.Label)sender;
-
-            // Сначала очистим предыдущий текст
-            richTextBox_Changing_text.Clear();
-
-            // Записываем текст лейбла в RichTextBox
-            richTextBox_Changing_text.AppendText(clickedLabel.Text + Environment.NewLine);
-
-            // Запись названия и размера шрифта в соответствующие текстовые поля
-            textBox_Changing_font.Text = clickedLabel.Font.Name;
-            textBox_Size.Text = clickedLabel.Font.Size.ToString();
-
-            // Обновляем цвета фоновых лейблов, отражающих стиль шрифта
-            UpdateLabelIndicators(clickedLabel.Font);
         }
 
         private void label_post_Click(object sender, EventArgs e)
         {
-            // Делаем текстовое поле доступным только для чтения
             richTextBox_Changing_text.ReadOnly = false;
             label_case.Visible = false;
             comboBox_case.Visible = false;
-
-            System.Windows.Forms.Label clickedLabel = (System.Windows.Forms.Label)sender;
-
-            // Сначала очистим предыдущий текст
-            richTextBox_Changing_text.Clear();
-
-            // Записываем текст лейбла в RichTextBox
-            richTextBox_Changing_text.AppendText(clickedLabel.Text + Environment.NewLine);
-
-            // Запись названия и размера шрифта в соответствующие текстовые поля
-            textBox_Changing_font.Text = clickedLabel.Font.Name;
-            textBox_Size.Text = clickedLabel.Font.Size.ToString();
-
-            // Обновляем цвета фоновых лейблов, отражающих стиль шрифта
-            UpdateLabelIndicators(clickedLabel.Font);
         }
 
         private void label_signature_decryption_Click(object sender, EventArgs e)
         {
-            // Делаем текстовое поле доступным только для чтения
             richTextBox_Changing_text.ReadOnly = false;
             label_case.Visible = false;
             comboBox_case.Visible = false;
-
-            System.Windows.Forms.Label clickedLabel = (System.Windows.Forms.Label)sender;
-
-            // Сначала очистим предыдущий текст
-            richTextBox_Changing_text.Clear();
-
-            // Записываем текст лейбла в RichTextBox
-            richTextBox_Changing_text.AppendText(clickedLabel.Text + Environment.NewLine);
-
-            // Запись названия и размера шрифта в соответствующие текстовые поля
-            textBox_Changing_font.Text = clickedLabel.Font.Name;
-            textBox_Size.Text = clickedLabel.Font.Size.ToString();
-
-            // Обновляем цвета фоновых лейблов, отражающих стиль шрифта
-            UpdateLabelIndicators(clickedLabel.Font);
         }
 
         private void label_City_year_Click(object sender, EventArgs e)
         {
-            // Делаем текстовое поле доступным только для чтения
             richTextBox_Changing_text.ReadOnly = false;
             label_case.Visible = false;
             comboBox_case.Visible = false;
-
-            System.Windows.Forms.Label clickedLabel = (System.Windows.Forms.Label)sender;
-
-            // Сначала очистим предыдущий текст
-            richTextBox_Changing_text.Clear();
-
-            // Записываем текст лейбла в RichTextBox
-            richTextBox_Changing_text.AppendText(clickedLabel.Text + Environment.NewLine);
-
-            // Запись названия и размера шрифта в соответствующие текстовые поля
-            textBox_Changing_font.Text = clickedLabel.Font.Name;
-            textBox_Size.Text = clickedLabel.Font.Size.ToString();
-
-            // Обновляем цвета фоновых лейблов, отражающих стиль шрифта
-            UpdateLabelIndicators(clickedLabel.Font);
-        }
-
-        // Обработчик изменения шрифта в TextBox
-        private void textBox_Changing_font_TextChanged(object sender, EventArgs e)
-        {
-            // Просто сохраним новое имя шрифта
-            currentFontName = textBox_Changing_font.Text.Trim();
-        }
-
-
-        // Обработчик изменения размера шрифта
-        private void textBox_Size_TextChanged(object sender, EventArgs e)
-        {
-            // Чистим строку от пробельных символов
-            string cleanedSize = textBox_Size.Text.Trim();
-
-            // Парсим размер шрифта
-            if (float.TryParse(cleanedSize, out float parsedSize))
-            {
-                currentFontSize = parsedSize;
-            }
-            else
-            {
-                // Если размер оказался некорректным, выдаём предупреждение
-                MessageBox.Show("Недопустимый размер шрифта.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-        }
-
-        // Метод для финального применения изменений к выбранному Label
-        private void ApplyChangesToSelectedLabel()
-        {
-            try
-            {
-                // Проверка наличия подходящего семейства шрифтов
-                if (!System.Drawing.FontFamily.Families.Any(ff => ff.Name.Equals(currentFontName)))
-                {
-                    throw new Exception($"Шрифт '{currentFontName}' не найден.");
-                }
-
-                // Проверка корректности размера шрифта
-                if (currentFontSize <= 0 || float.IsNaN(currentFontSize))
-                {
-                    throw new Exception("Размер шрифта должен быть положительным числом.");
-                }
-
-                // Создание нового шрифта с учётом всех текущих условий
-                FontStyle style = FontStyle.Regular;
-                if (isBold) style |= FontStyle.Bold;
-                if (isItalic) style |= FontStyle.Italic;
-                if (isUnderlined) style |= FontStyle.Underline;
-
-                // Создание нового шрифта
-                Font newFont = new Font(currentFontName, currentFontSize, style);
-
-                // Применение нового шрифта и текста к выбранному Label
-                selectedLabel.Text = richTextBox_Changing_text.Text;
-                selectedLabel.Font = newFont;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка при применении изменений: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void button_Apply_changes_Click(object sender, EventArgs e)
-        {
-            ApplyChangesToSelectedLabel();
-        }
-
-        private void ApplyCurrentFontSettingsToSelectedLabel()
-        {
-            try
-            {
-                // Проверка наличия подходящего семейства шрифтов
-                if (!System.Drawing.FontFamily.Families.Any(ff => ff.Name.Equals(currentFontName)))
-                {
-                    throw new Exception($"Шрифт '{currentFontName}' не найден.");
-                }
-
-                // Проверка корректности размера шрифта
-                if (currentFontSize <= 0 || float.IsNaN(currentFontSize))
-                {
-                    throw new Exception("Размер шрифта должен быть положительным числом.");
-                }
-
-                // Создание нового шрифта с учётом всех текущих условий
-                FontStyle style = FontStyle.Regular;
-                if (isBold) style |= FontStyle.Bold;
-                if (isItalic) style |= FontStyle.Italic;
-                if (isUnderlined) style |= FontStyle.Underline;
-
-                // Создание нового шрифта
-                Font newFont = new Font(currentFontName, currentFontSize, style);
-
-                // Применение нового шрифта и текста к выбранному Label
-                selectedLabel.Text = richTextBox_Changing_text.Text;
-                selectedLabel.Font = newFont;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка при применении изменений: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
     }
 }
