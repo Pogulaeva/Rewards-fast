@@ -22,7 +22,7 @@ namespace Rewards_fast
         string image2;
 
         Dictionary<System.Windows.Forms.Label, bool> draggingLabels = new Dictionary<System.Windows.Forms.Label, bool>();
-        Dictionary<System.Windows.Forms.Label, int> startYPositions = new Dictionary<System.Windows.Forms.Label, int>();
+        Dictionary<System.Windows.Forms.Label, Point> startDragPosition = new Dictionary<System.Windows.Forms.Label, Point>();
 
         private const double smoothingFactor = 0.5; // коэффициент сглаживания (от 0 до 1)
 
@@ -45,6 +45,8 @@ namespace Rewards_fast
         public Template_Constructor(string param1, string param2, object objParam)
         {
             InitializeComponent();
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true); // Аппаратное ускорение
+
             // Назначаем рендереру своё оформление
             menuStrip1.Renderer = new ToolStripProfessionalRenderer(new CustomToolStripProfessionalRenderer());
 
@@ -69,11 +71,15 @@ namespace Rewards_fast
             draggingLabels.Add(label_FIO, false);
             draggingLabels.Add(label_final_speech, false);
             draggingLabels.Add(label_City_year, false);
+            draggingLabels.Add(label_post, false);
+            draggingLabels.Add(label_signature_decryption, false);
 
-            startYPositions.Add(label_initial_speech, 0);
-            startYPositions.Add(label_FIO, 0);
-            startYPositions.Add(label_final_speech, 0);
-            startYPositions.Add(label_City_year, 0);
+            startDragPosition.Add(label_initial_speech, Point.Empty);
+            startDragPosition.Add(label_FIO, Point.Empty);
+            startDragPosition.Add(label_final_speech, Point.Empty);
+            startDragPosition.Add(label_City_year, Point.Empty);
+            startDragPosition.Add(label_post, Point.Empty);
+            startDragPosition.Add(label_signature_decryption, Point.Empty);
 
             // Подключаем обработчики событий
             label_initial_speech.MouseDown += new MouseEventHandler(label_MouseDown);
@@ -91,6 +97,14 @@ namespace Rewards_fast
             label_City_year.MouseDown += new MouseEventHandler(label_MouseDown);
             label_City_year.MouseMove += new MouseEventHandler(label_MouseMove);
             label_City_year.MouseUp += new MouseEventHandler(label_MouseUp);
+
+            label_post.MouseDown += new MouseEventHandler(label_MouseDown);
+            label_post.MouseMove += new MouseEventHandler(label_MouseMove);
+            label_post.MouseUp += new MouseEventHandler(label_MouseUp);
+
+            label_signature_decryption.MouseDown += new MouseEventHandler(label_MouseDown);
+            label_signature_decryption.MouseMove += new MouseEventHandler(label_MouseMove);
+            label_signature_decryption.MouseUp += new MouseEventHandler(label_MouseUp);
 
             // Добавляем лейблы в список для последующего массового редактирования
             _labelsList = new List<System.Windows.Forms.Label>
@@ -262,7 +276,7 @@ namespace Rewards_fast
             {
                 var label = (System.Windows.Forms.Label)sender;
                 draggingLabels[label] = true;
-                startYPositions[label] = label.Top - e.Y;
+                startDragPosition[label] = new Point(e.X, e.Y); // Начальная точка захвата
             }
         }
 
@@ -272,14 +286,33 @@ namespace Rewards_fast
             var label = (System.Windows.Forms.Label)sender;
             if (draggingLabels.TryGetValue(label, out bool dragging) && dragging)
             {
-                int targetY = Math.Max(0, Math.Min(startYPositions[label] + e.Y, template_image.Height - label.Height));
-                int smoothedY = (int)((targetY * smoothingFactor) + (label.Top * (1 - smoothingFactor))); // сглаживаем позицию
-                label.Location = new Point(label.Left, smoothedY);
+                int dx = e.X - startDragPosition[label].X; // Смещение по X
+                int dy = e.Y - startDragPosition[label].Y; // Смещение по Y
+
+                // Определим ограничения по размерам картинки
+                int leftLimit = 0;
+                int rightLimit = template_image.Width - label.Width;
+                int topLimit = 0;
+                int bottomLimit = template_image.Height - label.Height;
+
+                if (label == label_post || label == label_signature_decryption)
+                {
+                    // Свобода движения по обеим осям
+                    int newLeft = Math.Max(leftLimit, Math.Min(label.Left + dx, rightLimit));
+                    int newTop = Math.Max(topLimit, Math.Min(label.Top + dy, bottomLimit));
+                    label.Location = new Point(newLeft, newTop);
+                }
+                else
+                {
+                    // Ограничение только по вертикали (Y)
+                    int newTop = Math.Max(topLimit, Math.Min(label.Top + dy, bottomLimit));
+                    label.Location = new Point(label.Left, newTop);
+                }
             }
         }
 
         // Универсальный обработчик MouseUp
-        private void label_MouseUp(object sender, EventArgs e)
+        private void label_MouseUp(object sender, MouseEventArgs e)
         {
             var label = (System.Windows.Forms.Label)sender;
             draggingLabels[label] = false;
