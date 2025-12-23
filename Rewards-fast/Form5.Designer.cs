@@ -33,7 +33,7 @@
             this.сохранитьКакToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.вставкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.вставитьПодписьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.вставитьПодписьToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.вставитьПечатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.границыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.изменениеГраницТекстаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.справкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,6 +61,7 @@
             this.label_text = new System.Windows.Forms.Label();
             this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -108,7 +109,7 @@
             // 
             this.вставкаToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.вставитьПодписьToolStripMenuItem,
-            this.вставитьПодписьToolStripMenuItem1});
+            this.вставитьПечатьToolStripMenuItem});
             this.вставкаToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.вставкаToolStripMenuItem.Name = "вставкаToolStripMenuItem";
             this.вставкаToolStripMenuItem.Size = new System.Drawing.Size(76, 24);
@@ -119,16 +120,17 @@
             this.вставитьПодписьToolStripMenuItem.BackColor = System.Drawing.Color.Green;
             this.вставитьПодписьToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.вставитьПодписьToolStripMenuItem.Name = "вставитьПодписьToolStripMenuItem";
-            this.вставитьПодписьToolStripMenuItem.Size = new System.Drawing.Size(216, 26);
+            this.вставитьПодписьToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.вставитьПодписьToolStripMenuItem.Text = "Вставить подпись";
             // 
-            // вставитьПодписьToolStripMenuItem1
+            // вставитьПечатьToolStripMenuItem
             // 
-            this.вставитьПодписьToolStripMenuItem1.BackColor = System.Drawing.Color.Green;
-            this.вставитьПодписьToolStripMenuItem1.ForeColor = System.Drawing.Color.White;
-            this.вставитьПодписьToolStripMenuItem1.Name = "вставитьПодписьToolStripMenuItem1";
-            this.вставитьПодписьToolStripMenuItem1.Size = new System.Drawing.Size(216, 26);
-            this.вставитьПодписьToolStripMenuItem1.Text = "Вставить печать";
+            this.вставитьПечатьToolStripMenuItem.BackColor = System.Drawing.Color.Green;
+            this.вставитьПечатьToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.вставитьПечатьToolStripMenuItem.Name = "вставитьПечатьToolStripMenuItem";
+            this.вставитьПечатьToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.вставитьПечатьToolStripMenuItem.Text = "Вставить печать";
+            this.вставитьПечатьToolStripMenuItem.Click += new System.EventHandler(this.вставитьПечатьToolStripMenuItem_Click);
             // 
             // границыToolStripMenuItem
             // 
@@ -469,6 +471,10 @@
             this.label_Changing_parameters.TabIndex = 1;
             this.label_Changing_parameters.Text = "Изменение параметров элемента";
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            // 
             // Template_Constructor
             // 
             this.AllowDrop = true;
@@ -506,7 +512,7 @@
         private System.Windows.Forms.ToolStripMenuItem сохранитьКакToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem вставкаToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem вставитьПодписьToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem вставитьПодписьToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem вставитьПечатьToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem границыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem изменениеГраницТекстаToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem справкаToolStripMenuItem;
@@ -534,5 +540,6 @@
         private System.Windows.Forms.Label label_Underlined;
         private System.Windows.Forms.ComboBox comboBox_case;
         private System.Windows.Forms.Label label_case;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }

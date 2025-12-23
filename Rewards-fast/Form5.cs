@@ -42,6 +42,19 @@ namespace Rewards_fast
         // Инициализируем список лейблов заранее
         private readonly List<System.Windows.Forms.Label> _labelsList = new List<System.Windows.Forms.Label>();
 
+        // Переменные для перетаскивания
+        private Control currentDraggingControl;
+        private Point startDragPoint;
+
+        class ResizeHandle : Control
+        {
+            public ResizeHandle()
+            {
+                Size = new Size(10, 10); // Маленькие квадратики
+                BackColor = Color.Red;    // Яркий цвет для заметности
+            }
+        }
+
         public Template_Constructor(string param1, string param2, object objParam)
         {
             InitializeComponent();
@@ -69,13 +82,13 @@ namespace Rewards_fast
             // Добавляем лейблы в список единожды
             _labelsList.AddRange(new[]
             {
-            label_initial_speech,
-            label_FIO,
-            label_final_speech,
-            label_City_year,
-            label_post,
-            label_signature_decryption
-        });
+        label_initial_speech,
+        label_FIO,
+        label_final_speech,
+        label_City_year,
+        label_post,
+        label_signature_decryption
+    });
 
             // Настроим ширину лейблов согласно размеру адаптированного изображения
             ResizeLabelsAccordingToImage();
@@ -190,7 +203,7 @@ namespace Rewards_fast
                     if (label == label_post || label == label_signature_decryption)
                     {
                         label.AutoSize = true;           // Фиксированная ширина
-                                                          // Ничего не делаем с позицией, сохраняем её как есть
+                                                         // Ничего не делаем с позицией, сохраняем её как есть
                     }
                     else
                     {
@@ -204,15 +217,12 @@ namespace Rewards_fast
             }
         }
 
-
         // Обработчик изменения размеров формы
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
             ResizeLabelsAccordingToImage(); // Перерассчитываем размеры лейблов при изменении размеров формы
         }
-
-
 
         // Обработчик клика по лейблу
         private void OnLabelClick(object sender, EventArgs e)
@@ -386,7 +396,7 @@ namespace Rewards_fast
         }
 
         // Универсальный обработчик MouseUp
-        private void label_MouseUp(object sender, MouseEventArgs e)
+        private void label_MouseUp(object sender, EventArgs e)
         {
             var label = (System.Windows.Forms.Label)sender;
             draggingLabels[label] = false;
@@ -444,6 +454,75 @@ namespace Rewards_fast
             richTextBox_Changing_text.ReadOnly = false;
             label_case.Visible = false;
             comboBox_case.Visible = false;
+        }
+
+        // Обработчик MouseDown для PictureBox
+        private void pictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                currentDraggingControl = (Control)sender;
+                startDragPoint = e.Location;
+            }
+        }
+
+        // Обработчик MouseMove для PictureBox
+        private void pictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (currentDraggingControl != null && e.Button == MouseButtons.Left)
+            {
+                int deltaX = e.X - startDragPoint.X;
+                int deltaY = e.Y - startDragPoint.Y;
+
+                // Прямо изменяем положение PictureBox
+                currentDraggingControl.Left += deltaX;
+                currentDraggingControl.Top += deltaY;
+
+                // Обновляем точку старта
+                startDragPoint = e.Location;
+            }
+        }
+
+        // Обработчик MouseUp для PictureBox
+        private void pictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            currentDraggingControl = null;
+        }
+
+        private void вставитьПечатьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Filter = "Изображения (.BMP;.JPG;.PNG)|.BMP;.JPG;.PNG";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                string selectedPath = openFileDialog1.FileName;
+                ShowSelectedImage(selectedPath);
+            }
+        }
+
+        private void ShowSelectedImage(string imagePath)
+        {
+            try
+            {
+                Image img = Image.FromFile(imagePath);
+                PictureBox pictureBox = new PictureBox();
+                pictureBox.Image = img;
+                pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+                pictureBox.Size = new Size(80, 80); // Размер PictureBox равен размеру изображения
+                pictureBox.Dock = DockStyle.None;
+                pictureBox.BorderStyle = BorderStyle.FixedSingle;
+
+                // Присваиваем обработчики событий
+                pictureBox.MouseDown += pictureBox_MouseDown;
+                pictureBox.MouseMove += pictureBox_MouseMove;
+                pictureBox.MouseUp += pictureBox_MouseUp;
+
+                splitContainer2.Panel1.Controls.Add(pictureBox);
+                pictureBox.BringToFront();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка загрузки изображения: " + ex.Message);
+            }
         }
     }
 }
