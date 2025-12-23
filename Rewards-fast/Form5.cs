@@ -26,9 +26,6 @@ namespace Rewards_fast
 
         private const double smoothingFactor = 0.5; // коэффициент сглаживания (от 0 до 1)
 
-        // Список всех лейблов
-        private readonly List<System.Windows.Forms.Label> _labelsList;
-
         // Активный лейбл (для которого будем вносить изменения)
         private System.Windows.Forms.Label activeLabel;
 
@@ -41,6 +38,9 @@ namespace Rewards_fast
             public override Color MenuItemPressedGradientEnd => Color.MediumSpringGreen;// Цвет фокуса пункт меню снизу
             public override Color MenuItemBorder => Color.Black;                         // Границы пунктов меню
         }
+
+        // Инициализируем список лейблов заранее
+        private readonly List<System.Windows.Forms.Label> _labelsList = new List<System.Windows.Forms.Label>();
 
         public Template_Constructor(string param1, string param2, object objParam)
         {
@@ -65,6 +65,20 @@ namespace Rewards_fast
                     template_image.Image = Image.FromFile(image2);
                 }
             }
+
+            // Добавляем лейблы в список единожды
+            _labelsList.AddRange(new[]
+            {
+            label_initial_speech,
+            label_FIO,
+            label_final_speech,
+            label_City_year,
+            label_post,
+            label_signature_decryption
+        });
+
+            // Настроим ширину лейблов согласно размеру адаптированного изображения
+            ResizeLabelsAccordingToImage();
 
             // Инициализируем состояние перетаскивания и начальные позиции
             draggingLabels.Add(label_initial_speech, false);
@@ -106,17 +120,6 @@ namespace Rewards_fast
             label_signature_decryption.MouseMove += new MouseEventHandler(label_MouseMove);
             label_signature_decryption.MouseUp += new MouseEventHandler(label_MouseUp);
 
-            // Добавляем лейблы в список для последующего массового редактирования
-            _labelsList = new List<System.Windows.Forms.Label>
-            {
-                label_initial_speech,
-                label_FIO,
-                label_final_speech,
-                label_City_year,
-                label_post,
-                label_signature_decryption
-            };
-
             // Привязываем обработчик клика для каждого лейбла
             foreach (var label in _labelsList)
             {
@@ -139,6 +142,77 @@ namespace Rewards_fast
             // Обработчик изменения текста в RichTextBox
             richTextBox_Changing_text.TextChanged += richTextBox_Changing_text_TextChanged;
         }
+
+        private void ResizeLabelsAccordingToImage()
+        {
+            if (template_image.Image == null)
+            {
+                return; // Нет изображения
+            }
+
+            // Размеры оригинального изображения
+            int imgWidth = template_image.Image.Width;
+            int imgHeight = template_image.Image.Height;
+
+            // Размеры контейнера (PictureBox)
+            int pbWidth = template_image.ClientRectangle.Width;
+            int pbHeight = template_image.ClientRectangle.Height;
+
+            // Вычислим коэффициенты масштабирования
+            double scaleByWidth = (double)pbWidth / imgWidth;
+            double scaleByHeight = (double)pbHeight / imgHeight;
+
+            // Минимальный масштабирующий коэффициент
+            double finalScale = Math.Min(scaleByWidth, scaleByHeight);
+
+            // Пересчитанная ширина изображения
+            int scaledImgWidth = (int)(imgWidth * finalScale);
+            int scaledImgHeight = (int)(imgHeight * finalScale);
+
+            // Вычисляем положение изображения внутри PictureBox
+            int xOffsetImage = (pbWidth - scaledImgWidth) / 2; // Горизонтальное смещение
+            int yOffsetImage = (pbHeight - scaledImgHeight) / 2; // Вертикальное смещение
+
+            // Корректируем ширину на 50 пикселей и смещаем на 25 пикселей по оси X
+            int adjustedWidthForMainLabels = Math.Max(scaledImgWidth - 80, 0); // Не допускаем отрицательной ширины
+            int xOffset = 40; // Смещение по оси X
+
+            // Применяем ширину и позицию ко всем лейблам, кроме двух особых случаев
+            foreach (var label in _labelsList)
+            {
+                if (label != null)
+                {
+                    label.AutoSize = false;          // Отключаем автоматический подбор размера
+                    label.Dock = DockStyle.None;      // Отменяем докирование
+                    label.TextAlign = ContentAlignment.MiddleCenter; // Центрируем текст
+
+                    // Для особых лейблов устанавливаем фиксированную ширину
+                    if (label == label_post || label == label_signature_decryption)
+                    {
+                        label.AutoSize = true;           // Фиксированная ширина
+                                                          // Ничего не делаем с позицией, сохраняем её как есть
+                    }
+                    else
+                    {
+                        // Для основных лейблов применяем уменьшение ширины и смещение по оси X
+                        label.Width = adjustedWidthForMainLabels; // Ширина уменьшается на 50 пикселей
+
+                        // Смещаем только по оси X, сохраняя существующую позицию по оси Y
+                        label.Location = new Point(xOffsetImage + xOffset, label.Location.Y); // Изменяем только X
+                    }
+                }
+            }
+        }
+
+
+        // Обработчик изменения размеров формы
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            ResizeLabelsAccordingToImage(); // Перерассчитываем размеры лейблов при изменении размеров формы
+        }
+
+
 
         // Обработчик клика по лейблу
         private void OnLabelClick(object sender, EventArgs e)
@@ -286,10 +360,10 @@ namespace Rewards_fast
             var label = (System.Windows.Forms.Label)sender;
             if (draggingLabels.TryGetValue(label, out bool dragging) && dragging)
             {
-                int dx = e.X - startDragPosition[label].X; // Смещение по X
-                int dy = e.Y - startDragPosition[label].Y; // Смещение по Y
+                int dx = e.X - startDragPosition[label].X; // разница по X
+                int dy = e.Y - startDragPosition[label].Y; // разница по Y
 
-                // Определим ограничения по размерам картинки
+                // Ограничения по размерам PictureBox
                 int leftLimit = 0;
                 int rightLimit = template_image.Width - label.Width;
                 int topLimit = 0;
@@ -297,14 +371,14 @@ namespace Rewards_fast
 
                 if (label == label_post || label == label_signature_decryption)
                 {
-                    // Свобода движения по обеим осям
+                    // Свободное перемещение по обеим осям
                     int newLeft = Math.Max(leftLimit, Math.Min(label.Left + dx, rightLimit));
                     int newTop = Math.Max(topLimit, Math.Min(label.Top + dy, bottomLimit));
                     label.Location = new Point(newLeft, newTop);
                 }
                 else
                 {
-                    // Ограничение только по вертикали (Y)
+                    // Только вертикальное перемещение
                     int newTop = Math.Max(topLimit, Math.Min(label.Top + dy, bottomLimit));
                     label.Location = new Point(label.Left, newTop);
                 }

@@ -241,7 +241,7 @@
             this.label_signature_decryption.BackColor = System.Drawing.Color.Transparent;
             this.label_signature_decryption.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_signature_decryption.Font = new System.Drawing.Font("Times New Roman", 7F);
-            this.label_signature_decryption.Location = new System.Drawing.Point(392, 441);
+            this.label_signature_decryption.Location = new System.Drawing.Point(301, 441);
             this.label_signature_decryption.Name = "label_signature_decryption";
             this.label_signature_decryption.Size = new System.Drawing.Size(84, 17);
             this.label_signature_decryption.TabIndex = 7;
@@ -255,7 +255,7 @@
             this.label_post.BackColor = System.Drawing.Color.Transparent;
             this.label_post.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_post.Font = new System.Drawing.Font("Times New Roman", 7F);
-            this.label_post.Location = new System.Drawing.Point(140, 441);
+            this.label_post.Location = new System.Drawing.Point(106, 441);
             this.label_post.Name = "label_post";
             this.label_post.Size = new System.Drawing.Size(65, 17);
             this.label_post.TabIndex = 6;
@@ -265,11 +265,10 @@
             // label_City_year
             // 
             this.label_City_year.AllowDrop = true;
-            this.label_City_year.AutoSize = true;
             this.label_City_year.BackColor = System.Drawing.Color.Transparent;
             this.label_City_year.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_City_year.Font = new System.Drawing.Font("Times New Roman", 7F);
-            this.label_City_year.Location = new System.Drawing.Point(272, 545);
+            this.label_City_year.Location = new System.Drawing.Point(-2, 519);
             this.label_City_year.Name = "label_City_year";
             this.label_City_year.Size = new System.Drawing.Size(74, 17);
             this.label_City_year.TabIndex = 5;
@@ -279,11 +278,10 @@
             // label_initial_speech
             // 
             this.label_initial_speech.AllowDrop = true;
-            this.label_initial_speech.AutoSize = true;
             this.label_initial_speech.BackColor = System.Drawing.Color.Transparent;
             this.label_initial_speech.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_initial_speech.Font = new System.Drawing.Font("Times New Roman", 7F);
-            this.label_initial_speech.Location = new System.Drawing.Point(264, 198);
+            this.label_initial_speech.Location = new System.Drawing.Point(-2, 198);
             this.label_initial_speech.Name = "label_initial_speech";
             this.label_initial_speech.Size = new System.Drawing.Size(83, 17);
             this.label_initial_speech.TabIndex = 2;
@@ -293,11 +291,10 @@
             // label_FIO
             // 
             this.label_FIO.AllowDrop = true;
-            this.label_FIO.AutoSize = true;
             this.label_FIO.BackColor = System.Drawing.Color.Transparent;
             this.label_FIO.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_FIO.Font = new System.Drawing.Font("Times New Roman", 7F);
-            this.label_FIO.Location = new System.Drawing.Point(241, 282);
+            this.label_FIO.Location = new System.Drawing.Point(-2, 254);
             this.label_FIO.Name = "label_FIO";
             this.label_FIO.Size = new System.Drawing.Size(129, 17);
             this.label_FIO.TabIndex = 3;
@@ -307,11 +304,10 @@
             // label_final_speech
             // 
             this.label_final_speech.AllowDrop = true;
-            this.label_final_speech.AutoSize = true;
             this.label_final_speech.BackColor = System.Drawing.Color.Transparent;
             this.label_final_speech.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.label_final_speech.Font = new System.Drawing.Font("Times New Roman", 7F);
-            this.label_final_speech.Location = new System.Drawing.Point(264, 367);
+            this.label_final_speech.Location = new System.Drawing.Point(-2, 324);
             this.label_final_speech.Name = "label_final_speech";
             this.label_final_speech.Size = new System.Drawing.Size(83, 17);
             this.label_final_speech.TabIndex = 4;
