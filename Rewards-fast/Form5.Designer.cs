@@ -122,6 +122,7 @@
             this.вставитьПодписьToolStripMenuItem.Name = "вставитьПодписьToolStripMenuItem";
             this.вставитьПодписьToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.вставитьПодписьToolStripMenuItem.Text = "Вставить подпись";
+            this.вставитьПодписьToolStripMenuItem.Click += new System.EventHandler(this.вставитьПодписьToolStripMenuItem_Click);
             // 
             // вставитьПечатьToolStripMenuItem
             // 

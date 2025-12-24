@@ -456,73 +456,117 @@ namespace Rewards_fast
             comboBox_case.Visible = false;
         }
 
-        // Обработчик MouseDown для PictureBox
-        private void pictureBox_MouseDown(object sender, MouseEventArgs e)
+        private void вставитьПечатьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Title = "Выберите изображение печати";
+            dialog.Filter = "Изображения (*.png;*.jpg;*.bmp)|*.png;*.jpg;*.bmp|Все файлы (*.*)|*.*";
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                string printFilePath = dialog.FileName;
+                Image digitalPrint = Image.FromFile(printFilePath);
+
+                // Создаем PictureBox для печати
+                PictureBox printBox = new PictureBox();
+                printBox.Image = digitalPrint;
+                printBox.SizeMode = PictureBoxSizeMode.Zoom;
+                printBox.Size = new Size(80, 80);
+                printBox.BorderStyle = BorderStyle.FixedSingle;
+
+                // Добавляем событие для перетаскивания
+                printBox.MouseDown += Print_MouseDown;
+                printBox.MouseMove += Print_MouseMove;
+                printBox.MouseUp += Print_MouseUp;
+
+                // Добавляем на форму
+                splitContainer2.Panel1.Controls.Add(printBox);
+                printBox.BringToFront(); // Вывести вперед
+            }
+        }
+
+        private void Print_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                currentDraggingControl = (Control)sender;
                 startDragPoint = e.Location;
             }
         }
 
-        // Обработчик MouseMove для PictureBox
-        private void pictureBox_MouseMove(object sender, MouseEventArgs e)
+        private void Print_MouseMove(object sender, MouseEventArgs e)
         {
-            if (currentDraggingControl != null && e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
+                var box = (PictureBox)sender;
                 int deltaX = e.X - startDragPoint.X;
                 int deltaY = e.Y - startDragPoint.Y;
 
-                // Прямо изменяем положение PictureBox
-                currentDraggingControl.Left += deltaX;
-                currentDraggingControl.Top += deltaY;
-
-                // Обновляем точку старта
-                startDragPoint = e.Location;
+                // Приведём сумму к типу double, чтобы явно указать метод Round
+                box.Left = (int)Math.Round((double)(box.Left + deltaX), MidpointRounding.AwayFromZero);
+                box.Top = (int)Math.Round((double)(box.Top + deltaY), MidpointRounding.AwayFromZero);
             }
         }
 
-        // Обработчик MouseUp для PictureBox
-        private void pictureBox_MouseUp(object sender, MouseEventArgs e)
+        private void Print_MouseUp(object sender, MouseEventArgs e)
         {
-            currentDraggingControl = null;
+            startDragPoint = Point.Empty;
         }
 
-        private void вставитьПечатьToolStripMenuItem_Click(object sender, EventArgs e)
+        private void вставитьПодписьToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog1.Filter = "Изображения (.BMP;.JPG;.PNG)|.BMP;.JPG;.PNG";
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Title = "Выберите файл подписи";
+            dialog.Filter = "Изображения (*.png;*.jpg;*.bmp)|*.png;*.jpg;*.bmp|Все файлы (*.*)|*.*";
+
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                string selectedPath = openFileDialog1.FileName;
-                ShowSelectedImage(selectedPath);
+                string signatureFilePath = dialog.FileName;
+                Image digitalSignature = Image.FromFile(signatureFilePath);
+
+                // Создаем PictureBox для подписи
+                PictureBox signatureBox = new PictureBox();
+                signatureBox.Image = digitalSignature;
+                signatureBox.SizeMode = PictureBoxSizeMode.Zoom;
+                signatureBox.Size = new Size(50, 50);
+                signatureBox.BorderStyle = BorderStyle.FixedSingle;
+
+                // Добавляем событие для перетаскивания
+                signatureBox.MouseDown += Signature_MouseDown;
+                signatureBox.MouseMove += Signature_MouseMove;
+                signatureBox.MouseUp += Signature_MouseUp;
+
+                // Добавляем на форму
+                splitContainer2.Panel1.Controls.Add(signatureBox);
+                signatureBox.BringToFront(); // Вывести вперед
+            }
+        }
+        // Обработчики событий
+        private Point startDragPoint2;
+
+        private void Signature_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                startDragPoint2 = e.Location;
             }
         }
 
-        private void ShowSelectedImage(string imagePath)
+        private void Signature_MouseMove(object sender, MouseEventArgs e)
         {
-            try
+            if (e.Button == MouseButtons.Left)
             {
-                Image img = Image.FromFile(imagePath);
-                PictureBox pictureBox = new PictureBox();
-                pictureBox.Image = img;
-                pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
-                pictureBox.Size = new Size(80, 80); // Размер PictureBox равен размеру изображения
-                pictureBox.Dock = DockStyle.None;
-                pictureBox.BorderStyle = BorderStyle.FixedSingle;
+                var box = (PictureBox)sender;
+                int deltaX = e.X - startDragPoint2.X;
+                int deltaY = e.Y - startDragPoint2.Y;
 
-                // Присваиваем обработчики событий
-                pictureBox.MouseDown += pictureBox_MouseDown;
-                pictureBox.MouseMove += pictureBox_MouseMove;
-                pictureBox.MouseUp += pictureBox_MouseUp;
+                box.Left += deltaX;
+                box.Top += deltaY;
+            }
+        }
 
-                splitContainer2.Panel1.Controls.Add(pictureBox);
-                pictureBox.BringToFront();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Ошибка загрузки изображения: " + ex.Message);
-            }
+        private void Signature_MouseUp(object sender, MouseEventArgs e)
+        {
+            startDragPoint2 = Point.Empty;
         }
     }
 }
