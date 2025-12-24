@@ -36,6 +36,8 @@
             this.вставитьПечатьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.границыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.изменениеГраницТекстаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.показатьСкрытьГраницыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.сброситьГраницыToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.справкаToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.оПриложенииИРазработчикеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -102,7 +104,7 @@
             this.сохранитьКакToolStripMenuItem.BackColor = System.Drawing.Color.Green;
             this.сохранитьКакToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.сохранитьКакToolStripMenuItem.Name = "сохранитьКакToolStripMenuItem";
-            this.сохранитьКакToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.сохранитьКакToolStripMenuItem.Size = new System.Drawing.Size(201, 26);
             this.сохранитьКакToolStripMenuItem.Text = "Сохранить как...";
             this.сохранитьКакToolStripMenuItem.Click += new System.EventHandler(this.сохранитьКакToolStripMenuItem_Click);
             // 
@@ -146,10 +148,28 @@
             // изменениеГраницТекстаToolStripMenuItem
             // 
             this.изменениеГраницТекстаToolStripMenuItem.BackColor = System.Drawing.Color.Green;
+            this.изменениеГраницТекстаToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.показатьСкрытьГраницыToolStripMenuItem,
+            this.сброситьГраницыToolStripMenuItem});
             this.изменениеГраницТекстаToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.изменениеГраницТекстаToolStripMenuItem.Name = "изменениеГраницТекстаToolStripMenuItem";
             this.изменениеГраницТекстаToolStripMenuItem.Size = new System.Drawing.Size(272, 26);
             this.изменениеГраницТекстаToolStripMenuItem.Text = "Изменение границ текста";
+            this.изменениеГраницТекстаToolStripMenuItem.Click += new System.EventHandler(this.изменениеГраницТекстаToolStripMenuItem_Click);
+            // 
+            // показатьСкрытьГраницыToolStripMenuItem
+            // 
+            this.показатьСкрытьГраницыToolStripMenuItem.Name = "показатьСкрытьГраницыToolStripMenuItem";
+            this.показатьСкрытьГраницыToolStripMenuItem.Size = new System.Drawing.Size(277, 26);
+            this.показатьСкрытьГраницыToolStripMenuItem.Text = "Показать/Скрыть границы";
+            this.показатьСкрытьГраницыToolStripMenuItem.Click += new System.EventHandler(this.показатьСкрытьГраницыToolStripMenuItem_Click);
+            // 
+            // сброситьГраницыToolStripMenuItem
+            // 
+            this.сброситьГраницыToolStripMenuItem.Name = "сброситьГраницыToolStripMenuItem";
+            this.сброситьГраницыToolStripMenuItem.Size = new System.Drawing.Size(277, 26);
+            this.сброситьГраницыToolStripMenuItem.Text = "Сбросить границы";
+            this.сброситьГраницыToolStripMenuItem.Click += new System.EventHandler(this.сброситьГраницыToolStripMenuItem_Click);
             // 
             // справкаToolStripMenuItem
             // 
@@ -543,5 +563,7 @@
         private System.Windows.Forms.ComboBox comboBox_case;
         private System.Windows.Forms.Label label_case;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.ToolStripMenuItem показатьСкрытьГраницыToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem сброситьГраницыToolStripMenuItem;
     }
 }

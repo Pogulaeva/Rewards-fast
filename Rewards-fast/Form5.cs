@@ -16,6 +16,65 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Rewards_fast
 {
+    // Добавьте этот класс в начало файла (перед классом формы)
+    public class BorderPanel : Panel
+    {
+        private Color _borderColor = Color.Red;
+        private int _borderWidth = 2;
+
+        public Color BorderColor
+        {
+            get { return _borderColor; }
+            set
+            {
+                _borderColor = value;
+                this.Invalidate();
+            }
+        }
+
+        public int BorderWidth
+        {
+            get { return _borderWidth; }
+            set
+            {
+                _borderWidth = Math.Max(1, value);
+                this.Invalidate();
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            using (Pen pen = new Pen(_borderColor, _borderWidth))
+            {
+                // Учитываем ширину пера при рисовании
+                int offset = _borderWidth / 2;
+                Rectangle rect = new Rectangle(
+                    offset,
+                    offset,
+                    this.Width - _borderWidth,
+                    this.Height - _borderWidth
+                );
+                e.Graphics.DrawRectangle(pen, rect);
+            }
+
+            // Рисуем текст "Границы" в углу
+            using (Font font = new Font("Arial", 10, FontStyle.Bold))
+            using (Brush brush = new SolidBrush(_borderColor))
+            {
+                e.Graphics.DrawString("Границы", font, brush, 5, 5);
+            }
+
+            // Рисуем диагональные линии для визуального эффекта
+            using (Pen diagonalPen = new Pen(Color.FromArgb(50, _borderColor), 1))
+            {
+                e.Graphics.DrawLine(diagonalPen, 0, 0, this.Width, this.Height);
+                e.Graphics.DrawLine(diagonalPen, this.Width, 0, 0, this.Height);
+            }
+        }
+    }
+
     public partial class Template_Constructor : Form
     {
         string FIO;
@@ -58,6 +117,14 @@ namespace Rewards_fast
                 BackColor = Color.Red;    // Яркий цвет для заметности
             }
         }
+
+        // Новые переменные для управления границами
+        private Rectangle borderBounds = Rectangle.Empty;
+        private bool isSettingBounds = false;
+        private Point boundsStartPoint;
+        private Panel borderVisualizer;
+        private bool isBorderVisible = false;
+
 
         public Template_Constructor(string param1, string param2, object objParam)
         {
@@ -180,6 +247,19 @@ namespace Rewards_fast
 
             // Обработчик изменения текста в RichTextBox
             richTextBox_Changing_text.TextChanged += richTextBox_Changing_text_TextChanged;
+
+            // Инициализируем визуализатор границ
+            InitializeBorderVisualizer();
+
+            // Добавляем обработчики для template_image
+            template_image.MouseDown += template_image_MouseDown;
+            template_image.MouseMove += template_image_MouseMove;
+            template_image.MouseUp += template_image_MouseUp;
+
+            // Инициализируем переменные границ
+            borderBounds = Rectangle.Empty;
+            isSettingBounds = false;
+            isBorderVisible = false;
         }
 
         private void ResizeLabelsAccordingToImage()
@@ -216,28 +296,36 @@ namespace Rewards_fast
             int adjustedWidthForMainLabels = Math.Max(scaledImgWidth - 80, 0); // Не допускаем отрицательной ширины
             int xOffset = 40; // Смещение по оси X
 
-            // Применяем ширину и позицию ко всем лейблам, кроме двух особых случаев
-            foreach (var label in _labelsList)
+            // Если есть активные границы, используем их
+            if (borderBounds != Rectangle.Empty && isBorderVisible)
             {
-                if (label != null)
+                AdjustLabelsToBounds();
+            }
+            else
+            {
+                // Применяем ширину и позицию ко всем лейблам, кроме двух особых случаев
+                foreach (var label in _labelsList)
                 {
-                    label.AutoSize = false;          // Отключаем автоматический подбор размера
-                    label.Dock = DockStyle.None;      // Отменяем докирование
-                    label.TextAlign = ContentAlignment.MiddleCenter; // Центрируем текст
-
-                    // Для особых лейблов устанавливаем фиксированную ширину
-                    if (label == label_post || label == label_signature_decryption)
+                    if (label != null)
                     {
-                        label.AutoSize = true;           // Фиксированная ширина
-                                                         // Ничего не делаем с позицией, сохраняем её как есть
-                    }
-                    else
-                    {
-                        // Для основных лейблов применяем уменьшение ширины и смещение по оси X
-                        label.Width = adjustedWidthForMainLabels; // Ширина уменьшается на 50 пикселей
+                        label.AutoSize = false;          // Отключаем автоматический подбор размера
+                        label.Dock = DockStyle.None;      // Отменяем докирование
+                        label.TextAlign = ContentAlignment.MiddleCenter; // Центрируем текст
 
-                        // Смещаем только по оси X, сохраняя существующую позицию по оси Y
-                        label.Location = new Point(xOffsetImage + xOffset, label.Location.Y); // Изменяем только X
+                        // Для особых лейблов устанавливаем фиксированную ширину
+                        if (label == label_post || label == label_signature_decryption)
+                        {
+                            label.AutoSize = true;           // Фиксированная ширина
+                                                             // Ничего не делаем с позицией, сохраняем её как есть
+                        }
+                        else
+                        {
+                            // Для основных лейблов применяем уменьшение ширины и смещение по оси X
+                            label.Width = adjustedWidthForMainLabels; // Ширина уменьшается на 50 пикселей
+
+                            // Смещаем только по оси X, сохраняя существующую позицию по оси Y
+                            label.Location = new Point(xOffsetImage + xOffset, label.Location.Y); // Изменяем только X
+                        }
                     }
                 }
             }
@@ -396,8 +484,12 @@ namespace Rewards_fast
             var label = (System.Windows.Forms.Label)sender;
             if (draggingLabels.TryGetValue(label, out bool dragging) && dragging)
             {
-                int dx = e.X - startDragPosition[label].X; // разница по X
-                int dy = e.Y - startDragPosition[label].Y; // разница по Y
+                int dx = e.X - startDragPosition[label].X;
+                int dy = e.Y - startDragPosition[label].Y;
+
+                // Вычисляем новую позицию
+                int newLeft = label.Left + dx;
+                int newTop = label.Top + dy;
 
                 // Ограничения по размерам PictureBox
                 int leftLimit = 0;
@@ -408,16 +500,39 @@ namespace Rewards_fast
                 if (label == label_post || label == label_signature_decryption)
                 {
                     // Свободное перемещение по обеим осям
-                    int newLeft = Math.Max(leftLimit, Math.Min(label.Left + dx, rightLimit));
-                    int newTop = Math.Max(topLimit, Math.Min(label.Top + dy, bottomLimit));
-                    label.Location = new Point(newLeft, newTop);
+                    newLeft = Math.Max(leftLimit, Math.Min(newLeft, rightLimit));
+                    newTop = Math.Max(topLimit, Math.Min(newTop, bottomLimit));
+
+                    // Применяем ограничение границ
+                    Point constrainedPoint = ConstrainToBounds(label, new Point(newLeft, newTop));
+                    label.Location = constrainedPoint;
                 }
                 else
                 {
-                    // Только вертикальное перемещение
-                    int newTop = Math.Max(topLimit, Math.Min(label.Top + dy, bottomLimit));
-                    label.Location = new Point(label.Left, newTop);
+                    // Для основных Label:
+                    // Если есть границы, разрешаем перемещение только внутри них
+                    if (borderBounds != Rectangle.Empty && isBorderVisible)
+                    {
+                        // Горизонтальное движение ограничено границами
+                        newLeft = Math.Max(borderBounds.Left,
+                                  Math.Min(newLeft, borderBounds.Right - label.Width));
+
+                        // Вертикальное движение ограничено границами
+                        newTop = Math.Max(borderBounds.Top,
+                                 Math.Min(newTop, borderBounds.Bottom - label.Height));
+
+                        label.Location = new Point(newLeft, newTop);
+                    }
+                    else
+                    {
+                        // Без границ - только вертикальное перемещение
+                        newTop = Math.Max(topLimit, Math.Min(newTop, bottomLimit));
+                        label.Location = new Point(label.Left, newTop);
+                    }
                 }
+
+                // Обновляем начальную позицию для плавного перемещения
+                startDragPosition[label] = new Point(e.X, e.Y);
             }
         }
 
@@ -731,5 +846,343 @@ namespace Rewards_fast
                 MessageBox.Show("Шаблон успешно сохранён!\n" + filename, "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
+
+        private void изменениеГраницТекстаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (isSettingBounds)
+            {
+                // Завершаем установку границ
+                isSettingBounds = false;
+                изменениеГраницТекстаToolStripMenuItem.Text = "Изменение границ текста";
+
+                // Скрываем визуализатор, но сохраняем его размеры
+                borderVisualizer.Visible = false;
+
+                // Сохраняем границы, если они валидны
+                if (borderVisualizer.Width > 20 && borderVisualizer.Height > 20)
+                {
+                    borderBounds = new Rectangle(
+                        borderVisualizer.Left,
+                        borderVisualizer.Top,
+                        borderVisualizer.Width,
+                        borderVisualizer.Height
+                    );
+
+                    isBorderVisible = true;
+
+                    // Автоматически перемещаем Label внутрь новых границ
+                    AdjustLabelsToBounds();
+
+                    // Обновляем текст в подменю "Показать/Скрыть границы"
+                    показатьСкрытьГраницыToolStripMenuItem.Text = "Скрыть границы";
+
+                    // Показываем границы
+                    показатьСкрытьГраницыToolStripMenuItem_Click(null, EventArgs.Empty);
+
+                    MessageBox.Show($"Границы установлены!\n" +
+                                  $"Позиция: X={borderBounds.X}, Y={borderBounds.Y}\n" +
+                                  $"Размер: {borderBounds.Width}×{borderBounds.Height}\n" +
+                                  $"Label автоматически размещены внутри границ.",
+                                  "Границы установлены",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Границы не установлены. Создайте область большего размера.",
+                                  "Предупреждение",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Warning);
+                }
+
+                // Возвращаем обычный курсор
+                template_image.Cursor = Cursors.Default;
+            }
+            else
+            {
+                // Начинаем установку границ
+                isSettingBounds = true;
+                изменениеГраницТекстаToolStripMenuItem.Text = "Завершить установку границ";
+
+                // Устанавливаем курсор для рисования
+                template_image.Cursor = Cursors.Cross;
+
+                // Сбрасываем границы
+                borderBounds = Rectangle.Empty;
+
+                // Показываем инструкцию
+                borderVisualizer.Location = new Point(50, 50);
+                borderVisualizer.Size = new Size(0, 0); // Начинаем с нулевого размера
+                borderVisualizer.Visible = true;
+                borderVisualizer.BringToFront();
+
+                MessageBox.Show("Нажмите и перетащите мышью для создания области границ.\n" +
+                               "Красная рамка покажет область, в которой можно перемещать текст.\n" +
+                               "После установки все Label будут автоматически размещены внутри границ.",
+                               "Установка границ",
+                               MessageBoxButtons.OK,
+                               MessageBoxIcon.Information);
+            }
         }
+
+        private void InitializeBorderVisualizer()
+        {
+            borderVisualizer = new BorderPanel
+            {
+                BackColor = Color.FromArgb(30, Color.LightBlue), // Полупрозрачный фон
+                Padding = new Padding(0)
+            };
+
+            // Устанавливаем свойства BorderPanel
+            if (borderVisualizer is BorderPanel borderPanel)
+            {
+                borderPanel.BorderColor = Color.Red;
+                borderPanel.BorderWidth = 2;
+            }
+
+            template_image.Controls.Add(borderVisualizer);
+            borderVisualizer.BringToFront();
+            borderVisualizer.Visible = false;
+            borderVisualizer.Cursor = Cursors.Cross;
+        }
+
+        private bool IsWithinBounds(Control control)
+        {
+            if (borderBounds == Rectangle.Empty || !isBorderVisible)
+                return true;
+
+            Rectangle controlRect = new Rectangle(
+                control.Left,
+                control.Top,
+                control.Width,
+                control.Height
+            );
+
+            return borderBounds.Contains(controlRect);
+        }
+
+        private Point ConstrainToBounds(Control control, Point newLocation)
+        {
+            if (borderBounds == Rectangle.Empty || !isBorderVisible)
+                return newLocation;
+
+            // Ограничиваем позицию
+            int newX = Math.Max(borderBounds.Left,
+                       Math.Min(newLocation.X, borderBounds.Right - control.Width));
+            int newY = Math.Max(borderBounds.Top,
+                       Math.Min(newLocation.Y, borderBounds.Bottom - control.Height));
+
+            // Визуальная обратная связь: подсвечиваем границы при приближении
+            if (Math.Abs(newX - borderBounds.Left) < 5 ||
+                Math.Abs(newX + control.Width - borderBounds.Right) < 5 ||
+                Math.Abs(newY - borderBounds.Top) < 5 ||
+                Math.Abs(newY + control.Height - borderBounds.Bottom) < 5)
+            {
+                // Мигаем границей
+                if (borderVisualizer.Visible)
+                {
+                    ((BorderPanel)borderVisualizer).BorderColor = Color.Yellow;
+                    borderVisualizer.Invalidate();
+
+                    // Восстанавливаем цвет через 100 мс
+                    Task.Delay(100).ContinueWith(_ =>
+                    {
+                        if (borderVisualizer != null && borderVisualizer.Visible)
+                        {
+                            ((BorderPanel)borderVisualizer).BorderColor = isSettingBounds ? Color.Green : Color.Red;
+                            borderVisualizer.Invoke(new Action(() => borderVisualizer.Invalidate()));
+                        }
+                    });
+                }
+            }
+
+            return new Point(newX, newY);
+        }
+
+        private void template_image_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (isSettingBounds && e.Button == MouseButtons.Left)
+            {
+                boundsStartPoint = e.Location;
+                borderVisualizer.Location = e.Location;
+                borderVisualizer.Size = new Size(1, 1); // Минимальный размер
+                borderVisualizer.Visible = true;
+                borderVisualizer.BringToFront();
+            }
+        }
+
+        private void template_image_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isSettingBounds && e.Button == MouseButtons.Left && boundsStartPoint != Point.Empty)
+            {
+                // Вычисляем прямоугольник от начальной точки до текущей позиции мыши
+                int x = Math.Min(boundsStartPoint.X, e.X);
+                int y = Math.Min(boundsStartPoint.Y, e.Y);
+                int width = Math.Abs(e.X - boundsStartPoint.X);
+                int height = Math.Abs(e.Y - boundsStartPoint.Y);
+
+                // Минимальный размер области
+                width = Math.Max(20, width);
+                height = Math.Max(20, height);
+
+                borderVisualizer.Location = new Point(x, y);
+                borderVisualizer.Size = new Size(width, height);
+
+                // Обновляем отображение
+                borderVisualizer.Invalidate();
+            }
+        }
+
+        private void template_image_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (isSettingBounds && e.Button == MouseButtons.Left)
+            {
+                // Проверяем, достаточно ли большой прямоугольник
+                if (borderVisualizer.Width > 20 && borderVisualizer.Height > 20)
+                {
+                    // Меняем цвет рамки на зеленый для подтверждения
+                    ((BorderPanel)borderVisualizer).BorderColor = Color.Green;
+                    borderVisualizer.Invalidate();
+                }
+                else
+                {
+                    // Если область слишком маленькая, скрываем ее
+                    borderVisualizer.Visible = false;
+                }
+            }
+        }
+
+        private void показатьСкрытьГраницыToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            isBorderVisible = !isBorderVisible;
+
+            if (isBorderVisible && borderBounds != Rectangle.Empty)
+            {
+                // Показываем границы
+                borderVisualizer.Location = borderBounds.Location;
+                borderVisualizer.Size = borderBounds.Size;
+
+                // Используем BorderPanel
+                if (borderVisualizer is BorderPanel borderPanel)
+                {
+                    borderPanel.BorderColor = Color.Red;
+                    borderPanel.BorderWidth = 3;
+                    borderPanel.BackColor = Color.FromArgb(30, Color.LightBlue);
+                }
+
+                borderVisualizer.Visible = true;
+                borderVisualizer.BringToFront();
+
+                // Обновляем текст пункта меню
+                показатьСкрытьГраницыToolStripMenuItem.Text = "Скрыть границы";
+
+                // Принудительно перерисовываем
+                borderVisualizer.Invalidate();
+
+                // Автоматически корректируем Label внутри границ
+                AdjustLabelsToBounds();
+            }
+            else
+            {
+                // Скрываем границы
+                borderVisualizer.Visible = false;
+                показатьСкрытьГраницыToolStripMenuItem.Text = "Показать/Скрыть границы";
+            }
+        }
+
+        private void сброситьГраницыToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            borderBounds = Rectangle.Empty;
+            borderVisualizer.Visible = false;
+            isBorderVisible = false;
+            isSettingBounds = false;
+
+            // Возвращаем первоначальный текст пункта меню
+            изменениеГраницТекстаToolStripMenuItem.Text = "Изменение границ текста";
+            показатьСкрытьГраницыToolStripMenuItem.Text = "Показать/Скрыть границы";
+
+            // Восстанавливаем исходные размеры Label
+            foreach (var label in _labelsList)
+            {
+                if (label == null) continue;
+
+                if (label != label_post && label != label_signature_decryption)
+                {
+                    // Возвращаем авторазмер для текста
+                    label.AutoSize = true;
+                }
+            }
+
+            // Обновляем размеры Label
+            ResizeLabelsAccordingToImage();
+
+            MessageBox.Show("Все границы сброшены. Текст можно перемещать свободно.",
+                           "Границы сброшены",
+                           MessageBoxButtons.OK,
+                           MessageBoxIcon.Information);
+        }
+
+        private void AdjustLabelsToBounds()
+        {
+            if (borderBounds == Rectangle.Empty || !isBorderVisible)
+                return;
+
+            // Для лучшего визуального восприятия - немного отступов внутри границ
+            int padding = 5;
+            Rectangle innerBounds = new Rectangle(
+                borderBounds.Left + padding,
+                borderBounds.Top + padding,
+                borderBounds.Width - 2 * padding,
+                borderBounds.Height - 2 * padding
+            );
+
+            // Распределяем Label вертикально внутри границ
+            int totalLabels = 0;
+            foreach (var label in _labelsList)
+            {
+                if (label != label_post && label != label_signature_decryption)
+                    totalLabels++;
+            }
+
+            if (totalLabels > 0)
+            {
+                int verticalSpacing = innerBounds.Height / (totalLabels + 1);
+                int currentY = innerBounds.Top + verticalSpacing;
+
+                foreach (var label in _labelsList)
+                {
+                    if (label == null) continue;
+
+                    if (label == label_post || label == label_signature_decryption)
+                    {
+                        // Для этих Label только проверяем позицию
+                        if (!IsWithinBounds(label))
+                        {
+                            Point newLocation = ConstrainToBounds(label, label.Location);
+                            label.Location = newLocation;
+                        }
+                    }
+                    else
+                    {
+                        // Для основных Label:
+                        // 1. Устанавливаем ширину равной ширине внутренних границ
+                        label.Width = innerBounds.Width;
+
+                        // 2. Выравниваем по центру горизонтально
+                        label.Left = innerBounds.Left + (innerBounds.Width - label.Width) / 2;
+
+                        // 3. Устанавливаем вертикальную позицию
+                        int labelHeight = label.Height > 0 ? label.Height : 30; // Минимальная высота
+                        label.Top = currentY - labelHeight / 2;
+
+                        // 4. Отключаем авторазмер для контроля ширины
+                        label.AutoSize = false;
+
+                        // 5. Увеличиваем текущую Y позицию для следующего Label
+                        currentY += verticalSpacing;
+                    }
+                }
+            }
+        }
+    }
 }
