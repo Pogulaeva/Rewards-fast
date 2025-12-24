@@ -102,8 +102,9 @@
             this.сохранитьКакToolStripMenuItem.BackColor = System.Drawing.Color.Green;
             this.сохранитьКакToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.сохранитьКакToolStripMenuItem.Name = "сохранитьКакToolStripMenuItem";
-            this.сохранитьКакToolStripMenuItem.Size = new System.Drawing.Size(201, 26);
+            this.сохранитьКакToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.сохранитьКакToolStripMenuItem.Text = "Сохранить как...";
+            this.сохранитьКакToolStripMenuItem.Click += new System.EventHandler(this.сохранитьКакToolStripMenuItem_Click);
             // 
             // вставкаToolStripMenuItem
             // 

@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
@@ -41,6 +43,8 @@ namespace Rewards_fast
 
         // Инициализируем список лейблов заранее
         private readonly List<System.Windows.Forms.Label> _labelsList = new List<System.Windows.Forms.Label>();
+
+        private List<PictureBox> _addedPictureBoxes = new List<PictureBox>();
 
         // Переменные для перетаскивания
         private Control currentDraggingControl;
@@ -89,7 +93,29 @@ namespace Rewards_fast
         label_post,
         label_signature_decryption
     });
+            foreach (var label in _labelsList)
+            {
+                if (label.Parent != template_image)
+                {
+                    // Удаляем из текущего родителя
+                    var parent = label.Parent;
+                    if (parent != null)
+                    {
+                        parent.Controls.Remove(label);
+                    }
+                    // Добавляем на template_image
+                    template_image.Controls.Add(label);
+                    label.BringToFront();
+                }
+            }
 
+            // Также убедимся, что template_image имеет правильные настройки
+            template_image.Controls.Clear();
+            foreach (var label in _labelsList)
+            {
+                template_image.Controls.Add(label);
+                label.BringToFront();
+            }
             // Настроим ширину лейблов согласно размеру адаптированного изображения
             ResizeLabelsAccordingToImage();
 
@@ -473,15 +499,20 @@ namespace Rewards_fast
                 printBox.SizeMode = PictureBoxSizeMode.Zoom;
                 printBox.Size = new Size(80, 80);
                 printBox.BorderStyle = BorderStyle.FixedSingle;
+                printBox.BackColor = Color.Transparent;
+
+                // Размещаем PictureBox на template_image
+                printBox.Location = new Point(50, 50); // Начальная позиция
 
                 // Добавляем событие для перетаскивания
                 printBox.MouseDown += Print_MouseDown;
                 printBox.MouseMove += Print_MouseMove;
                 printBox.MouseUp += Print_MouseUp;
 
-                // Добавляем на форму
-                splitContainer2.Panel1.Controls.Add(printBox);
-                printBox.BringToFront(); // Вывести вперед
+                // Добавляем на template_image
+                template_image.Controls.Add(printBox);
+                _addedPictureBoxes.Add(printBox);
+                printBox.BringToFront();
             }
         }
 
@@ -529,15 +560,20 @@ namespace Rewards_fast
                 signatureBox.SizeMode = PictureBoxSizeMode.Zoom;
                 signatureBox.Size = new Size(50, 50);
                 signatureBox.BorderStyle = BorderStyle.FixedSingle;
+                signatureBox.BackColor = Color.Transparent;
+
+                // Размещаем PictureBox на template_image
+                signatureBox.Location = new Point(100, 100); // Начальная позиция
 
                 // Добавляем событие для перетаскивания
                 signatureBox.MouseDown += Signature_MouseDown;
                 signatureBox.MouseMove += Signature_MouseMove;
                 signatureBox.MouseUp += Signature_MouseUp;
 
-                // Добавляем на форму
-                splitContainer2.Panel1.Controls.Add(signatureBox);
-                signatureBox.BringToFront(); // Вывести вперед
+                // Добавляем на template_image
+                template_image.Controls.Add(signatureBox);
+                _addedPictureBoxes.Add(signatureBox);
+                signatureBox.BringToFront();
             }
         }
         // Обработчики событий
@@ -568,5 +604,132 @@ namespace Rewards_fast
         {
             startDragPoint2 = Point.Empty;
         }
-    }
+
+        private void сохранитьКакToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Проверяем наличие изображения-шаблона
+            if (template_image.Image == null)
+            {
+                MessageBox.Show("Необходимо сначала выбрать шаблон изображения", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Получаем оригинальное изображение
+            Image originalImage = template_image.Image;
+
+            // Создаем новое изображение размером с оригинальный шаблон
+            using (Bitmap bitmap = new Bitmap(originalImage.Width, originalImage.Height))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+
+                    // РИСУЕМ БАЗОВЫЙ ШАБЛОН
+                    g.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
+
+                    // Вычисляем масштаб между PictureBox и оригинальным изображением
+                    float scaleX = (float)originalImage.Width / template_image.ClientSize.Width;
+                    float scaleY = (float)originalImage.Height / template_image.ClientSize.Height;
+
+                    // Рисуем все лейблы (кроме label_FIO)
+                    foreach (System.Windows.Forms.Label label in _labelsList)
+                    {
+                        if (label == label_FIO) continue;
+                        if (!label.Visible || string.IsNullOrEmpty(label.Text)) continue;
+
+                        // Позиция лейбла уже относительно template_image
+                        int xOnImage = (int)(label.Left * scaleX);
+                        int yOnImage = (int)(label.Top * scaleY);
+
+                        // Масштабируем размер шрифта
+                        float fontSize = label.Font.Size * Math.Min(scaleX, scaleY);
+                        Font scaledFont = new Font(label.Font.FontFamily, fontSize, label.Font.Style);
+
+                        // Масштабируем размер лейбла
+                        int widthOnImage = (int)(label.Width * scaleX);
+                        int heightOnImage = (int)(label.Height * scaleY);
+
+                        // Создаем прямоугольник для текста
+                        RectangleF textRect = new RectangleF(xOnImage, yOnImage, widthOnImage, heightOnImage);
+
+                        // Создаем формат для выравнивания текста
+                        StringFormat format = new StringFormat();
+
+                        // Конвертируем ContentAlignment в StringFormat
+                        switch (label.TextAlign)
+                        {
+                            case ContentAlignment.TopLeft:
+                                format.Alignment = StringAlignment.Near;
+                                format.LineAlignment = StringAlignment.Near;
+                                break;
+                            case ContentAlignment.TopCenter:
+                                format.Alignment = StringAlignment.Center;
+                                format.LineAlignment = StringAlignment.Near;
+                                break;
+                            case ContentAlignment.TopRight:
+                                format.Alignment = StringAlignment.Far;
+                                format.LineAlignment = StringAlignment.Near;
+                                break;
+                            case ContentAlignment.MiddleLeft:
+                                format.Alignment = StringAlignment.Near;
+                                format.LineAlignment = StringAlignment.Center;
+                                break;
+                            case ContentAlignment.MiddleCenter:
+                                format.Alignment = StringAlignment.Center;
+                                format.LineAlignment = StringAlignment.Center;
+                                break;
+                            case ContentAlignment.MiddleRight:
+                                format.Alignment = StringAlignment.Far;
+                                format.LineAlignment = StringAlignment.Center;
+                                break;
+                            case ContentAlignment.BottomLeft:
+                                format.Alignment = StringAlignment.Near;
+                                format.LineAlignment = StringAlignment.Far;
+                                break;
+                            case ContentAlignment.BottomCenter:
+                                format.Alignment = StringAlignment.Center;
+                                format.LineAlignment = StringAlignment.Far;
+                                break;
+                            case ContentAlignment.BottomRight:
+                                format.Alignment = StringAlignment.Far;
+                                format.LineAlignment = StringAlignment.Far;
+                                break;
+                        }
+
+                        // Рисуем текст
+                        using (Brush textBrush = new SolidBrush(label.ForeColor))
+                        {
+                            g.DrawString(label.Text, scaledFont, textBrush, textRect, format);
+                        }
+
+                        scaledFont.Dispose();
+                    }
+
+                    // Рисуем все добавленные PictureBox'ы (печати и подписи)
+                    foreach (PictureBox pictureBox in _addedPictureBoxes)
+                    {
+                        if (!pictureBox.Visible || pictureBox.Image == null) continue;
+
+                        // Позиция PictureBox уже относительно template_image
+                        int xOnImage = (int)(pictureBox.Left * scaleX);
+                        int yOnImage = (int)(pictureBox.Top * scaleY);
+                        int widthOnImage = (int)(pictureBox.Width * scaleX);
+                        int heightOnImage = (int)(pictureBox.Height * scaleY);
+
+                        // Рисуем изображение
+                        g.DrawImage(pictureBox.Image, xOnImage, yOnImage, widthOnImage, heightOnImage);
+                    }
+                }
+
+                // Формируем полное имя файла
+                string filename = Path.Combine(foldername, "template_saved_" + DateTime.Now.Ticks + ".jpg");
+
+                // Сохраняем изображение
+                bitmap.Save(filename, ImageFormat.Jpeg);
+
+                MessageBox.Show("Шаблон успешно сохранён!\n" + filename, "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        }
 }
