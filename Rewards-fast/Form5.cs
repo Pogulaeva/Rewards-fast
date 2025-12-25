@@ -23,6 +23,8 @@ namespace Rewards_fast
         Image image;
         string image2;
 
+        private int current_case = 1; // Текущий падеж для Label_FIO
+
         Dictionary<System.Windows.Forms.Label, bool> draggingLabels = new Dictionary<System.Windows.Forms.Label, bool>();
         Dictionary<System.Windows.Forms.Label, Point> startDragPosition = new Dictionary<System.Windows.Forms.Label, Point>();
 
@@ -297,22 +299,35 @@ namespace Rewards_fast
         {
             activeLabel = (System.Windows.Forms.Label)sender;
 
-            // Заполняем RichTextBox текстом из лейбла
-            richTextBox_Changing_text.Text = activeLabel.Text;
+            // Если это label_FIO, используем склонение
+            if (activeLabel == label_FIO)
+            {
+                string fioInCase = GetFioInCase(FIO, current_case);
+                richTextBox_Changing_text.Text = fioInCase;
 
-            // Передача имени шрифта в первый TextBox
+                richTextBox_Changing_text.ReadOnly = true;
+                label_case.Visible = true;
+                comboBox_case.Visible = true;
+                comboBox_case.SelectedIndex = current_case - 1;
+            }
+            else
+            {
+                // Для остальных лейблов обычный текст
+                richTextBox_Changing_text.Text = activeLabel.Text;
+
+                richTextBox_Changing_text.ReadOnly = false;
+                label_case.Visible = false;
+                comboBox_case.Visible = false;
+            }
+
+            // Общие настройки для всех лейблов
             textBox_Changing_font.Text = activeLabel.Font.Name;
-
-            // Передача размера шрифта во второй TextBox
             textBox_Size.Text = activeLabel.Font.Size.ToString();
 
-            // Обновление визуального представления стиля шрифта
             ChangeLabelColor(label_Bold, activeLabel.Font.Bold);
             ChangeLabelColor(label_Italics, activeLabel.Font.Italic);
             ChangeLabelColor(label_Underlined, activeLabel.Font.Underline);
 
-            // НЕ меняем размер и позицию при клике!
-            // Только проверяем, не выходит ли текст за границы
             CheckTextOverflow(activeLabel);
         }
 
@@ -521,9 +536,21 @@ namespace Rewards_fast
 
         private void label_FIO_Click(object sender, EventArgs e)
         {
+            // Сначала вызываем базовый обработчик клика
+            OnLabelClick(sender, e);
+
             richTextBox_Changing_text.ReadOnly = true;
             label_case.Visible = true;
             comboBox_case.Visible = true;
+
+            // Устанавливаем значение в comboBox_case
+            comboBox_case.SelectedIndex = current_case - 1;
+
+            // Обновляем текст в richTextBox_Changing_text
+            string fioInCase = GetFioInCase(FIO, current_case);
+            richTextBox_Changing_text.Text = fioInCase;
+
+            activeLabel = label_FIO;
         }
 
         private void label_initial_speech_Click(object sender, EventArgs e)
@@ -913,21 +940,6 @@ namespace Rewards_fast
             borderVisualizer.BringToFront();
             borderVisualizer.Visible = false;
             borderVisualizer.Cursor = Cursors.Cross;
-        }
-
-        private bool IsWithinBounds(Control control)
-        {
-            if (borderBounds == Rectangle.Empty || !isBorderVisible)
-                return true;
-
-            Rectangle controlRect = new Rectangle(
-                control.Left,
-                control.Top,
-                control.Width,
-                control.Height
-            );
-
-            return borderBounds.Contains(controlRect);
         }
 
         private Point ConstrainToBounds(Control control, Point newLocation)
@@ -1325,6 +1337,44 @@ namespace Rewards_fast
                            "Уведомление",
                            MessageBoxButtons.OK,
                            MessageBoxIcon.Information);
+        }
+
+        private void comboBox_case_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox_case.SelectedIndex >= 0)
+            {
+                // Обновляем значение current_case
+                current_case = comboBox_case.SelectedIndex + 1;
+
+                // Если активный лейбл - это label_FIO, обновляем текст
+                if (activeLabel == label_FIO)
+                {
+                    string fioInCase = GetFioInCase(FIO, current_case);
+                    label_FIO.Text = fioInCase;
+                    richTextBox_Changing_text.Text = fioInCase;
+                }
+            }
+        }
+
+        private string GetFioInCase(string fio, int caseType)
+        {
+            switch (caseType)
+            {
+                case 1: // Именительный
+                    return "Иванов Иван Иванович";
+                case 2: // Родительный
+                    return "Иванова Ивана Ивановича";
+                case 3: // Дательный
+                    return "Иванову Ивану Ивановичу";
+                case 4: // Винительный
+                    return "Иванова Ивана Ивановича";
+                case 5: // Творительный
+                    return "Ивановым Иваном Ивановичем";
+                case 6: // Предложный
+                    return "Иванове Иване Ивановиче";
+                default:
+                    return fio;
+            }
         }
     }
 }

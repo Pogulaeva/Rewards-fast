@@ -386,6 +386,7 @@
             this.comboBox_case.Size = new System.Drawing.Size(210, 24);
             this.comboBox_case.TabIndex = 11;
             this.comboBox_case.Visible = false;
+            this.comboBox_case.SelectedIndexChanged += new System.EventHandler(this.comboBox_case_SelectedIndexChanged);
             // 
             // label_Underlined
             // 
