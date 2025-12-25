@@ -137,5 +137,8 @@
   <ItemGroup>
     <None Include="Шаблоны наградных материалов\Грамота2.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\значок отправки сообщения.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

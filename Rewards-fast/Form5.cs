@@ -219,6 +219,8 @@ namespace Rewards_fast
                     }
                 }
             }
+
+            button_Sending_message.Image = ResizeImage(Properties.Resources.значок_отправки_сообщения, 17, 17);
         }
 
         private void ResizeLabelsAccordingToImage()
@@ -1375,6 +1377,35 @@ namespace Rewards_fast
                 default:
                     return fio;
             }
+        }
+
+        private void textBox_Request_input_field_TextChanged(object sender, EventArgs e)
+        {
+            MessageBox.Show("Функция консультирования с ИИ находится в статусе разработки",
+                           "Уведомление",
+                           MessageBoxButtons.OK,
+                           MessageBoxIcon.Information);
+        }
+
+        private Image ResizeImage(Image originalImage, int width, int height)
+        {
+            Bitmap resizedImage = new Bitmap(width, height);
+
+            using (Graphics g = Graphics.FromImage(resizedImage))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.DrawImage(originalImage, 0, 0, width, height);
+            }
+
+            return resizedImage;
+        }
+
+        private void button_Sending_message_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Функция консультирования с ИИ находится в статусе разработки",
+                           "Уведомление",
+                           MessageBoxButtons.OK,
+                           MessageBoxIcon.Information);
         }
     }
 }

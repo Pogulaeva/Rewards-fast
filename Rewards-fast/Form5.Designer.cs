@@ -49,7 +49,6 @@
             this.label_initial_speech = new System.Windows.Forms.Label();
             this.label_FIO = new System.Windows.Forms.Label();
             this.label_final_speech = new System.Windows.Forms.Label();
-            this.template_image = new System.Windows.Forms.PictureBox();
             this.label_case = new System.Windows.Forms.Label();
             this.comboBox_case = new System.Windows.Forms.ComboBox();
             this.label_Underlined = new System.Windows.Forms.Label();
@@ -64,8 +63,13 @@
             this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.label_Chat_with_AI = new System.Windows.Forms.Label();
+            this.textBox_Request_input_field = new System.Windows.Forms.TextBox();
+            this.button_Sending_message = new System.Windows.Forms.Button();
+            this.template_image = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
@@ -96,7 +100,7 @@
             this.сохранитьКакToolStripMenuItem});
             this.файлToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
-            this.файлToolStripMenuItem.Size = new System.Drawing.Size(59, 24);
+            this.файлToolStripMenuItem.Size = new System.Drawing.Size(59, 26);
             this.файлToolStripMenuItem.Text = "Файл";
             // 
             // сохранитьКакToolStripMenuItem
@@ -115,7 +119,7 @@
             this.вставитьПечатьToolStripMenuItem});
             this.вставкаToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.вставкаToolStripMenuItem.Name = "вставкаToolStripMenuItem";
-            this.вставкаToolStripMenuItem.Size = new System.Drawing.Size(76, 24);
+            this.вставкаToolStripMenuItem.Size = new System.Drawing.Size(76, 26);
             this.вставкаToolStripMenuItem.Text = "Вставка";
             // 
             // вставитьПодписьToolStripMenuItem
@@ -142,7 +146,7 @@
             this.изменениеГраницТекстаToolStripMenuItem});
             this.границыToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.границыToolStripMenuItem.Name = "границыToolStripMenuItem";
-            this.границыToolStripMenuItem.Size = new System.Drawing.Size(85, 24);
+            this.границыToolStripMenuItem.Size = new System.Drawing.Size(85, 26);
             this.границыToolStripMenuItem.Text = "Границы";
             // 
             // изменениеГраницТекстаToolStripMenuItem
@@ -182,7 +186,7 @@
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem});
             this.справкаToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.справкаToolStripMenuItem.Name = "справкаToolStripMenuItem";
-            this.справкаToolStripMenuItem.Size = new System.Drawing.Size(81, 24);
+            this.справкаToolStripMenuItem.Size = new System.Drawing.Size(81, 26);
             this.справкаToolStripMenuItem.Text = "Справка";
             // 
             // оПриложенииИРазработчикеToolStripMenuItem
@@ -215,6 +219,9 @@
             // 
             this.splitContainer1.Panel1.AutoScroll = true;
             this.splitContainer1.Panel1.BackColor = System.Drawing.Color.Transparent;
+            this.splitContainer1.Panel1.Controls.Add(this.button_Sending_message);
+            this.splitContainer1.Panel1.Controls.Add(this.textBox_Request_input_field);
+            this.splitContainer1.Panel1.Controls.Add(this.label_Chat_with_AI);
             // 
             // splitContainer1.Panel2
             // 
@@ -260,8 +267,10 @@
             this.splitContainer2.Panel2.Controls.Add(this.richTextBox_Changing_text);
             this.splitContainer2.Panel2.Controls.Add(this.label_text);
             this.splitContainer2.Panel2.Controls.Add(this.label_Changing_parameters);
+            this.splitContainer2.Panel2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.splitContainer2.Panel2MinSize = 50;
             this.splitContainer2.Size = new System.Drawing.Size(887, 644);
-            this.splitContainer2.SplitterDistance = 569;
+            this.splitContainer2.SplitterDistance = 643;
             this.splitContainer2.TabIndex = 0;
             // 
             // label_signature_decryption
@@ -344,18 +353,6 @@
             this.label_final_speech.Text = "Какой-то текст";
             this.label_final_speech.Click += new System.EventHandler(this.label_final_speech_Click);
             // 
-            // template_image
-            // 
-            this.template_image.AllowDrop = true;
-            this.template_image.BackColor = System.Drawing.Color.Transparent;
-            this.template_image.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.template_image.Location = new System.Drawing.Point(0, 0);
-            this.template_image.Name = "template_image";
-            this.template_image.Size = new System.Drawing.Size(565, 640);
-            this.template_image.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.template_image.TabIndex = 0;
-            this.template_image.TabStop = false;
-            // 
             // label_case
             // 
             this.label_case.AutoSize = true;
@@ -383,7 +380,7 @@
             "Предложный"});
             this.comboBox_case.Location = new System.Drawing.Point(90, 367);
             this.comboBox_case.Name = "comboBox_case";
-            this.comboBox_case.Size = new System.Drawing.Size(210, 24);
+            this.comboBox_case.Size = new System.Drawing.Size(210, 23);
             this.comboBox_case.TabIndex = 11;
             this.comboBox_case.Visible = false;
             this.comboBox_case.SelectedIndexChanged += new System.EventHandler(this.comboBox_case_SelectedIndexChanged);
@@ -430,7 +427,7 @@
             this.textBox_Size.Location = new System.Drawing.Point(90, 249);
             this.textBox_Size.Name = "textBox_Size";
             this.textBox_Size.ReadOnly = true;
-            this.textBox_Size.Size = new System.Drawing.Size(44, 22);
+            this.textBox_Size.Size = new System.Drawing.Size(44, 21);
             this.textBox_Size.TabIndex = 7;
             this.textBox_Size.TabStop = false;
             // 
@@ -451,7 +448,7 @@
             this.textBox_Changing_font.Location = new System.Drawing.Point(90, 204);
             this.textBox_Changing_font.Name = "textBox_Changing_font";
             this.textBox_Changing_font.ReadOnly = true;
-            this.textBox_Changing_font.Size = new System.Drawing.Size(210, 22);
+            this.textBox_Changing_font.Size = new System.Drawing.Size(210, 21);
             this.textBox_Changing_font.TabIndex = 5;
             this.textBox_Changing_font.TabStop = false;
             // 
@@ -490,20 +487,69 @@
             // 
             // label_Changing_parameters
             // 
-            this.label_Changing_parameters.AutoSize = true;
             this.label_Changing_parameters.BackColor = System.Drawing.Color.MediumSeaGreen;
             this.label_Changing_parameters.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.label_Changing_parameters.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 13F);
+            this.label_Changing_parameters.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label_Changing_parameters.ForeColor = System.Drawing.Color.White;
             this.label_Changing_parameters.Location = new System.Drawing.Point(-2, 0);
             this.label_Changing_parameters.Name = "label_Changing_parameters";
-            this.label_Changing_parameters.Size = new System.Drawing.Size(310, 24);
+            this.label_Changing_parameters.Size = new System.Drawing.Size(302, 26);
             this.label_Changing_parameters.TabIndex = 1;
-            this.label_Changing_parameters.Text = "Изменение параметров элемента";
+            this.label_Changing_parameters.Text = "Параметры элемента";
             // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
+            // 
+            // label_Chat_with_AI
+            // 
+            this.label_Chat_with_AI.BackColor = System.Drawing.Color.MediumSeaGreen;
+            this.label_Chat_with_AI.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label_Chat_with_AI.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Chat_with_AI.ForeColor = System.Drawing.Color.White;
+            this.label_Chat_with_AI.Location = new System.Drawing.Point(1, 0);
+            this.label_Chat_with_AI.Name = "label_Chat_with_AI";
+            this.label_Chat_with_AI.Size = new System.Drawing.Size(319, 39);
+            this.label_Chat_with_AI.TabIndex = 2;
+            this.label_Chat_with_AI.Text = "Чат с ИИ";
+            this.label_Chat_with_AI.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // textBox_Request_input_field
+            // 
+            this.textBox_Request_input_field.BackColor = System.Drawing.Color.SeaGreen;
+            this.textBox_Request_input_field.Location = new System.Drawing.Point(3, 582);
+            this.textBox_Request_input_field.Multiline = true;
+            this.textBox_Request_input_field.Name = "textBox_Request_input_field";
+            this.textBox_Request_input_field.ReadOnly = true;
+            this.textBox_Request_input_field.Size = new System.Drawing.Size(245, 37);
+            this.textBox_Request_input_field.TabIndex = 6;
+            this.textBox_Request_input_field.TabStop = false;
+            this.textBox_Request_input_field.Text = "Задать вопрос";
+            this.textBox_Request_input_field.TextChanged += new System.EventHandler(this.textBox_Request_input_field_TextChanged);
+            // 
+            // button_Sending_message
+            // 
+            this.button_Sending_message.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button_Sending_message.ForeColor = System.Drawing.Color.Green;
+            this.button_Sending_message.Image = global::Rewards_fast.Properties.Resources.значок_отправки_сообщения;
+            this.button_Sending_message.Location = new System.Drawing.Point(263, 582);
+            this.button_Sending_message.Name = "button_Sending_message";
+            this.button_Sending_message.Size = new System.Drawing.Size(48, 37);
+            this.button_Sending_message.TabIndex = 7;
+            this.button_Sending_message.UseVisualStyleBackColor = true;
+            this.button_Sending_message.Click += new System.EventHandler(this.button_Sending_message_Click);
+            // 
+            // template_image
+            // 
+            this.template_image.AllowDrop = true;
+            this.template_image.BackColor = System.Drawing.Color.Transparent;
+            this.template_image.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.template_image.Location = new System.Drawing.Point(0, 0);
+            this.template_image.Name = "template_image";
+            this.template_image.Size = new System.Drawing.Size(639, 640);
+            this.template_image.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.template_image.TabIndex = 0;
+            this.template_image.TabStop = false;
             // 
             // Template_Constructor
             // 
@@ -520,6 +566,8 @@
             this.Text = "Rewards fast";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
@@ -573,5 +621,8 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.ToolStripMenuItem показатьСкрытьГраницыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem сброситьГраницыToolStripMenuItem;
+        private System.Windows.Forms.Label label_Chat_with_AI;
+        private System.Windows.Forms.TextBox textBox_Request_input_field;
+        private System.Windows.Forms.Button button_Sending_message;
     }
 }

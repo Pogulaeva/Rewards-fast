@@ -118,22 +118,25 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Благодарственное письмо1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Шаблоны наградных материалов\Благодарственное письмо1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Благодарность2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Шаблоны наградных материалов\Благодарность2.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="Благодарность1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Шаблоны наградных материалов\Благодарность1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Почётная грамота1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Шаблоны наградных материалов\Почётная грамота1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Благодарность2" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Шаблоны наградных материалов\Благодарность2.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Грамота1" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Шаблоны наградных материалов\Грамота1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Благодарственное письмо1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Шаблоны наградных материалов\Благодарственное письмо1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="Грамота2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Шаблоны наградных материалов\Грамота2.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="значок отправки сообщения" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\значок отправки сообщения.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
