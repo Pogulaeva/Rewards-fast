@@ -54,7 +54,6 @@ D:\производственная практика с кораблёвым\Rew
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\bin\Debug\Rewards-fast.exe
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\bin\Debug\Rewards-fast.pdb
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards-fast.csproj.AssemblyReference.cache
-D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards-fast.exe.config
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards_fast.Initial_form.resources
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards_fast.Additional_information.resources
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards_fast.Choosing_template.resources
@@ -64,4 +63,5 @@ D:\производственная практика с кораблёвым\Rew
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards-fast.csproj.CoreCompileInputs.cache
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards-fast.exe
 D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards-fast.pdb
-D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards_fast.BorderPanel.resources
+D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards_fast.Template_Constructor.resources
+D:\производственная практика с кораблёвым\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast-e23a21819b4e9878fa9ef11bd8713244c11b9caf\Rewards-fast\obj\Debug\Rewards-fast.exe.config

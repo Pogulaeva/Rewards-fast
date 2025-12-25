@@ -16,65 +16,6 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Rewards_fast
 {
-    // Добавьте этот класс в начало файла (перед классом формы)
-    public class BorderPanel : Panel
-    {
-        private Color _borderColor = Color.Red;
-        private int _borderWidth = 2;
-
-        public Color BorderColor
-        {
-            get { return _borderColor; }
-            set
-            {
-                _borderColor = value;
-                this.Invalidate();
-            }
-        }
-
-        public int BorderWidth
-        {
-            get { return _borderWidth; }
-            set
-            {
-                _borderWidth = Math.Max(1, value);
-                this.Invalidate();
-            }
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-
-            using (Pen pen = new Pen(_borderColor, _borderWidth))
-            {
-                // Учитываем ширину пера при рисовании
-                int offset = _borderWidth / 2;
-                Rectangle rect = new Rectangle(
-                    offset,
-                    offset,
-                    this.Width - _borderWidth,
-                    this.Height - _borderWidth
-                );
-                e.Graphics.DrawRectangle(pen, rect);
-            }
-
-            // Рисуем текст "Границы" в углу
-            using (Font font = new Font("Arial", 10, FontStyle.Bold))
-            using (Brush brush = new SolidBrush(_borderColor))
-            {
-                e.Graphics.DrawString("Границы", font, brush, 5, 5);
-            }
-
-            // Рисуем диагональные линии для визуального эффекта
-            using (Pen diagonalPen = new Pen(Color.FromArgb(50, _borderColor), 1))
-            {
-                e.Graphics.DrawLine(diagonalPen, 0, 0, this.Width, this.Height);
-                e.Graphics.DrawLine(diagonalPen, this.Width, 0, 0, this.Height);
-            }
-        }
-    }
-
     public partial class Template_Constructor : Form
     {
         string FIO;
@@ -122,7 +63,7 @@ namespace Rewards_fast
         private Rectangle borderBounds = Rectangle.Empty;
         private bool isSettingBounds = false;
         private Point boundsStartPoint;
-        private Panel borderVisualizer;
+        private BorderPanel borderVisualizer;
         private bool isBorderVisible = false;
 
 
@@ -260,72 +201,85 @@ namespace Rewards_fast
             borderBounds = Rectangle.Empty;
             isSettingBounds = false;
             isBorderVisible = false;
+
+            // Устанавливаем выравнивание для всех лейблов
+            foreach (var label in _labelsList)
+            {
+                if (label != null)
+                {
+                    if (label == label_post || label == label_signature_decryption)
+                    {
+                        label.TextAlign = ContentAlignment.MiddleLeft;
+                    }
+                    else
+                    {
+                        label.TextAlign = ContentAlignment.MiddleCenter;
+                    }
+                }
+            }
         }
 
         private void ResizeLabelsAccordingToImage()
         {
-            if (template_image.Image == null)
-            {
-                return; // Нет изображения
-            }
+            if (template_image.Image == null) return;
 
             // Размеры оригинального изображения
             int imgWidth = template_image.Image.Width;
             int imgHeight = template_image.Image.Height;
 
-            // Размеры контейнера (PictureBox)
+            // Размеры PictureBox
             int pbWidth = template_image.ClientRectangle.Width;
             int pbHeight = template_image.ClientRectangle.Height;
 
-            // Вычислим коэффициенты масштабирования
+            // Вычисляем масштаб
             double scaleByWidth = (double)pbWidth / imgWidth;
             double scaleByHeight = (double)pbHeight / imgHeight;
-
-            // Минимальный масштабирующий коэффициент
             double finalScale = Math.Min(scaleByWidth, scaleByHeight);
 
-            // Пересчитанная ширина изображения
+            // Размер масштабированного изображения
             int scaledImgWidth = (int)(imgWidth * finalScale);
             int scaledImgHeight = (int)(imgHeight * finalScale);
 
-            // Вычисляем положение изображения внутри PictureBox
-            int xOffsetImage = (pbWidth - scaledImgWidth) / 2; // Горизонтальное смещение
-            int yOffsetImage = (pbHeight - scaledImgHeight) / 2; // Вертикальное смещение
+            // Смещение изображения в PictureBox
+            int xOffsetImage = (pbWidth - scaledImgWidth) / 2;
+            int yOffsetImage = (pbHeight - scaledImgHeight) / 2;
 
-            // Корректируем ширину на 50 пикселей и смещаем на 25 пикселей по оси X
-            int adjustedWidthForMainLabels = Math.Max(scaledImgWidth - 80, 0); // Не допускаем отрицательной ширины
-            int xOffset = 40; // Смещение по оси X
+            // Ширина для основных лейблов (изображение минус отступы)
+            int labelWidth = Math.Max(scaledImgWidth - 100, 100); // Минимум 100px
 
-            // Если есть активные границы, используем их
             if (borderBounds != Rectangle.Empty && isBorderVisible)
             {
+                // Режим с границами
                 AdjustLabelsToBounds();
             }
             else
             {
-                // Применяем ширину и позицию ко всем лейблам, кроме двух особых случаев
+                // Режим без границ - центрируем всё
                 foreach (var label in _labelsList)
                 {
-                    if (label != null)
+                    if (label == null) continue;
+
+                    // Сохраняем выравнивание
+                    ContentAlignment alignment = label.TextAlign;
+
+                    if (label == label_post || label == label_signature_decryption)
                     {
-                        label.AutoSize = false;          // Отключаем автоматический подбор размера
-                        label.Dock = DockStyle.None;      // Отменяем докирование
-                        label.TextAlign = ContentAlignment.MiddleCenter; // Центрируем текст
+                        // Подпись и должность - оставляем как есть
+                        label.AutoSize = true;
+                        label.TextAlign = ContentAlignment.MiddleLeft;
+                    }
+                    else
+                    {
+                        // Основные лейблы - центрируем
+                        label.AutoSize = false;
+                        label.Width = labelWidth;
+                        label.TextAlign = ContentAlignment.MiddleCenter;
 
-                        // Для особых лейблов устанавливаем фиксированную ширину
-                        if (label == label_post || label == label_signature_decryption)
-                        {
-                            label.AutoSize = true;           // Фиксированная ширина
-                                                             // Ничего не делаем с позицией, сохраняем её как есть
-                        }
-                        else
-                        {
-                            // Для основных лейблов применяем уменьшение ширины и смещение по оси X
-                            label.Width = adjustedWidthForMainLabels; // Ширина уменьшается на 50 пикселей
+                        // Центрируем по горизонтали
+                        label.Left = xOffsetImage + (scaledImgWidth - labelWidth) / 2;
 
-                            // Смещаем только по оси X, сохраняя существующую позицию по оси Y
-                            label.Location = new Point(xOffsetImage + xOffset, label.Location.Y); // Изменяем только X
-                        }
+                        // Подгоняем высоту
+                        AdjustLabelSize(label);
                     }
                 }
             }
@@ -356,6 +310,10 @@ namespace Rewards_fast
             ChangeLabelColor(label_Bold, activeLabel.Font.Bold);
             ChangeLabelColor(label_Italics, activeLabel.Font.Italic);
             ChangeLabelColor(label_Underlined, activeLabel.Font.Underline);
+
+            // НЕ меняем размер и позицию при клике!
+            // Только проверяем, не выходит ли текст за границы
+            CheckTextOverflow(activeLabel);
         }
 
         // Обработчик изменения имени шрифта
@@ -364,6 +322,7 @@ namespace Rewards_fast
             if (activeLabel != null)
             {
                 activeLabel.Font = new Font(textBox_Changing_font.Text.Trim(), activeLabel.Font.Size, activeLabel.Font.Style);
+                AdjustLabelSize(activeLabel); // Используем новый метод
             }
         }
 
@@ -373,6 +332,7 @@ namespace Rewards_fast
             if (float.TryParse(textBox_Size.Text, out float size) && activeLabel != null)
             {
                 activeLabel.Font = new Font(activeLabel.Font.Name, size, activeLabel.Font.Style);
+                AdjustLabelSize(activeLabel); // Используем новый метод
             }
         }
 
@@ -427,8 +387,9 @@ namespace Rewards_fast
                 activeLabel.Font = new Font(
                     activeLabel.Font.Name,
                     activeLabel.Font.Size,
-                    activeLabel.Font.Style ^ FontStyle.Bold); // Переключение флага Bold
+                    activeLabel.Font.Style ^ FontStyle.Bold);
                 ChangeLabelColor(label_Bold, activeLabel.Font.Bold);
+                AdjustLabelSize(activeLabel); // Используем новый метод
             }
         }
 
@@ -442,6 +403,7 @@ namespace Rewards_fast
                     activeLabel.Font.Size,
                     activeLabel.Font.Style ^ FontStyle.Italic); // Переключение флага Italics
                 ChangeLabelColor(label_Italics, activeLabel.Font.Italic);
+                AdjustLabelSize(activeLabel); // Используем новый метод
             }
         }
 
@@ -455,6 +417,7 @@ namespace Rewards_fast
                     activeLabel.Font.Size,
                     activeLabel.Font.Style ^ FontStyle.Underline); // Переключение флага Underline
                 ChangeLabelColor(label_Underlined, activeLabel.Font.Underline);
+                AdjustLabelSize(activeLabel); // Используем новый метод
             }
         }
 
@@ -464,6 +427,7 @@ namespace Rewards_fast
             if (activeLabel != null)
             {
                 activeLabel.Text = richTextBox_Changing_text.Text.Trim();
+                AdjustLabelSize(activeLabel); // Используем новый метод
             }
         }
 
@@ -722,7 +686,6 @@ namespace Rewards_fast
 
         private void сохранитьКакToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // Проверяем наличие изображения-шаблона
             if (template_image.Image == null)
             {
                 MessageBox.Show("Необходимо сначала выбрать шаблон изображения", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -732,46 +695,43 @@ namespace Rewards_fast
             // Получаем оригинальное изображение
             Image originalImage = template_image.Image;
 
-            // Создаем новое изображение размером с оригинальный шаблон
             using (Bitmap bitmap = new Bitmap(originalImage.Width, originalImage.Height))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+                    // Высокое качество
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
-                    // РИСУЕМ БАЗОВЫЙ ШАБЛОН
+                    // Фоновое изображение
                     g.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
 
-                    // Вычисляем масштаб между PictureBox и оригинальным изображением
+                    // Масштаб
                     float scaleX = (float)originalImage.Width / template_image.ClientSize.Width;
                     float scaleY = (float)originalImage.Height / template_image.ClientSize.Height;
 
-                    // Рисуем все лейблы (кроме label_FIO)
+                    // Рисуем лейблы
                     foreach (System.Windows.Forms.Label label in _labelsList)
                     {
                         if (label == label_FIO) continue;
                         if (!label.Visible || string.IsNullOrEmpty(label.Text)) continue;
 
-                        // Позиция лейбла уже относительно template_image
+                        // Позиция на оригинальном изображении
                         int xOnImage = (int)(label.Left * scaleX);
                         int yOnImage = (int)(label.Top * scaleY);
 
-                        // Масштабируем размер шрифта
+                        // Масштабируем шрифт
                         float fontSize = label.Font.Size * Math.Min(scaleX, scaleY);
                         Font scaledFont = new Font(label.Font.FontFamily, fontSize, label.Font.Style);
 
-                        // Масштабируем размер лейбла
-                        int widthOnImage = (int)(label.Width * scaleX);
-                        int heightOnImage = (int)(label.Height * scaleY);
-
-                        // Создаем прямоугольник для текста
-                        RectangleF textRect = new RectangleF(xOnImage, yOnImage, widthOnImage, heightOnImage);
-
-                        // Создаем формат для выравнивания текста
+                        // Формат выравнивания
                         StringFormat format = new StringFormat();
 
-                        // Конвертируем ContentAlignment в StringFormat
+                        // Перенос строк
+                        format.FormatFlags = StringFormatFlags.LineLimit;
+                        format.Trimming = StringTrimming.Word;
+
+                        // Определяем выравнивание
                         switch (label.TextAlign)
                         {
                             case ContentAlignment.TopLeft:
@@ -812,6 +772,12 @@ namespace Rewards_fast
                                 break;
                         }
 
+                        // Размер прямоугольника для текста
+                        int widthOnImage = (int)(label.Width * scaleX);
+                        int heightOnImage = (int)(label.Height * scaleY);
+
+                        RectangleF textRect = new RectangleF(xOnImage, yOnImage, widthOnImage, heightOnImage);
+
                         // Рисуем текст
                         using (Brush textBrush = new SolidBrush(label.ForeColor))
                         {
@@ -821,34 +787,41 @@ namespace Rewards_fast
                         scaledFont.Dispose();
                     }
 
-                    // Рисуем все добавленные PictureBox'ы (печати и подписи)
+                    // Рисуем изображения (печати, подписи)
                     foreach (PictureBox pictureBox in _addedPictureBoxes)
                     {
                         if (!pictureBox.Visible || pictureBox.Image == null) continue;
 
-                        // Позиция PictureBox уже относительно template_image
                         int xOnImage = (int)(pictureBox.Left * scaleX);
                         int yOnImage = (int)(pictureBox.Top * scaleY);
                         int widthOnImage = (int)(pictureBox.Width * scaleX);
                         int heightOnImage = (int)(pictureBox.Height * scaleY);
 
-                        // Рисуем изображение
                         g.DrawImage(pictureBox.Image, xOnImage, yOnImage, widthOnImage, heightOnImage);
                     }
                 }
 
-                // Формируем полное имя файла
-                string filename = Path.Combine(foldername, "template_saved_" + DateTime.Now.Ticks + ".jpg");
+                // Сохраняем
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string filename = Path.Combine(foldername, $"шаблон_{timestamp}.jpg");
 
-                // Сохраняем изображение
-                bitmap.Save(filename, ImageFormat.Jpeg);
+                // Качество 100%
+                var encoder = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders()
+                    .First(codec => codec.FormatID == System.Drawing.Imaging.ImageFormat.Jpeg.Guid);
+                var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                encoderParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(
+                    System.Drawing.Imaging.Encoder.Quality, 100L);
 
-                MessageBox.Show("Шаблон успешно сохранён!\n" + filename, "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                bitmap.Save(filename, encoder, encoderParams);
+
+                MessageBox.Show("Шаблон сохранён: " + filename, "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
         private void изменениеГраницТекстаToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (DesignMode) return;
+
             if (isSettingBounds)
             {
                 // Завершаем установку границ
@@ -927,18 +900,14 @@ namespace Rewards_fast
 
         private void InitializeBorderVisualizer()
         {
+            // Теперь создаем именно BorderPanel, а не Panel
             borderVisualizer = new BorderPanel
             {
-                BackColor = Color.FromArgb(30, Color.LightBlue), // Полупрозрачный фон
-                Padding = new Padding(0)
+                BackColor = Color.FromArgb(30, Color.LightBlue),
+                Padding = new Padding(0),
+                BorderColor = Color.Red,
+                BorderWidth = 2
             };
-
-            // Устанавливаем свойства BorderPanel
-            if (borderVisualizer is BorderPanel borderPanel)
-            {
-                borderPanel.BorderColor = Color.Red;
-                borderPanel.BorderWidth = 2;
-            }
 
             template_image.Controls.Add(borderVisualizer);
             borderVisualizer.BringToFront();
@@ -1001,6 +970,8 @@ namespace Rewards_fast
 
         private void template_image_MouseDown(object sender, MouseEventArgs e)
         {
+            if (DesignMode) return;
+
             if (isSettingBounds && e.Button == MouseButtons.Left)
             {
                 boundsStartPoint = e.Location;
@@ -1013,6 +984,8 @@ namespace Rewards_fast
 
         private void template_image_MouseMove(object sender, MouseEventArgs e)
         {
+            if (DesignMode) return;
+
             if (isSettingBounds && e.Button == MouseButtons.Left && boundsStartPoint != Point.Empty)
             {
                 // Вычисляем прямоугольник от начальной точки до текущей позиции мыши
@@ -1035,13 +1008,18 @@ namespace Rewards_fast
 
         private void template_image_MouseUp(object sender, MouseEventArgs e)
         {
+            if (DesignMode) return;
+
             if (isSettingBounds && e.Button == MouseButtons.Left)
             {
                 // Проверяем, достаточно ли большой прямоугольник
                 if (borderVisualizer.Width > 20 && borderVisualizer.Height > 20)
                 {
                     // Меняем цвет рамки на зеленый для подтверждения
-                    ((BorderPanel)borderVisualizer).BorderColor = Color.Green;
+                    if (borderVisualizer is BorderPanel borderPanel)
+                    {
+                        borderPanel.BorderColor = Color.Green;
+                    }
                     borderVisualizer.Invalidate();
                 }
                 else
@@ -1054,6 +1032,8 @@ namespace Rewards_fast
 
         private void показатьСкрытьГраницыToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (DesignMode) return;
+
             isBorderVisible = !isBorderVisible;
 
             if (isBorderVisible && borderBounds != Rectangle.Empty)
@@ -1092,6 +1072,8 @@ namespace Rewards_fast
 
         private void сброситьГраницыToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (DesignMode) return;
+
             borderBounds = Rectangle.Empty;
             borderVisualizer.Visible = false;
             isBorderVisible = false;
@@ -1124,11 +1106,10 @@ namespace Rewards_fast
 
         private void AdjustLabelsToBounds()
         {
-            if (borderBounds == Rectangle.Empty || !isBorderVisible)
-                return;
+            if (borderBounds == Rectangle.Empty || !isBorderVisible) return;
 
-            // Для лучшего визуального восприятия - немного отступов внутри границ
-            int padding = 5;
+            // Отступы внутри границ
+            int padding = 10;
             Rectangle innerBounds = new Rectangle(
                 borderBounds.Left + padding,
                 borderBounds.Top + padding,
@@ -1136,52 +1117,313 @@ namespace Rewards_fast
                 borderBounds.Height - 2 * padding
             );
 
-            // Распределяем Label вертикально внутри границ
-            int totalLabels = 0;
-            foreach (var label in _labelsList)
+            // Распределяем только основные лейблы
+            var mainLabels = _labelsList.Where(l =>
+                l != null &&
+                l != label_post &&
+                l != label_signature_decryption).ToList();
+
+            if (mainLabels.Count > 0)
             {
-                if (label != label_post && label != label_signature_decryption)
-                    totalLabels++;
+                // Равномерное распределение по вертикали
+                int verticalSpacing = innerBounds.Height / (mainLabels.Count + 1);
+
+                for (int i = 0; i < mainLabels.Count; i++)
+                {
+                    var label = mainLabels[i];
+
+                    // Устанавливаем ширину
+                    label.Width = innerBounds.Width;
+                    label.TextAlign = ContentAlignment.MiddleCenter;
+
+                    // Центрируем по горизонтали
+                    label.Left = innerBounds.Left;
+
+                    // Позиция по вертикали
+                    int labelY = innerBounds.Top + verticalSpacing * (i + 1);
+
+                    // Подгоняем высоту и центрируем по вертикали
+                    AdjustLabelSize(label);
+                    label.Top = labelY - label.Height / 2;
+                }
             }
 
-            if (totalLabels > 0)
+            // Для подписи и должности - проверяем, чтобы были внутри границ
+            if (label_post != null)
             {
-                int verticalSpacing = innerBounds.Height / (totalLabels + 1);
-                int currentY = innerBounds.Top + verticalSpacing;
+                EnsureLabelWithinBounds(label_post);
+                label_post.TextAlign = ContentAlignment.MiddleLeft;
+            }
 
-                foreach (var label in _labelsList)
+            if (label_signature_decryption != null)
+            {
+                EnsureLabelWithinBounds(label_signature_decryption);
+                label_signature_decryption.TextAlign = ContentAlignment.MiddleLeft;
+            }
+        }
+
+        private void AutoSizeMultilineLabel(System.Windows.Forms.Label label)
+        {
+            using (Graphics g = label.CreateGraphics())
+            {
+                // Учитываем максимальную ширину
+                SizeF textSize = g.MeasureString(
+                    label.Text,
+                    label.Font,
+                    label.MaximumSize.Width
+                );
+
+                int padding = 5;
+                label.Size = new Size(
+                    (int)Math.Ceiling(textSize.Width) + padding * 2,
+                    (int)Math.Ceiling(textSize.Height) + padding * 2
+                );
+            }
+        }
+
+        private void CheckTextClipping(System.Windows.Forms.Label label)
+        {
+            using (Graphics g = label.CreateGraphics())
+            {
+                SizeF textSize = g.MeasureString(label.Text, label.Font);
+
+                if (textSize.Width > label.Width || textSize.Height > label.Height)
                 {
-                    if (label == null) continue;
-
-                    if (label == label_post || label == label_signature_decryption)
-                    {
-                        // Для этих Label только проверяем позицию
-                        if (!IsWithinBounds(label))
-                        {
-                            Point newLocation = ConstrainToBounds(label, label.Location);
-                            label.Location = newLocation;
-                        }
-                    }
-                    else
-                    {
-                        // Для основных Label:
-                        // 1. Устанавливаем ширину равной ширине внутренних границ
-                        label.Width = innerBounds.Width;
-
-                        // 2. Выравниваем по центру горизонтально
-                        label.Left = innerBounds.Left + (innerBounds.Width - label.Width) / 2;
-
-                        // 3. Устанавливаем вертикальную позицию
-                        int labelHeight = label.Height > 0 ? label.Height : 30; // Минимальная высота
-                        label.Top = currentY - labelHeight / 2;
-
-                        // 4. Отключаем авторазмер для контроля ширины
-                        label.AutoSize = false;
-
-                        // 5. Увеличиваем текущую Y позицию для следующего Label
-                        currentY += verticalSpacing;
-                    }
+                    // Текст не помещается - меняем цвет рамки
+                    label.BorderStyle = BorderStyle.FixedSingle;
+                    label.ForeColor = Color.Red; // Или другой индикатор
                 }
+                else
+                {
+                    label.BorderStyle = BorderStyle.None;
+                    label.ForeColor = SystemColors.ControlText;
+                }
+            }
+        }
+
+        private void AutoSizeLabel(System.Windows.Forms.Label label)
+        {
+            if (label == null) return;
+
+            // Если это label_post или label_signature_decryption - оставляем как есть
+            if (label == label_post || label == label_signature_decryption)
+            {
+                label.AutoSize = true;
+                return;
+            }
+
+            // Для остальных лейблов - автоматический размер
+            label.AutoSize = true;
+
+            // Но ограничиваем ширину
+            if (borderBounds != Rectangle.Empty && isBorderVisible)
+            {
+                // Ограничиваем ширину границами
+                label.MaximumSize = new Size(borderBounds.Width - 20, 0);
+            }
+            else
+            {
+                // Ограничиваем ширину изображением
+                label.MaximumSize = new Size(template_image.Width - label.Left - 20, 0);
+            }
+
+            // Принудительно пересчитываем размер
+            label.Refresh();
+
+            using (Graphics g = label.CreateGraphics())
+            {
+                SizeF textSize = g.MeasureString(label.Text, label.Font, label.MaximumSize.Width);
+
+                // Устанавливаем размер с отступами
+                int padding = 5;
+                label.Size = new Size(
+                    (int)Math.Ceiling(textSize.Width) + padding * 2,
+                    (int)Math.Ceiling(textSize.Height) + padding * 2
+                );
+            }
+        }
+
+        private void AdjustLabelSize(System.Windows.Forms.Label label)
+        {
+            if (label == null) return;
+
+            // Сохраняем текущие настройки
+            ContentAlignment originalAlignment = label.TextAlign;
+            Point originalLocation = label.Location;
+
+            // Определяем максимальную ширину
+            int maxWidth;
+            if (borderBounds != Rectangle.Empty && isBorderVisible)
+            {
+                maxWidth = borderBounds.Width - 20;
+            }
+            else if (label == label_post || label == label_signature_decryption)
+            {
+                // Для подписи и должности - авторазмер
+                label.AutoSize = true;
+                label.TextAlign = ContentAlignment.MiddleLeft; // Или как нужно
+                return;
+            }
+            else
+            {
+                // Основные лейблы - ширина изображения минус отступы
+                maxWidth = template_image.Width - 100; // 50 пикселей с каждой стороны
+            }
+
+            // Вычисляем размер текста с учетом выравнивания
+            using (Graphics g = label.CreateGraphics())
+            {
+                // Для центрированного текста измеряем без ограничения ширины
+                SizeF textSize;
+                if (originalAlignment == ContentAlignment.MiddleCenter ||
+                    originalAlignment == ContentAlignment.TopCenter ||
+                    originalAlignment == ContentAlignment.BottomCenter)
+                {
+                    textSize = g.MeasureString(label.Text, label.Font);
+                }
+                else
+                {
+                    textSize = g.MeasureString(label.Text, label.Font, maxWidth);
+                }
+
+                // Добавляем отступы
+                int padding = 10;
+                int newWidth = Math.Min((int)Math.Ceiling(textSize.Width) + padding * 2, maxWidth);
+                int newHeight = (int)Math.Ceiling(textSize.Height) + padding * 2;
+
+                // Ограничиваем минимальный размер
+                newWidth = Math.Max(newWidth, 100);
+                newHeight = Math.Max(newHeight, 30);
+
+                // Устанавливаем новый размер
+                label.Size = new Size(newWidth, newHeight);
+
+                // ВОССТАНАВЛИВАЕМ ВЫРАВНИВАНИЕ!
+                label.TextAlign = originalAlignment;
+
+                // Центрируем горизонтально, если нужно
+                if (borderBounds != Rectangle.Empty && isBorderVisible)
+                {
+                    CenterLabelHorizontally(label);
+                }
+                else if (originalAlignment == ContentAlignment.MiddleCenter ||
+                         originalAlignment == ContentAlignment.TopCenter ||
+                         originalAlignment == ContentAlignment.BottomCenter)
+                {
+                    CenterLabelInImage(label);
+                }
+            }
+        }
+
+        private void EnsureLabelWithinBounds(System.Windows.Forms.Label label)
+        {
+            if (borderBounds == Rectangle.Empty || !isBorderVisible) return;
+
+            // Проверяем горизонтальные границы
+            if (label.Left < borderBounds.Left)
+            {
+                label.Left = borderBounds.Left;
+            }
+
+            if (label.Right > borderBounds.Right)
+            {
+                label.Left = borderBounds.Right - label.Width;
+            }
+
+            // Проверяем вертикальные границы
+            if (label.Top < borderBounds.Top)
+            {
+                label.Top = borderBounds.Top;
+            }
+
+            if (label.Bottom > borderBounds.Bottom)
+            {
+                label.Top = borderBounds.Bottom - label.Height;
+            }
+        }
+
+        private void CheckTextOverflow(System.Windows.Forms.Label label)
+        {
+            using (Graphics g = label.CreateGraphics())
+            {
+                // Определяем максимальную ширину
+                int maxWidth = label.Width - 10; // Минус отступы
+
+                SizeF textSize = g.MeasureString(label.Text, label.Font, maxWidth);
+
+                // Проверяем, влезает ли текст
+                if (textSize.Height > label.Height - 10)
+                {
+                    // Текст не помещается - подсвечиваем красной рамкой
+                    label.BorderStyle = BorderStyle.FixedSingle;
+                    label.ForeColor = Color.Red;
+                }
+                else
+                {
+                    label.BorderStyle = BorderStyle.None;
+                    label.ForeColor = SystemColors.ControlText;
+                }
+            }
+        }
+
+        private void исправитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (borderBounds == Rectangle.Empty || !isBorderVisible)
+            {
+                MessageBox.Show("Сначала установите границы", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Запоминаем текущие позиции по Y
+            var labelPositions = new Dictionary<System.Windows.Forms.Label, int>();
+            foreach (var label in _labelsList)
+            {
+                if (label != null && label != label_post && label != label_signature_decryption)
+                {
+                    labelPositions[label] = label.Top;
+                }
+            }
+
+            // Распределяем по границам, сохраняя относительный порядок
+            AdjustLabelsToBounds();
+
+            // Восстанавливаем примерные позиции по Y
+            foreach (var kvp in labelPositions)
+            {
+                var label = kvp.Key;
+                int desiredY = kvp.Value;
+
+                // Ограничиваем границами
+                desiredY = Math.Max(borderBounds.Top, Math.Min(desiredY, borderBounds.Bottom - label.Height));
+                label.Top = desiredY;
+            }
+
+            MessageBox.Show("Лейблы выровнены по границам", "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void CenterLabelInImage(System.Windows.Forms.Label label)
+        {
+            if (label == label_post || label == label_signature_decryption) return;
+
+            int centerX = template_image.Width / 2;
+            label.Left = centerX - label.Width / 2;
+        }
+
+        private void CenterLabelHorizontally(System.Windows.Forms.Label label)
+        {
+            if (borderBounds == Rectangle.Empty || !isBorderVisible) return;
+
+            int centerX = borderBounds.Left + borderBounds.Width / 2;
+            label.Left = centerX - label.Width / 2;
+
+            // Ограничиваем границами
+            if (label.Left < borderBounds.Left)
+            {
+                label.Left = borderBounds.Left;
+            }
+            if (label.Right > borderBounds.Right)
+            {
+                label.Left = borderBounds.Right - label.Width;
             }
         }
     }
