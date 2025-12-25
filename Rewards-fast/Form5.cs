@@ -1162,87 +1162,6 @@ namespace Rewards_fast
             }
         }
 
-        private void AutoSizeMultilineLabel(System.Windows.Forms.Label label)
-        {
-            using (Graphics g = label.CreateGraphics())
-            {
-                // Учитываем максимальную ширину
-                SizeF textSize = g.MeasureString(
-                    label.Text,
-                    label.Font,
-                    label.MaximumSize.Width
-                );
-
-                int padding = 5;
-                label.Size = new Size(
-                    (int)Math.Ceiling(textSize.Width) + padding * 2,
-                    (int)Math.Ceiling(textSize.Height) + padding * 2
-                );
-            }
-        }
-
-        private void CheckTextClipping(System.Windows.Forms.Label label)
-        {
-            using (Graphics g = label.CreateGraphics())
-            {
-                SizeF textSize = g.MeasureString(label.Text, label.Font);
-
-                if (textSize.Width > label.Width || textSize.Height > label.Height)
-                {
-                    // Текст не помещается - меняем цвет рамки
-                    label.BorderStyle = BorderStyle.FixedSingle;
-                    label.ForeColor = Color.Red; // Или другой индикатор
-                }
-                else
-                {
-                    label.BorderStyle = BorderStyle.None;
-                    label.ForeColor = SystemColors.ControlText;
-                }
-            }
-        }
-
-        private void AutoSizeLabel(System.Windows.Forms.Label label)
-        {
-            if (label == null) return;
-
-            // Если это label_post или label_signature_decryption - оставляем как есть
-            if (label == label_post || label == label_signature_decryption)
-            {
-                label.AutoSize = true;
-                return;
-            }
-
-            // Для остальных лейблов - автоматический размер
-            label.AutoSize = true;
-
-            // Но ограничиваем ширину
-            if (borderBounds != Rectangle.Empty && isBorderVisible)
-            {
-                // Ограничиваем ширину границами
-                label.MaximumSize = new Size(borderBounds.Width - 20, 0);
-            }
-            else
-            {
-                // Ограничиваем ширину изображением
-                label.MaximumSize = new Size(template_image.Width - label.Left - 20, 0);
-            }
-
-            // Принудительно пересчитываем размер
-            label.Refresh();
-
-            using (Graphics g = label.CreateGraphics())
-            {
-                SizeF textSize = g.MeasureString(label.Text, label.Font, label.MaximumSize.Width);
-
-                // Устанавливаем размер с отступами
-                int padding = 5;
-                label.Size = new Size(
-                    (int)Math.Ceiling(textSize.Width) + padding * 2,
-                    (int)Math.Ceiling(textSize.Height) + padding * 2
-                );
-            }
-        }
-
         private void AdjustLabelSize(System.Windows.Forms.Label label)
         {
             if (label == null) return;
@@ -1366,41 +1285,6 @@ namespace Rewards_fast
             }
         }
 
-        private void исправитьToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (borderBounds == Rectangle.Empty || !isBorderVisible)
-            {
-                MessageBox.Show("Сначала установите границы", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // Запоминаем текущие позиции по Y
-            var labelPositions = new Dictionary<System.Windows.Forms.Label, int>();
-            foreach (var label in _labelsList)
-            {
-                if (label != null && label != label_post && label != label_signature_decryption)
-                {
-                    labelPositions[label] = label.Top;
-                }
-            }
-
-            // Распределяем по границам, сохраняя относительный порядок
-            AdjustLabelsToBounds();
-
-            // Восстанавливаем примерные позиции по Y
-            foreach (var kvp in labelPositions)
-            {
-                var label = kvp.Key;
-                int desiredY = kvp.Value;
-
-                // Ограничиваем границами
-                desiredY = Math.Max(borderBounds.Top, Math.Min(desiredY, borderBounds.Bottom - label.Height));
-                label.Top = desiredY;
-            }
-
-            MessageBox.Show("Лейблы выровнены по границам", "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
         private void CenterLabelInImage(System.Windows.Forms.Label label)
         {
             if (label == label_post || label == label_signature_decryption) return;
@@ -1425,6 +1309,22 @@ namespace Rewards_fast
             {
                 label.Left = borderBounds.Right - label.Width;
             }
+        }
+
+        private void оПриложенииИРазработчикеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Данное приложение представляет собой систему генерации наградных материалов.\nПриложение создано в рамках студенческой дипломной работы 2025-2026гг.\nРазработчик: Погуляева Полина Михайловна.\nПо всем вопросам писать сюда: ulina.pog@yandex.ru",
+                           "О приложении",
+                           MessageBoxButtons.OK,
+                           MessageBoxIcon.Information);
+        }
+
+        private void инструкцияПоРаботеСПриложениемToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Данный раздел находится в статусе разработки",
+                           "Уведомление",
+                           MessageBoxButtons.OK,
+                           MessageBoxIcon.Information);
         }
     }
 }

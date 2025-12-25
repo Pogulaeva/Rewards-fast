@@ -64,7 +64,6 @@
             this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.исправитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -84,8 +83,7 @@
             this.файлToolStripMenuItem,
             this.вставкаToolStripMenuItem,
             this.границыToolStripMenuItem,
-            this.справкаToolStripMenuItem,
-            this.исправитьToolStripMenuItem});
+            this.справкаToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1218, 28);
@@ -161,6 +159,8 @@
             // 
             // показатьСкрытьГраницыToolStripMenuItem
             // 
+            this.показатьСкрытьГраницыToolStripMenuItem.BackColor = System.Drawing.Color.Green;
+            this.показатьСкрытьГраницыToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.показатьСкрытьГраницыToolStripMenuItem.Name = "показатьСкрытьГраницыToolStripMenuItem";
             this.показатьСкрытьГраницыToolStripMenuItem.Size = new System.Drawing.Size(277, 26);
             this.показатьСкрытьГраницыToolStripMenuItem.Text = "Показать/Скрыть границы";
@@ -168,6 +168,8 @@
             // 
             // сброситьГраницыToolStripMenuItem
             // 
+            this.сброситьГраницыToolStripMenuItem.BackColor = System.Drawing.Color.Green;
+            this.сброситьГраницыToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.сброситьГраницыToolStripMenuItem.Name = "сброситьГраницыToolStripMenuItem";
             this.сброситьГраницыToolStripMenuItem.Size = new System.Drawing.Size(277, 26);
             this.сброситьГраницыToolStripMenuItem.Text = "Сбросить границы";
@@ -190,6 +192,7 @@
             this.оПриложенииИРазработчикеToolStripMenuItem.Name = "оПриложенииИРазработчикеToolStripMenuItem";
             this.оПриложенииИРазработчикеToolStripMenuItem.Size = new System.Drawing.Size(364, 26);
             this.оПриложенииИРазработчикеToolStripMenuItem.Text = "О приложении и разработчике";
+            this.оПриложенииИРазработчикеToolStripMenuItem.Click += new System.EventHandler(this.оПриложенииИРазработчикеToolStripMenuItem_Click);
             // 
             // инструкцияПоРаботеСПриложениемToolStripMenuItem
             // 
@@ -198,6 +201,7 @@
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem.Name = "инструкцияПоРаботеСПриложениемToolStripMenuItem";
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem.Size = new System.Drawing.Size(364, 26);
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem.Text = "Инструкция по работе с приложением";
+            this.инструкцияПоРаботеСПриложениемToolStripMenuItem.Click += new System.EventHandler(this.инструкцияПоРаботеСПриложениемToolStripMenuItem_Click);
             // 
             // splitContainer1
             // 
@@ -500,13 +504,6 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
-            // исправитьToolStripMenuItem
-            // 
-            this.исправитьToolStripMenuItem.Name = "исправитьToolStripMenuItem";
-            this.исправитьToolStripMenuItem.Size = new System.Drawing.Size(339, 24);
-            this.исправитьToolStripMenuItem.Text = "Исправить по границам текстовые элементы";
-            this.исправитьToolStripMenuItem.Click += new System.EventHandler(this.исправитьToolStripMenuItem_Click);
-            // 
             // Template_Constructor
             // 
             this.AllowDrop = true;
@@ -575,6 +572,5 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.ToolStripMenuItem показатьСкрытьГраницыToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem сброситьГраницыToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem исправитьToolStripMenuItem;
     }
 }
