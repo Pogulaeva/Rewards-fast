@@ -285,7 +285,6 @@
             this.label_signature_decryption.Size = new System.Drawing.Size(84, 17);
             this.label_signature_decryption.TabIndex = 7;
             this.label_signature_decryption.Text = "Фамилия И. О.";
-            this.label_signature_decryption.Click += new System.EventHandler(this.label_signature_decryption_Click);
             // 
             // label_post
             // 
@@ -299,7 +298,6 @@
             this.label_post.Size = new System.Drawing.Size(65, 17);
             this.label_post.TabIndex = 6;
             this.label_post.Text = "Должность";
-            this.label_post.Click += new System.EventHandler(this.label_post_Click);
             // 
             // label_City_year
             // 
@@ -312,7 +310,6 @@
             this.label_City_year.Size = new System.Drawing.Size(74, 17);
             this.label_City_year.TabIndex = 5;
             this.label_City_year.Text = "Город, ГГГГ";
-            this.label_City_year.Click += new System.EventHandler(this.label_City_year_Click);
             // 
             // label_initial_speech
             // 
@@ -325,7 +322,6 @@
             this.label_initial_speech.Size = new System.Drawing.Size(83, 17);
             this.label_initial_speech.TabIndex = 2;
             this.label_initial_speech.Text = "Какой-то текст";
-            this.label_initial_speech.Click += new System.EventHandler(this.label_initial_speech_Click);
             // 
             // label_FIO
             // 
@@ -338,7 +334,6 @@
             this.label_FIO.Size = new System.Drawing.Size(129, 17);
             this.label_FIO.TabIndex = 3;
             this.label_FIO.Text = "Иванов Иван Иванович";
-            this.label_FIO.Click += new System.EventHandler(this.label_FIO_Click);
             // 
             // label_final_speech
             // 
@@ -351,7 +346,6 @@
             this.label_final_speech.Size = new System.Drawing.Size(83, 17);
             this.label_final_speech.TabIndex = 4;
             this.label_final_speech.Text = "Какой-то текст";
-            this.label_final_speech.Click += new System.EventHandler(this.label_final_speech_Click);
             // 
             // label_case
             // 
@@ -503,6 +497,8 @@
             // 
             // label_Chat_with_AI
             // 
+            this.label_Chat_with_AI.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label_Chat_with_AI.BackColor = System.Drawing.Color.MediumSeaGreen;
             this.label_Chat_with_AI.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.label_Chat_with_AI.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -516,6 +512,8 @@
             // 
             // textBox_Request_input_field
             // 
+            this.textBox_Request_input_field.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox_Request_input_field.BackColor = System.Drawing.Color.SeaGreen;
             this.textBox_Request_input_field.Location = new System.Drawing.Point(3, 582);
             this.textBox_Request_input_field.Multiline = true;
@@ -529,8 +527,9 @@
             // 
             // button_Sending_message
             // 
+            this.button_Sending_message.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button_Sending_message.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button_Sending_message.ForeColor = System.Drawing.Color.Green;
+            this.button_Sending_message.ForeColor = System.Drawing.Color.SeaGreen;
             this.button_Sending_message.Image = global::Rewards_fast.Properties.Resources.значок_отправки_сообщения;
             this.button_Sending_message.Location = new System.Drawing.Point(263, 582);
             this.button_Sending_message.Name = "button_Sending_message";
@@ -601,8 +600,8 @@
         private System.Windows.Forms.PictureBox template_image;
         private System.Windows.Forms.Label label_City_year;
         private System.Windows.Forms.Label label_final_speech;
-        private System.Windows.Forms.Label label_FIO;
         private System.Windows.Forms.Label label_initial_speech;
+        private System.Windows.Forms.Label label_FIO;
         private System.Windows.Forms.Label label_signature_decryption;
         private System.Windows.Forms.Label label_post;
         private System.Windows.Forms.Label label_text;

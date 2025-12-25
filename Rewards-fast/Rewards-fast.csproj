@@ -49,6 +49,12 @@
     <Compile Include="BorderPanel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="DoubleBufferedLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="DoubleBufferedPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
