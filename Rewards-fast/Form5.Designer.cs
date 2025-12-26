@@ -42,6 +42,9 @@
             this.оПриложенииИРазработчикеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.button_Sending_message = new System.Windows.Forms.Button();
+            this.textBox_Request_input_field = new System.Windows.Forms.TextBox();
+            this.label_Chat_with_AI = new System.Windows.Forms.Label();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.label_signature_decryption = new System.Windows.Forms.Label();
             this.label_post = new System.Windows.Forms.Label();
@@ -49,6 +52,7 @@
             this.label_initial_speech = new System.Windows.Forms.Label();
             this.label_FIO = new System.Windows.Forms.Label();
             this.label_final_speech = new System.Windows.Forms.Label();
+            this.template_image = new System.Windows.Forms.PictureBox();
             this.label_case = new System.Windows.Forms.Label();
             this.comboBox_case = new System.Windows.Forms.ComboBox();
             this.label_Underlined = new System.Windows.Forms.Label();
@@ -63,10 +67,6 @@
             this.label_Changing_parameters = new System.Windows.Forms.Label();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.label_Chat_with_AI = new System.Windows.Forms.Label();
-            this.textBox_Request_input_field = new System.Windows.Forms.TextBox();
-            this.button_Sending_message = new System.Windows.Forms.Button();
-            this.template_image = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -100,7 +100,7 @@
             this.сохранитьКакToolStripMenuItem});
             this.файлToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.файлToolStripMenuItem.Name = "файлToolStripMenuItem";
-            this.файлToolStripMenuItem.Size = new System.Drawing.Size(59, 26);
+            this.файлToolStripMenuItem.Size = new System.Drawing.Size(59, 24);
             this.файлToolStripMenuItem.Text = "Файл";
             // 
             // сохранитьКакToolStripMenuItem
@@ -108,7 +108,7 @@
             this.сохранитьКакToolStripMenuItem.BackColor = System.Drawing.Color.Green;
             this.сохранитьКакToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.сохранитьКакToolStripMenuItem.Name = "сохранитьКакToolStripMenuItem";
-            this.сохранитьКакToolStripMenuItem.Size = new System.Drawing.Size(201, 26);
+            this.сохранитьКакToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.сохранитьКакToolStripMenuItem.Text = "Сохранить как...";
             this.сохранитьКакToolStripMenuItem.Click += new System.EventHandler(this.сохранитьКакToolStripMenuItem_Click);
             // 
@@ -119,7 +119,7 @@
             this.вставитьПечатьToolStripMenuItem});
             this.вставкаToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.вставкаToolStripMenuItem.Name = "вставкаToolStripMenuItem";
-            this.вставкаToolStripMenuItem.Size = new System.Drawing.Size(76, 26);
+            this.вставкаToolStripMenuItem.Size = new System.Drawing.Size(76, 24);
             this.вставкаToolStripMenuItem.Text = "Вставка";
             // 
             // вставитьПодписьToolStripMenuItem
@@ -146,7 +146,7 @@
             this.изменениеГраницТекстаToolStripMenuItem});
             this.границыToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.границыToolStripMenuItem.Name = "границыToolStripMenuItem";
-            this.границыToolStripMenuItem.Size = new System.Drawing.Size(85, 26);
+            this.границыToolStripMenuItem.Size = new System.Drawing.Size(85, 24);
             this.границыToolStripMenuItem.Text = "Границы";
             // 
             // изменениеГраницТекстаToolStripMenuItem
@@ -186,7 +186,7 @@
             this.инструкцияПоРаботеСПриложениемToolStripMenuItem});
             this.справкаToolStripMenuItem.ForeColor = System.Drawing.Color.White;
             this.справкаToolStripMenuItem.Name = "справкаToolStripMenuItem";
-            this.справкаToolStripMenuItem.Size = new System.Drawing.Size(81, 26);
+            this.справкаToolStripMenuItem.Size = new System.Drawing.Size(81, 24);
             this.справкаToolStripMenuItem.Text = "Справка";
             // 
             // оПриложенииИРазработчикеToolStripMenuItem
@@ -232,6 +232,49 @@
             this.splitContainer1.Size = new System.Drawing.Size(1218, 644);
             this.splitContainer1.SplitterDistance = 327;
             this.splitContainer1.TabIndex = 1;
+            // 
+            // button_Sending_message
+            // 
+            this.button_Sending_message.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_Sending_message.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button_Sending_message.ForeColor = System.Drawing.Color.SeaGreen;
+            this.button_Sending_message.Image = global::Rewards_fast.Properties.Resources.значок_отправки_сообщения;
+            this.button_Sending_message.Location = new System.Drawing.Point(263, 582);
+            this.button_Sending_message.Name = "button_Sending_message";
+            this.button_Sending_message.Size = new System.Drawing.Size(48, 37);
+            this.button_Sending_message.TabIndex = 7;
+            this.button_Sending_message.UseVisualStyleBackColor = true;
+            this.button_Sending_message.Click += new System.EventHandler(this.button_Sending_message_Click);
+            // 
+            // textBox_Request_input_field
+            // 
+            this.textBox_Request_input_field.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox_Request_input_field.BackColor = System.Drawing.Color.SeaGreen;
+            this.textBox_Request_input_field.Location = new System.Drawing.Point(3, 582);
+            this.textBox_Request_input_field.Multiline = true;
+            this.textBox_Request_input_field.Name = "textBox_Request_input_field";
+            this.textBox_Request_input_field.ReadOnly = true;
+            this.textBox_Request_input_field.Size = new System.Drawing.Size(245, 37);
+            this.textBox_Request_input_field.TabIndex = 6;
+            this.textBox_Request_input_field.TabStop = false;
+            this.textBox_Request_input_field.Text = "Задать вопрос";
+            this.textBox_Request_input_field.TextChanged += new System.EventHandler(this.textBox_Request_input_field_TextChanged);
+            // 
+            // label_Chat_with_AI
+            // 
+            this.label_Chat_with_AI.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label_Chat_with_AI.BackColor = System.Drawing.Color.MediumSeaGreen;
+            this.label_Chat_with_AI.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label_Chat_with_AI.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Chat_with_AI.ForeColor = System.Drawing.Color.White;
+            this.label_Chat_with_AI.Location = new System.Drawing.Point(1, 0);
+            this.label_Chat_with_AI.Name = "label_Chat_with_AI";
+            this.label_Chat_with_AI.Size = new System.Drawing.Size(319, 39);
+            this.label_Chat_with_AI.TabIndex = 2;
+            this.label_Chat_with_AI.Text = "Чат с ИИ";
+            this.label_Chat_with_AI.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // splitContainer2
             // 
@@ -346,6 +389,18 @@
             this.label_final_speech.Size = new System.Drawing.Size(83, 17);
             this.label_final_speech.TabIndex = 4;
             this.label_final_speech.Text = "Какой-то текст";
+            // 
+            // template_image
+            // 
+            this.template_image.AllowDrop = true;
+            this.template_image.BackColor = System.Drawing.Color.Transparent;
+            this.template_image.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.template_image.Location = new System.Drawing.Point(0, 0);
+            this.template_image.Name = "template_image";
+            this.template_image.Size = new System.Drawing.Size(639, 640);
+            this.template_image.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.template_image.TabIndex = 0;
+            this.template_image.TabStop = false;
             // 
             // label_case
             // 
@@ -494,61 +549,6 @@
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // label_Chat_with_AI
-            // 
-            this.label_Chat_with_AI.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label_Chat_with_AI.BackColor = System.Drawing.Color.MediumSeaGreen;
-            this.label_Chat_with_AI.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.label_Chat_with_AI.Font = new System.Drawing.Font("MingLiU_HKSCS-ExtB", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_Chat_with_AI.ForeColor = System.Drawing.Color.White;
-            this.label_Chat_with_AI.Location = new System.Drawing.Point(1, 0);
-            this.label_Chat_with_AI.Name = "label_Chat_with_AI";
-            this.label_Chat_with_AI.Size = new System.Drawing.Size(319, 39);
-            this.label_Chat_with_AI.TabIndex = 2;
-            this.label_Chat_with_AI.Text = "Чат с ИИ";
-            this.label_Chat_with_AI.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // textBox_Request_input_field
-            // 
-            this.textBox_Request_input_field.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox_Request_input_field.BackColor = System.Drawing.Color.SeaGreen;
-            this.textBox_Request_input_field.Location = new System.Drawing.Point(3, 582);
-            this.textBox_Request_input_field.Multiline = true;
-            this.textBox_Request_input_field.Name = "textBox_Request_input_field";
-            this.textBox_Request_input_field.ReadOnly = true;
-            this.textBox_Request_input_field.Size = new System.Drawing.Size(245, 37);
-            this.textBox_Request_input_field.TabIndex = 6;
-            this.textBox_Request_input_field.TabStop = false;
-            this.textBox_Request_input_field.Text = "Задать вопрос";
-            this.textBox_Request_input_field.TextChanged += new System.EventHandler(this.textBox_Request_input_field_TextChanged);
-            // 
-            // button_Sending_message
-            // 
-            this.button_Sending_message.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_Sending_message.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button_Sending_message.ForeColor = System.Drawing.Color.SeaGreen;
-            this.button_Sending_message.Image = global::Rewards_fast.Properties.Resources.значок_отправки_сообщения;
-            this.button_Sending_message.Location = new System.Drawing.Point(263, 582);
-            this.button_Sending_message.Name = "button_Sending_message";
-            this.button_Sending_message.Size = new System.Drawing.Size(48, 37);
-            this.button_Sending_message.TabIndex = 7;
-            this.button_Sending_message.UseVisualStyleBackColor = true;
-            this.button_Sending_message.Click += new System.EventHandler(this.button_Sending_message_Click);
-            // 
-            // template_image
-            // 
-            this.template_image.AllowDrop = true;
-            this.template_image.BackColor = System.Drawing.Color.Transparent;
-            this.template_image.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.template_image.Location = new System.Drawing.Point(0, 0);
-            this.template_image.Name = "template_image";
-            this.template_image.Size = new System.Drawing.Size(639, 640);
-            this.template_image.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.template_image.TabIndex = 0;
-            this.template_image.TabStop = false;
             // 
             // Template_Constructor
             // 

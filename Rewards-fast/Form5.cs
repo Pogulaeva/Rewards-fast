@@ -1,24 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Rewards_fast
 {
     public partial class Template_Constructor : Form
     {
-        string FIO;
+        string FIO; // Эта переменная теперь содержит путь к CSV файлу
         string foldername;
         Image image;
         string image2;
@@ -67,7 +64,7 @@ namespace Rewards_fast
             // Назначаем рендереру своё оформление
             menuStrip1.Renderer = new ToolStripProfessionalRenderer(new CustomToolStripProfessionalRenderer());
 
-            FIO = param1;
+            FIO = param1; // Теперь param1 - это путь к CSV файлу
             foldername = param2;
 
             if (objParam is Image img)
@@ -163,6 +160,29 @@ namespace Rewards_fast
             }
 
             button_Sending_message.Image = ResizeImage(Properties.Resources.значок_отправки_сообщения, 17, 17);
+
+            // Загружаем первое ФИО из CSV файла
+            LoadFirstFioFromCsv();
+        }
+
+        private void LoadFirstFioFromCsv()
+        {
+            if (!File.Exists(FIO))
+                return;
+
+            try
+            {
+                var fioList = ReadSimpleCsvFile(FIO);
+                if (fioList != null && fioList.Count > 0)
+                {
+                    label_FIO.Text = GetFioInCase(fioList[0], current_case);
+                    richTextBox_Changing_text.Text = label_FIO.Text;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке CSV файла: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void ResizeLabelsAccordingToImage()
@@ -236,8 +256,7 @@ namespace Rewards_fast
 
             if (activeLabel == label_FIO)
             {
-                string fioInCase = GetFioInCase(FIO, current_case);
-                richTextBox_Changing_text.Text = fioInCase;
+                richTextBox_Changing_text.Text = activeLabel.Text;
                 richTextBox_Changing_text.ReadOnly = true;
                 label_case.Visible = true;
                 comboBox_case.Visible = true;
@@ -492,92 +511,383 @@ namespace Rewards_fast
 
         private void сохранитьКакToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (template_image.Image == null)
+            if (!File.Exists(FIO))
             {
-                MessageBox.Show("Необходимо сначала выбрать шаблон изображения", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("CSV файл не найден!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            Image originalImage = template_image.Image;
-
-            using (Bitmap bitmap = new Bitmap(originalImage.Width, originalImage.Height))
-            using (Graphics g = Graphics.FromImage(bitmap))
+            try
             {
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-
-                // Рисуем оригинальное изображение
-                g.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
-
-                // Получаем правильные координаты и масштаб
-                foreach (System.Windows.Forms.Label label in _labelsList)
+                List<string> fioList = ReadSimpleCsvFile(FIO);
+                if (fioList == null || fioList.Count == 0)
                 {
-                    if (label == label_FIO || !label.Visible || string.IsNullOrEmpty(label.Text)) continue;
+                    MessageBox.Show("Не удалось прочитать ФИО из файла.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-                    // Получаем позицию на оригинальном изображении
-                    Point positionOnImage = GetElementPositionOnOriginalImage(label);
+                // Подтверждение перед генерацией
+                string confirmMessage = $"Найдено {fioList.Count} ФИО\n\n";
+                confirmMessage += $"Падеж для ФИО: {GetCaseName(current_case)}\n";
+                confirmMessage += $"Папка сохранения: {foldername}\n\n";
+                confirmMessage += "Начать генерацию грамот?";
 
-                    // Получаем правильный масштаб для размера
-                    SizeF elementSize = GetElementSizeOnOriginalImage(label);
+                if (MessageBox.Show(confirmMessage, "Подтверждение",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    GenerateCertificatesFromList(fioList, "");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при обработке файла:\n{ex.Message}",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
-                    // Размер шрифта на оригинальном изображении
-                    float fontSize = label.Font.Size * GetFontScaleFactor();
+        private string GetCaseName(int caseType)
+        {
+            switch (caseType)
+            {
+                case 1: return "Именительный (Кто?)";
+                case 2: return "Родительный (Кого?)";
+                case 3: return "Дательный (Кому?)";
+                case 4: return "Винительный (Кого?)";
+                case 5: return "Творительный (Кем?)";
+                case 6: return "Предложный (О ком?)";
+                default: return "Именительный";
+            }
+        }
 
-                    using (Font scaledFont = new Font(label.Font.FontFamily, fontSize, label.Font.Style))
+        private string GetShortName(string fullName)
+        {
+            if (string.IsNullOrEmpty(fullName) || !fullName.Contains(" "))
+                return fullName;
+
+            var parts = fullName.Split(' ');
+            if (parts.Length >= 3)
+            {
+                return $"{parts[0]} {parts[1][0]}.{parts[2][0]}.";
+            }
+
+            return fullName.Length > 20 ? fullName.Substring(0, 20) + "..." : fullName;
+        }
+
+        private void SaveSingleCertificate(string originalFio, string fioInCase, string signatureText, int index)
+        {
+            // Сохраняем текущее состояние всех элементов
+            var labelSettings = _labelsList.ToDictionary(l => l, SaveLabelSettings);
+
+            try
+            {
+                // Временно меняем текст в Label_FIO
+                label_FIO.Text = fioInCase;
+
+                if (!string.IsNullOrEmpty(signatureText))
+                {
+                    label_signature_decryption.Text = signatureText;
+                }
+
+                // Оригинальное изображение
+                Image originalImage = template_image.Image;
+
+                using (Bitmap bitmap = new Bitmap(originalImage.Width, originalImage.Height))
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+
+                    // Рисуем фон
+                    g.DrawImage(originalImage, 0, 0, originalImage.Width, originalImage.Height);
+
+                    // Рисуем все лейблы с их текущими настройками
+                    foreach (System.Windows.Forms.Label label in _labelsList)
                     {
-                        StringFormat format = GetStringFormat(label.TextAlign);
-                        RectangleF textRect = new RectangleF(
-                            positionOnImage.X,
-                            positionOnImage.Y,
-                            elementSize.Width,
-                            elementSize.Height);
+                        if (!label.Visible || string.IsNullOrEmpty(label.Text)) continue;
 
+                        // Получаем позицию и размер на оригинальном изображении
+                        Point positionOnImage = GetElementPositionOnOriginalImage(label);
+                        SizeF elementSize = GetElementSizeOnOriginalImage(label);
+
+                        // Масштабируем шрифт
+                        float fontSize = label.Font.Size * GetFontScaleFactor();
+
+                        using (Font scaledFont = new Font(label.Font.FontFamily, fontSize, label.Font.Style))
                         using (Brush textBrush = new SolidBrush(label.ForeColor))
                         {
+                            StringFormat format = GetStringFormat(label.TextAlign);
+                            RectangleF textRect = new RectangleF(
+                                positionOnImage.X,
+                                positionOnImage.Y,
+                                elementSize.Width,
+                                elementSize.Height);
+
                             g.DrawString(label.Text, scaledFont, textBrush, textRect, format);
                         }
                     }
-                }
 
-                // Рисуем печати и подписи
-                foreach (PictureBox pictureBox in _addedPictureBoxes)
-                {
-                    if (!pictureBox.Visible || pictureBox.Image == null) continue;
-
-                    // Получаем позицию на оригинальном изображении
-                    Point positionOnImage = GetElementPositionOnOriginalImage(pictureBox);
-
-                    // Получаем размер на оригинальном изображении
-                    SizeF elementSize = GetElementSizeOnOriginalImage(pictureBox);
-
-                    // Рисуем изображение с высоким качеством
-                    using (Bitmap pbImage = new Bitmap(pictureBox.Image))
+                    // Рисуем печати и подписи
+                    foreach (PictureBox pictureBox in _addedPictureBoxes)
                     {
-                        g.DrawImage(pbImage,
+                        if (!pictureBox.Visible || pictureBox.Image == null) continue;
+
+                        Point positionOnImage = GetElementPositionOnOriginalImage(pictureBox);
+                        SizeF elementSize = GetElementSizeOnOriginalImage(pictureBox);
+
+                        g.DrawImage(pictureBox.Image,
                             new Rectangle(
                                 (int)positionOnImage.X,
                                 (int)positionOnImage.Y,
                                 (int)elementSize.Width,
-                                (int)elementSize.Height),
-                            new Rectangle(0, 0, pbImage.Width, pbImage.Height),
-                            GraphicsUnit.Pixel);
+                                (int)elementSize.Height));
+                    }
+
+                    // Сохраняем файл
+                    string safeFio = GetSafeFileName(originalFio);
+                    string filename = Path.Combine(foldername, $"{index:0000}_{safeFio}.jpg");
+
+                    // Сохраняем с максимальным качеством
+                    var encoder = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders()
+                        .First(codec => codec.FormatID == System.Drawing.Imaging.ImageFormat.Jpeg.Guid);
+                    var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                    encoderParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(
+                        System.Drawing.Imaging.Encoder.Quality, 100L);
+
+                    bitmap.Save(filename, encoder, encoderParams);
+                }
+            }
+            finally
+            {
+                // Восстанавливаем исходное состояние
+                foreach (var kvp in labelSettings)
+                {
+                    RestoreLabelSettings(kvp.Key, kvp.Value);
+                }
+            }
+        }
+
+        private string GetSafeFileName(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return "fio";
+
+            // Удаляем недопустимые символы
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var result = new string(input.Where(c => !invalidChars.Contains(c)).ToArray());
+
+            // Заменяем пробелы на подчеркивания
+            result = result.Replace(' ', '_');
+
+            // Ограничиваем длину
+            if (result.Length > 50)
+            {
+                result = result.Substring(0, 50);
+            }
+
+            return result;
+        }
+
+        private void GenerateCertificatesFromList(List<string> fioList, string suffix = "")
+        {
+            if (fioList == null || fioList.Count == 0)
+                return;
+
+            // Сохраняем оригинальное состояние
+            string originalFioText = label_FIO.Text;
+            Font originalFont = label_FIO.Font;
+            Color originalColor = label_FIO.ForeColor;
+
+            try
+            {
+                // Форма прогресса
+                Form progressForm = new Form
+                {
+                    Text = $"Генерация грамот{suffix}",
+                    Width = 500,
+                    Height = 150,
+                    StartPosition = FormStartPosition.CenterParent,
+                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                    MaximizeBox = false,
+                    MinimizeBox = false
+                };
+
+                System.Windows.Forms.ProgressBar progressBar = new System.Windows.Forms.ProgressBar
+                {
+                    Dock = DockStyle.Top,
+                    Minimum = 0,
+                    Maximum = fioList.Count,
+                    Height = 30,
+                    Style = ProgressBarStyle.Continuous
+                };
+
+                System.Windows.Forms.Label statusLabel = new System.Windows.Forms.Label
+                {
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Font = new Font("Arial", 10)
+                };
+
+                System.Windows.Forms.Button cancelButton = new System.Windows.Forms.Button
+                {
+                    Text = "Отмена",
+                    Dock = DockStyle.Bottom,
+                    Height = 40
+                };
+
+                progressForm.Controls.AddRange(new Control[] { progressBar, statusLabel, cancelButton });
+
+                bool cancelled = false;
+                cancelButton.Click += (s, e) => cancelled = true;
+
+                int successCount = 0;
+                int errorCount = 0;
+
+                // Запускаем генерацию
+                Task.Run(() =>
+                {
+                    for (int i = 0; i < fioList.Count && !cancelled; i++)
+                    {
+                        string fio = fioList[i];
+
+                        // Обновляем UI
+                        progressForm.Invoke(new Action(() =>
+                        {
+                            progressBar.Value = i + 1;
+                            statusLabel.Text = $"{i + 1}/{fioList.Count}: {GetShortName(fio)}";
+                        }));
+
+                        try
+                        {
+                            // Устанавливаем ФИО в нужном падеже
+                            this.Invoke(new Action(() =>
+                            {
+                                label_FIO.Text = GetFioInCase(fio, current_case);
+                                AdjustLabelSize(label_FIO);
+                                label_FIO.Refresh();
+                            }));
+
+                            // Сохраняем изображение
+                            SaveSingleCertificate(fio, label_FIO.Text, "", i + 1);
+                            successCount++;
+
+                            // Небольшая пауза для стабильности
+                            Thread.Sleep(50);
+                        }
+                        catch (Exception ex)
+                        {
+                            errorCount++;
+                            Debug.WriteLine($"Ошибка для ФИО {fio}: {ex.Message}");
+                        }
+                    }
+
+                    // Закрываем форму прогресса
+                    progressForm.Invoke(new Action(() => progressForm.Close()));
+
+                    // Показываем результат
+                    this.Invoke(new Action(() =>
+                    {
+                        string resultMessage = cancelled ?
+                            $"Генерация прервана. Успешно создано: {successCount} из {fioList.Count}" :
+                            $"Генерация завершена!\nУспешно: {successCount}\nОшибок: {errorCount}\n\n" +
+                            $"Файлы сохранены в:\n{foldername}";
+
+                        MessageBox.Show(resultMessage, "Результат",
+                            MessageBoxButtons.OK, cancelled ? MessageBoxIcon.Information : MessageBoxIcon.Information);
+                    }));
+                });
+
+                progressForm.ShowDialog();
+            }
+            finally
+            {
+                // Восстанавливаем оригинальное состояние
+                label_FIO.Text = originalFioText;
+                label_FIO.Font = originalFont;
+                label_FIO.ForeColor = originalColor;
+                label_FIO.Refresh();
+            }
+        }
+
+        private List<string> ReadSimpleCsvFile(string filePath)
+        {
+            List<string> fioList = new List<string>();
+
+            try
+            {
+                // Пробуем разные кодировки
+                Encoding[] encodingsToTry =
+                {
+                    Encoding.UTF8,                    // CSV UTF-8 из Excel
+                    Encoding.GetEncoding(1251),       // Windows-1251 (русская)
+                    Encoding.GetEncoding(866),        // DOS-кодировка
+                    Encoding.Default                  // Системная по умолчанию
+                };
+
+                foreach (var encoding in encodingsToTry)
+                {
+                    try
+                    {
+                        string[] allLines = File.ReadAllLines(filePath, encoding);
+                        fioList.Clear();
+
+                        foreach (string line in allLines)
+                        {
+                            string trimmedLine = line.Trim();
+                            if (string.IsNullOrWhiteSpace(trimmedLine))
+                                continue;
+
+                            // Убираем лишние кавычки если есть
+                            trimmedLine = trimmedLine.Trim('"', '\'', ' ', '\t');
+
+                            // Пробуем разные разделители
+                            string[] parts = trimmedLine.Split(new char[] { ',', ';', '\t', '|' },
+                                                              StringSplitOptions.RemoveEmptyEntries);
+
+                            if (parts.Length >= 3)
+                            {
+                                // Формат: три колонки (Фамилия, Имя, Отчество)
+                                string lastName = parts[0].Trim();
+                                string firstName = parts[1].Trim();
+                                string middleName = parts[2].Trim();
+
+                                if (!string.IsNullOrWhiteSpace(lastName))
+                                {
+                                    string fullFio = $"{lastName} {firstName} {middleName}".Trim();
+                                    fioList.Add(fullFio);
+                                }
+                            }
+                            else if (parts.Length == 1 && !string.IsNullOrWhiteSpace(parts[0]))
+                            {
+                                // Формат: одна колонка с полным ФИО
+                                string fullFio = parts[0].Trim();
+
+                                // Проверяем, что это похоже на ФИО (минимум 2 слова)
+                                if (fullFio.Contains(" ") && fullFio.Split(' ').Length >= 2)
+                                {
+                                    fioList.Add(fullFio);
+                                }
+                            }
+                        }
+
+                        if (fioList.Count > 0)
+                        {
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        continue;
                     }
                 }
-
-                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string filename = Path.Combine(foldername, $"шаблон_{timestamp}.jpg");
-
-                var encoder = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders()
-                    .First(codec => codec.FormatID == System.Drawing.Imaging.ImageFormat.Jpeg.Guid);
-                var encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
-                encoderParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(
-                    System.Drawing.Imaging.Encoder.Quality, 100L);
-
-                bitmap.Save(filename, encoder, encoderParams);
-
-                MessageBox.Show("Шаблон сохранён: " + filename, "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при чтении файла:\n{ex.Message}",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+
+            return fioList;
         }
 
         // Вспомогательные методы для расчета позиции и размера
@@ -1026,17 +1336,6 @@ namespace Rewards_fast
             label.Left = centerX - label.Width / 2;
         }
 
-        private void CenterLabelHorizontally(System.Windows.Forms.Label label)
-        {
-            if (borderBounds == Rectangle.Empty || !isBorderVisible) return;
-
-            int centerX = borderBounds.Left + borderBounds.Width / 2;
-            label.Left = centerX - label.Width / 2;
-
-            if (label.Left < borderBounds.Left) label.Left = borderBounds.Left;
-            if (label.Right > borderBounds.Right) label.Left = borderBounds.Right - label.Width;
-        }
-
         private void ConstrainAllLabelsToBounds()
         {
             if (borderBounds == Rectangle.Empty || !isBorderVisible) return;
@@ -1145,24 +1444,10 @@ namespace Rewards_fast
 
                 if (activeLabel == label_FIO)
                 {
-                    string fioInCase = GetFioInCase(FIO, current_case);
+                    string fioInCase = GetFioInCase(label_FIO.Text, current_case);
                     label_FIO.Text = fioInCase;
                     richTextBox_Changing_text.Text = fioInCase;
                 }
-            }
-        }
-
-        private string GetFioInCase(string fio, int caseType)
-        {
-            switch (caseType)
-            {
-                case 1: return "Иванов Иван Иванович";      // Именительный
-                case 2: return "Иванова Ивана Ивановича";   // Родительный
-                case 3: return "Иванову Ивану Ивановичу";   // Дательный
-                case 4: return "Иванова Ивана Ивановича";   // Винительный
-                case 5: return "Ивановым Иваном Ивановичем";// Творительный
-                case 6: return "Иванове Иване Ивановиче";   // Предложный
-                default: return fio;
             }
         }
 
@@ -1189,6 +1474,227 @@ namespace Rewards_fast
             }
 
             return resizedImage;
+        }
+
+        private class LabelSettings
+        {
+            public string Text { get; set; }
+            public Font Font { get; set; }
+            public ContentAlignment TextAlign { get; set; }
+            public Point Location { get; set; }
+            public Size Size { get; set; }
+            public Color ForeColor { get; set; }
+        }
+
+        private LabelSettings SaveLabelSettings(System.Windows.Forms.Label label)
+        {
+            return new LabelSettings
+            {
+                Text = label.Text,
+                Font = new Font(label.Font.FontFamily, label.Font.Size, label.Font.Style),
+                TextAlign = label.TextAlign,
+                Location = label.Location,
+                Size = label.Size,
+                ForeColor = label.ForeColor
+            };
+        }
+
+        private void RestoreLabelSettings(System.Windows.Forms.Label label, LabelSettings settings)
+        {
+            if (settings == null) return;
+
+            label.Text = settings.Text;
+            label.Font = settings.Font;
+            label.TextAlign = settings.TextAlign;
+            label.Location = settings.Location;
+            label.Size = settings.Size;
+            label.ForeColor = settings.ForeColor;
+        }
+
+        // Обновленная функция для преобразования ФИО в падеж
+        private string GetFioInCase(string fio, int caseType)
+        {
+            if (string.IsNullOrWhiteSpace(fio))
+                return fio;
+
+            // Разделяем ФИО на части
+            var parts = fio.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 3)
+                return fio; // Неполное ФИО - возвращаем как есть
+
+            string lastName = parts[0];
+            string firstName = parts[1];
+            string middleName = parts[2];
+
+            // Для дательного падежа (caseType = 3) используем ваши методы
+            if (caseType == 3)
+            {
+                Gender gender = DetermineGender(middleName);
+                string convertedLastName = ConvertLastNameToCase(lastName, gender);
+                string convertedFirstName = ConvertFirstNameToCase(firstName, gender);
+                string convertedPatronymic = ConvertPatronymicToCase(middleName, gender);
+
+                return $"{convertedLastName} {convertedFirstName} {convertedPatronymic}";
+            }
+
+            // Для других падежей оставляем простую логику
+            switch (caseType)
+            {
+                case 1: // Именительный
+                    return $"{lastName} {firstName} {middleName}";
+                case 2: // Родительный
+                    return $"{lastName}а {firstName}а {middleName}а";
+                case 4: // Винительный
+                    return $"{lastName}а {firstName}а {middleName}а";
+                case 5: // Творительный
+                    return $"{lastName}ым {firstName}ом {middleName}ом";
+                case 6: // Предложный
+                    return $"{lastName}е {firstName}е {middleName}е";
+                default:
+                    return fio;
+            }
+        }
+
+        // Методы из вашей консольной программы
+        private Gender DetermineGender(string patronymic)
+        {
+            // Определение гендера по отчеству
+            if (patronymic.EndsWith("ич") || patronymic.EndsWith("лы") || patronymic.EndsWith("зы"))
+                return Gender.Male;
+            else if (patronymic.EndsWith("на") || patronymic.EndsWith("зы") || patronymic.EndsWith("лы"))
+                return Gender.Female;
+            else
+                return Gender.Unknown;
+        }
+
+        private string ConvertLastNameToCase(string lastName, Gender gender)
+        {
+            // Анализатор для фамилии в дательном падеже
+            if (gender == Gender.Male)
+            {
+                // Правила склонения мужских фамилий в дательном падеже
+                if (lastName.EndsWith("ых") || lastName.EndsWith("их") || lastName.EndsWith("е") ||
+                    lastName.EndsWith("и") || lastName.EndsWith("о") || lastName.EndsWith("у") ||
+                    lastName.EndsWith("ы") || lastName.EndsWith("э") || lastName.EndsWith("ю"))
+                    return lastName;
+                else if (lastName.EndsWith("ов") || lastName.EndsWith("ев") || lastName.EndsWith("ин") ||
+                         lastName.EndsWith("ын") || lastName.EndsWith("н") || lastName.EndsWith("в") ||
+                         lastName.EndsWith("б") || lastName.EndsWith("г") || lastName.EndsWith("д") ||
+                         lastName.EndsWith("ж") || lastName.EndsWith("з") || lastName.EndsWith("к") ||
+                         lastName.EndsWith("л") || lastName.EndsWith("м") || lastName.EndsWith("п") ||
+                         lastName.EndsWith("р") || lastName.EndsWith("с") || lastName.EndsWith("т") ||
+                         lastName.EndsWith("ф") || lastName.EndsWith("х") || lastName.EndsWith("ц") ||
+                         lastName.EndsWith("ч") || lastName.EndsWith("ш") || lastName.EndsWith("щ"))
+                    return lastName + "у";
+                else if (lastName.EndsWith("ский") || lastName.EndsWith("цкий"))
+                    return lastName.Substring(0, lastName.Length - 2) + "ому";
+                else if (lastName.EndsWith("ий"))
+                    return lastName.Substring(0, lastName.Length - 2) + "ему";
+                else if (lastName.EndsWith("ой"))
+                    return lastName.Substring(0, lastName.Length - 1) + "му";
+                else if (lastName.EndsWith("й") || lastName.EndsWith("ь"))
+                    return lastName.Substring(0, lastName.Length - 1) + "ю";
+                else if (lastName.EndsWith("ия") || lastName.EndsWith("ея") || lastName.EndsWith("ая") ||
+                         lastName.EndsWith("оя") || lastName.EndsWith("уя") || lastName.EndsWith("эя") ||
+                         lastName.EndsWith("юя") || lastName.EndsWith("яя"))
+                    return lastName.Substring(0, lastName.Length - 1) + "е";
+                else if (lastName.EndsWith("иа") || lastName.EndsWith("еа") || lastName.EndsWith("аа") ||
+                         lastName.EndsWith("оа") || lastName.EndsWith("уа") || lastName.EndsWith("эа") ||
+                         lastName.EndsWith("юа") || lastName.EndsWith("яа"))
+                    return lastName;
+                else
+                    return lastName + "е";
+            }
+            else if (gender == Gender.Female)
+            {
+                // Правила склонения женских фамилий в дательном падеже
+                if (lastName.EndsWith("ина"))
+                    return lastName.Substring(0, lastName.Length - 1) + "е";
+                else if (lastName.EndsWith("ых") || lastName.EndsWith("их") || lastName.EndsWith("е") ||
+                         lastName.EndsWith("и") || lastName.EndsWith("о") || lastName.EndsWith("у") ||
+                         lastName.EndsWith("ы") || lastName.EndsWith("э") || lastName.EndsWith("ю"))
+                    return lastName;
+                else if (lastName.EndsWith("й") || lastName.EndsWith("ь"))
+                    return lastName;
+                else if (lastName.EndsWith("н") || lastName.EndsWith("в") || lastName.EndsWith("б") ||
+                         lastName.EndsWith("г") || lastName.EndsWith("д") || lastName.EndsWith("ж") ||
+                         lastName.EndsWith("з") || lastName.EndsWith("к") || lastName.EndsWith("л") ||
+                         lastName.EndsWith("м") || lastName.EndsWith("п") || lastName.EndsWith("р") ||
+                         lastName.EndsWith("с") || lastName.EndsWith("т") || lastName.EndsWith("ф") ||
+                         lastName.EndsWith("х") || lastName.EndsWith("ц") || lastName.EndsWith("ч") ||
+                         lastName.EndsWith("ш") || lastName.EndsWith("щ"))
+                    return lastName;
+                else if (lastName == "Топчая")
+                    return "Топчей";
+                else if (lastName.EndsWith("ия") || lastName.EndsWith("ея") || lastName.EndsWith("ая") ||
+                         lastName.EndsWith("оя") || lastName.EndsWith("уя") || lastName.EndsWith("эя") ||
+                         lastName.EndsWith("юя") || lastName.EndsWith("яя"))
+                    return lastName.Substring(0, lastName.Length - 1) + "е";
+                else if (lastName.EndsWith("иа") || lastName.EndsWith("еа") || lastName.EndsWith("аа") ||
+                         lastName.EndsWith("оа") || lastName.EndsWith("уа") || lastName.EndsWith("эа") ||
+                         lastName.EndsWith("юа") || lastName.EndsWith("яа"))
+                    return lastName;
+                else
+                    return lastName.Substring(0, lastName.Length - 1) + "ой";
+            }
+            else
+                return lastName;
+        }
+
+        private string ConvertFirstNameToCase(string firstName, Gender gender)
+        {
+            // Анализатор для имени в дательном падеже
+            if (gender == Gender.Male)
+            {
+                if (firstName.EndsWith("н"))
+                    return firstName + "у";
+                else if (firstName.EndsWith("а") || firstName.EndsWith("я"))
+                    return firstName.Substring(0, firstName.Length - 1) + "е";
+                else if (firstName.EndsWith("й") || firstName.EndsWith("ь"))
+                    return firstName.Substring(0, firstName.Length - 1) + "ю";
+                else
+                    return firstName + "у";
+            }
+            else if (gender == Gender.Female)
+            {
+                if (firstName.EndsWith("ия"))
+                    return firstName.Substring(0, firstName.Length - 1) + "и";
+                else if (firstName.EndsWith("а") || firstName.EndsWith("я"))
+                    return firstName.Substring(0, firstName.Length - 1) + "е";
+                else
+                    return firstName + "е";
+            }
+            else
+                return firstName;
+        }
+
+        private string ConvertPatronymicToCase(string patronymic, Gender gender)
+        {
+            // Анализатор для отчества в дательном падеже
+            if (gender == Gender.Male)
+            {
+                if (patronymic.EndsWith("ич"))
+                    return patronymic.Substring(0, patronymic.Length - 2) + "ичу";
+                else
+                    return patronymic + "у";
+            }
+            else if (gender == Gender.Female)
+            {
+                if (patronymic.EndsWith("на"))
+                    return patronymic.Substring(0, patronymic.Length - 2) + "не";
+                else
+                    return patronymic + "е";
+            }
+            else
+                return patronymic;
+        }
+
+        // Enum для гендера (добавьте в класс)
+        public enum Gender
+        {
+            Male,
+            Female,
+            Unknown
         }
     }
 }
