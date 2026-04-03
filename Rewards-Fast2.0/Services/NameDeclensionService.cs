@@ -33,16 +33,30 @@ namespace Rewards_Fast2._0.Services
 
             foreach (var person in persons)
             {
-                // Пропускаем, если уже есть склонённая форма
                 if (!string.IsNullOrEmpty(person.LastNameDative))
                     continue;
 
-                // Склоняем каждую часть отдельно (используя вашу логику)
                 Gender gender = DetermineGender(person.MiddleName);
 
-                person.LastNameDative = ConvertLastNameToDative(person.LastName, gender);
-                person.FirstNameDative = ConvertFirstNameToDative(person.FirstName, gender);
-                person.MiddleNameDative = ConvertPatronymicToDative(person.MiddleName, gender);
+                // Фамилию склоняем всегда
+                person.LastNameDative = string.IsNullOrEmpty(person.LastName)
+                    ? ""
+                    : ConvertLastNameToDative(person.LastName, gender);
+
+                // Имя склоняем, только если это не инициалы
+                if (!IsInitials(person.FirstName) && !string.IsNullOrEmpty(person.FirstName))
+                {
+                    person.FirstNameDative = ConvertFirstNameToDative(person.FirstName, gender);
+                }
+                else
+                {
+                    person.FirstNameDative = person.FirstName;
+                }
+
+                // Отчество склоняем всегда, если оно есть (инициалами без имени не бывает)
+                person.MiddleNameDative = string.IsNullOrEmpty(person.MiddleName)
+                    ? ""
+                    : ConvertPatronymicToDative(person.MiddleName, gender);
             }
         }
 
@@ -70,7 +84,7 @@ namespace Rewards_Fast2._0.Services
             _declensionCache.Clear();
         }
 
-        #region ВАША ЛОГИКА СКЛОНЕНИЯ (перенесена из Form5.cs)
+        #region МОЯ ЛОГИКА СКЛОНЕНИЯ (на основе правил русского языка)
 
         private enum Gender
         {
@@ -217,6 +231,17 @@ namespace Rewards_Fast2._0.Services
             return $"{ConvertLastNameToDative(lastName, gender)} " +
                    $"{ConvertFirstNameToDative(firstName, gender)} " +
                    $"{ConvertPatronymicToDative(middleName, gender)}";
+        }
+
+        /// <summary>
+        /// Проверяет, является ли строка инициалами (например, "И.И." или "И.")
+        /// </summary>
+        private bool IsInitials(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return false;
+
+            return input.Contains(".") && input.Length <= 5;
         }
 
         #endregion
