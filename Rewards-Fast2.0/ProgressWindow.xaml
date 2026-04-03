@@ -1,0 +1,28 @@
+﻿<Window x:Class="Rewards_Fast2._0.ProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Генерация наградных материалов" 
+        Height="130" 
+        Width="450"
+        WindowStartupLocation="CenterOwner" 
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="StatusText" 
+                   Grid.Row="0" 
+                   Text="Подготовка..." 
+                   Margin="0,0,0,15" 
+                   FontSize="14"/>
+
+        <ProgressBar x:Name="ProgressBar" 
+                     Grid.Row="1" 
+                     Height="25" 
+                     Minimum="0" 
+                     Maximum="100"/>
+    </Grid>
+</Window>
