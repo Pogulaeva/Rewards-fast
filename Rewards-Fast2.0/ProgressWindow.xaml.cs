@@ -12,14 +12,24 @@ using System.Windows.Shapes;
 
 namespace Rewards_Fast2._0
 {
-    /// <summary>
-    /// Логика взаимодействия для ProgressWindow.xaml
-    /// </summary>
     public partial class ProgressWindow : Window
     {
-        public ProgressWindow()
+        private int _total;
+
+        public ProgressWindow(int total)
         {
             InitializeComponent();
+            _total = total;
+            ProgressBar.Maximum = total;
+        }
+
+        public void UpdateProgress(int current, int total)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ProgressBar.Value = current;
+                StatusText.Text = $"Генерация: {current} из {total}";
+            });
         }
     }
 }
