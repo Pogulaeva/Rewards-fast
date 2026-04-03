@@ -56,6 +56,6 @@ namespace Rewards_Fast2._0.Models
 
         // Вспомогательное свойство для WPF (цвет как Brush)
         [JsonIgnore]
-        public SolidColorBrush FontColorBrush => new SolidColorBrush((Color)ColorConverter.ConvertFromString(FontColorHex));
+        public SolidColorBrush FontColorBrush => new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(FontColorHex));
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -86,7 +83,7 @@ namespace Rewards_Fast2._0.Services
             {
                 Width = 800,   // Базовая ширина
                 Height = 600,  // Базовая высота
-                Background = Brushes.White
+                Background = System.Windows.Media.Brushes.White
             };
 
             // Добавляем фон
@@ -122,7 +119,7 @@ namespace Rewards_Fast2._0.Services
                 var textBlock = new System.Windows.Controls.TextBlock
                 {
                     Text = textToShow,
-                    FontFamily = new FontFamily(block.FontFamily),
+                    FontFamily = new System.Windows.Media.FontFamily(block.FontFamily),
                     FontSize = block.FontSize,
                     FontWeight = block.IsBold ? FontWeights.Bold : FontWeights.Normal,
                     FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
@@ -161,7 +158,7 @@ namespace Rewards_Fast2._0.Services
         private void RenderToImage(Canvas canvas, string outputPath, string format)
         {
             // Принудительно обновляем размеры
-            canvas.Measure(new Size(canvas.Width, canvas.Height));
+            canvas.Measure(new System.Windows.Size(canvas.Width, canvas.Height));
             canvas.Arrange(new Rect(0, 0, canvas.Width, canvas.Height));
             canvas.UpdateLayout();
 

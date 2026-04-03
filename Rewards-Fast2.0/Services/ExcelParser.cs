@@ -17,6 +17,12 @@ namespace Rewards_Fast2._0.Services
     /// </summary>
     public class ExcelParser
     {
+        // Статический конструктор для регистрации кодировок
+        static ExcelParser()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
         /// <summary>
         /// Разбор файла и создание списка Person
         /// </summary>
