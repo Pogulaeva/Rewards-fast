@@ -4,6 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Rewards_Fast2._0.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Rewards_Fast2._0.Services
 {
@@ -29,13 +32,7 @@ namespace Rewards_Fast2._0.Services
         /// <param name="imageFormat">Формат изображения (png, jpg)</param>
         /// <param name="onProgress">Прогресс (текущий индекс, общее количество)</param>
         /// <returns>Количество успешно сгенерированных файлов</returns>
-        public int GenerateCertificates(
-            Template template,
-            List<Person> persons,
-            string outputFolder,
-            bool useDative,
-            string imageFormat = "png",
-            Action<int, int>? onProgress = null)
+        public int GenerateCertificates(Template template, List<Person> persons, string outputFolder, bool useDative, string imageFormat = "png", IProgress<(int current, int total)>? progress = null)
         {
             if (template == null)
                 throw new ArgumentNullException(nameof(template));
@@ -44,7 +41,6 @@ namespace Rewards_Fast2._0.Services
             if (string.IsNullOrEmpty(outputFolder))
                 throw new ArgumentException("Папка сохранения не указана", nameof(outputFolder));
 
-            // Создаём папку, если её нет
             Directory.CreateDirectory(outputFolder);
 
             int successCount = 0;
@@ -53,20 +49,27 @@ namespace Rewards_Fast2._0.Services
             for (int i = 0; i < total; i++)
             {
                 var person = persons[i];
-                onProgress?.Invoke(i + 1, total);
+
+                // Сообщаем о прогрессе (потокобезопасно)
+                progress?.Report((i + 1, total));
 
                 try
                 {
                     string nameToInsert = useDative ? person.FullNameDative : person.FullName;
                     string fileName = GenerateFileName(person, i + 1, imageFormat);
-                    string fullPath = Path.Combine(outputFolder, fileName);
+                    string fullPath = System.IO.Path.Combine(outputFolder, fileName);
+
+                    System.Diagnostics.Debug.WriteLine($"Генерация {i + 1}: {person.FullName} -> {fullPath}");
 
                     GenerateSingleCertificate(template, nameToInsert, fullPath, imageFormat);
                     successCount++;
+
+                    System.Diagnostics.Debug.WriteLine($"Успешно: {successCount}");
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Ошибка генерации для {person.FullName}: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"ОШИБКА для {person.FullName}: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"СТЕК: {ex.StackTrace}");
                 }
             }
 
@@ -76,45 +79,49 @@ namespace Rewards_Fast2._0.Services
         /// <summary>
         /// Генерация одного изображения
         /// </summary>
-        private void GenerateSingleCertificate(Template template, string personName, string outputPath, string format)
+        public void GenerateSingleCertificate(Template template, string personName, string outputPath, string format)
         {
-            // Создаём Canvas для рендеринга
+            // Загружаем фон, чтобы узнать его размеры
+            BitmapImage? backgroundImage = null;
+            double canvasWidth = 800;
+            double canvasHeight = 600;
+
+            if (!string.IsNullOrEmpty(template.BackgroundPath) && File.Exists(template.BackgroundPath))
+            {
+                backgroundImage = LoadImage(template.BackgroundPath);
+                canvasWidth = backgroundImage.Width;
+                canvasHeight = backgroundImage.Height;
+            }
+
             var canvas = new Canvas
             {
-                Width = 800,   // Базовая ширина
-                Height = 600,  // Базовая высота
+                Width = canvasWidth,
+                Height = canvasHeight,
                 Background = System.Windows.Media.Brushes.White
             };
 
             // Добавляем фон
-            if (!string.IsNullOrEmpty(template.BackgroundPath) && File.Exists(template.BackgroundPath))
+            if (backgroundImage != null)
             {
                 var image = new System.Windows.Controls.Image
                 {
-                    Source = LoadImage(template.BackgroundPath),
+                    Source = backgroundImage,
                     Stretch = Stretch.Fill,
-                    Width = canvas.Width,
-                    Height = canvas.Height
+                    Width = canvasWidth,
+                    Height = canvasHeight
                 };
                 canvas.Children.Add(image);
             }
 
-            // Добавляем все текстовые блоки
             foreach (var block in template.TextBlocks)
             {
-                if (!block.IsVisible)
-                    continue;
+                if (!block.IsVisible) continue;
 
                 string textToShow = block.Text;
-
-                // Если это блок с ФИО, подставляем имя
                 if (block.Type == TextBlockType.PersonName)
-                {
                     textToShow = personName;
-                }
 
-                if (string.IsNullOrEmpty(textToShow))
-                    continue;
+                if (string.IsNullOrEmpty(textToShow)) continue;
 
                 var textBlock = new System.Windows.Controls.TextBlock
                 {
@@ -125,19 +132,22 @@ namespace Rewards_Fast2._0.Services
                     FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
                     Foreground = block.FontColorBrush,
                     TextAlignment = TextAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Width = 400,  // Примерная ширина
+                    Width = canvasWidth * 0.8,
                     TextWrapping = TextWrapping.Wrap
                 };
 
-                Canvas.SetLeft(textBlock, block.PositionX);
+                // Центрируем по горизонтали
+                double blockWidth = canvasWidth * 0.8;
+                Canvas.SetLeft(textBlock, (canvasWidth - blockWidth) / 2);
                 Canvas.SetTop(textBlock, block.PositionY);
+
                 canvas.Children.Add(textBlock);
             }
 
-            // Рендерим в изображение
             RenderToImage(canvas, outputPath, format);
         }
+
+
 
         /// <summary>
         /// Загрузка изображения из файла

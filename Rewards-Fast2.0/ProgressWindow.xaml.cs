@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
+
 namespace Rewards_Fast2._0
 {
     public partial class ProgressWindow : Window

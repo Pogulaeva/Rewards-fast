@@ -43,7 +43,6 @@ namespace Rewards_Fast2._0
             InitializeComponent();
             this.Loaded += (s, e) =>
             {
-                // Теперь все элементы точно созданы
                 _useDative = DativeCase.IsChecked == true;
                 RefreshPersonsGrid();
             };
@@ -53,6 +52,9 @@ namespace Rewards_Fast2._0
             LoadBackgroundLibrary();
             SetupDefaultTemplate();
             OutputFolderBox.Text = DefaultOutputFolder;
+
+            // Добавить эту строку ↓
+            this.SizeChanged += (s, e) => RefreshPreview();
         }
 
         private void InitializeAppFolders()
@@ -131,38 +133,98 @@ namespace Rewards_Fast2._0
 
         private void RefreshPreview()
         {
+            if (PreviewCanvas == null) return;
+
             PreviewCanvas.Children.Clear();
+
+            // Реальные размеры фона (по умолчанию)
+            double realWidth = 800;
+            double realHeight = 600;
+            BitmapImage? backgroundImage = null;
 
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
+                backgroundImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                realWidth = backgroundImage.Width;
+                realHeight = backgroundImage.Height;
+            }
+
+            // Получаем доступный размер родительского контейнера (центральная панель)
+            double availableWidth = 600;
+            double availableHeight = 400;
+
+            var parent = PreviewCanvas.Parent as Grid;
+            if (parent != null)
+            {
+                availableWidth = parent.ActualWidth;
+                availableHeight = parent.ActualHeight;
+            }
+
+            // Защита от нулевых размеров
+            if (availableWidth <= 0) availableWidth = 600;
+            if (availableHeight <= 0) availableHeight = 400;
+            if (realWidth <= 0) realWidth = 800;
+            if (realHeight <= 0) realHeight = 600;
+
+            // Вычисляем масштаб, чтобы фон вписался в доступное пространство
+            double scaleX = availableWidth / realWidth;
+            double scaleY = availableHeight / realHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            // Защита от слишком маленького масштаба
+            if (scale <= 0) scale = 0.1;
+            if (scale > 1) scale = 1; // Не увеличиваем, только уменьшаем
+
+            double canvasWidth = realWidth * scale;
+            double canvasHeight = realHeight * scale;
+
+            // Защита от нулевых размеров Canvas
+            if (canvasWidth <= 0) canvasWidth = 100;
+            if (canvasHeight <= 0) canvasHeight = 100;
+
+            PreviewCanvas.Width = canvasWidth;
+            PreviewCanvas.Height = canvasHeight;
+
+            // Добавляем фон
+            if (backgroundImage != null)
+            {
                 var image = new System.Windows.Controls.Image
                 {
-                    Source = LoadBitmapImage(_currentTemplate.BackgroundPath),
-                    Width = PreviewCanvas.Width,
-                    Height = PreviewCanvas.Height
+                    Source = backgroundImage,
+                    Stretch = Stretch.Fill,
+                    Width = canvasWidth,
+                    Height = canvasHeight
                 };
                 PreviewCanvas.Children.Add(image);
             }
 
+            // Добавляем текстовые блоки
             foreach (var block in _currentTemplate.TextBlocks)
             {
                 if (!block.IsVisible) continue;
+
+                double fontSize = block.FontSize * scale;
+                if (fontSize < 4) fontSize = 4; // Минимальный размер шрифта
+
                 var textBlock = new System.Windows.Controls.TextBlock
                 {
                     Text = block.Text,
                     FontFamily = new System.Windows.Media.FontFamily(block.FontFamily),
-                    FontSize = block.FontSize,
+                    FontSize = fontSize,
                     FontWeight = block.IsBold ? FontWeights.Bold : FontWeights.Normal,
                     FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
                     Foreground = block.FontColorBrush,
-                    Width = 400,
+                    TextAlignment = TextAlignment.Center,
+                    Width = canvasWidth * 0.8,
                     TextWrapping = TextWrapping.Wrap
                 };
-                Canvas.SetLeft(textBlock, block.PositionX);
-                Canvas.SetTop(textBlock, block.PositionY);
+
+                Canvas.SetLeft(textBlock, block.PositionX * scale);
+                Canvas.SetTop(textBlock, block.PositionY * scale);
                 PreviewCanvas.Children.Add(textBlock);
             }
         }
+
 
         private BitmapImage LoadBitmapImage(string path)
         {
@@ -414,8 +476,37 @@ namespace Rewards_Fast2._0
 
             try
             {
-                int generated = await Task.Run(() => _imageGenerator.GenerateCertificates(
-                    _currentTemplate, _persons, dateFolder, _useDative, format));
+                int generated = 0;
+
+                // Запускаем генерацию в UI-потоке, но с обновлением прогресса через Dispatcher
+                await Task.Run(() =>
+                {
+                    for (int i = 0; i < _persons.Count; i++)
+                    {
+                        var person = _persons[i];
+
+                        // Обновляем прогресс через Dispatcher
+                        progressWindow.Dispatcher.Invoke(() =>
+                        {
+                            progressWindow.UpdateProgress(i + 1, _persons.Count);
+                        });
+
+                        string nameToInsert = _useDative ? person.FullNameDative : person.FullName;
+                        string fileName = GenerateFileName(person, i + 1, format);
+                        string fullPath = System.IO.Path.Combine(dateFolder, fileName);
+
+                        // Генерацию одной грамоты выносим в UI-поток через Dispatcher
+                        Dispatcher.Invoke(() =>
+                        {
+                            _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
+                        });
+
+                        generated++;
+                    }
+                });
+
+                // Альтернатива — просто синхронный вызов (но тогда прогресс не будет обновляться)
+                // generated = _imageGenerator.GenerateCertificates(_currentTemplate, _persons, dateFolder, _useDative, format);
 
                 progressWindow.Close();
                 System.Windows.MessageBox.Show($"Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -426,9 +517,21 @@ namespace Rewards_Fast2._0
                 progressWindow.Close();
                 System.Windows.MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
 
-            _hasGenerated = true;
-            OpenFolderButton.IsEnabled = true;
+        private string GenerateFileName(Person person, int index, string format)
+        {
+            string safeName = person.FullName
+                .Replace(' ', '_')
+                .Replace('.', '_')
+                .Replace(',', '_')
+                .Replace('(', '_')
+                .Replace(')', '_');
+
+            if (safeName.Length > 50)
+                safeName = safeName.Substring(0, 50);
+
+            return $"{index:0000}_{safeName}.{format.ToLower()}";
         }
 
         private void BlocksListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -455,24 +558,24 @@ namespace Rewards_Fast2._0
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
             if (_isUpdatingProperties) return;
+            if (PreviewCanvas.Width <= 0 || PreviewCanvas.Height <= 0) return;
 
             if (_selectedBlock != null)
             {
                 if (double.TryParse(PositionXBox.Text, out double x))
                 {
-                    // Ограничиваем X: не меньше 0 и не больше ширины холста минус примерная ширина блока
                     double maxX = PreviewCanvas.Width - 200;
+                    if (maxX < 0) maxX = 0;
                     _selectedBlock.PositionX = Math.Clamp(x, 0, maxX);
                 }
 
                 if (double.TryParse(PositionYBox.Text, out double y))
                 {
-                    // Ограничиваем Y: не меньше 0 и не больше высоты холста минус примерная высота блока
                     double maxY = PreviewCanvas.Height - 100;
+                    if (maxY < 0) maxY = 0;
                     _selectedBlock.PositionY = Math.Clamp(y, 0, maxY);
                 }
 
-                // Обновляем поля, если значение было скорректировано
                 PositionXBox.Text = _selectedBlock.PositionX.ToString();
                 PositionYBox.Text = _selectedBlock.PositionY.ToString();
 
@@ -582,4 +685,6 @@ namespace Rewards_Fast2._0
         public string FullName { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
     }
+
+
 }
