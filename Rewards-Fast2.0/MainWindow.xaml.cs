@@ -39,6 +39,7 @@ namespace Rewards_Fast2._0
         private double _zoom = 0.3;  // Начальный масштаб (30% от реального размера)
         private double _minZoom = 0.1;
         private double _maxZoom = 2.0;
+        private double _currentScale = 1.0;
 
         private static readonly string AppDataFolder =
             System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RewardsFast");
@@ -146,6 +147,17 @@ namespace Rewards_Fast2._0
         {
             if (PreviewCanvas == null) return;
 
+            // Отвязываем старые обработчики
+            foreach (UIElement child in PreviewCanvas.Children)
+            {
+                if (child is System.Windows.Controls.TextBlock tb)
+                {
+                    tb.MouseLeftButtonDown -= TextBlock_MouseLeftButtonDown;
+                    tb.MouseMove -= TextBlock_MouseMove;
+                    tb.MouseLeftButtonUp -= TextBlock_MouseLeftButtonUp;
+                }
+            }
+
             PreviewCanvas.Children.Clear();
 
             // Реальные размеры фона
@@ -160,43 +172,57 @@ namespace Rewards_Fast2._0
                 realHeight = backgroundImage.Height;
             }
 
-            // Canvas имеет РЕАЛЬНЫЙ размер
-            PreviewCanvas.Width = realWidth;
-            PreviewCanvas.Height = realHeight;
+            // Получаем доступный размер панели
+            var parentGrid = PreviewCanvas.Parent as Grid;
+            double availableWidth = parentGrid?.ActualWidth ?? 800;
+            double availableHeight = parentGrid?.ActualHeight ?? 600;
 
-            // Применяем масштаб для отображения (чтобы грамота помещалась в окне)
-            double displayScale = 0.3; // 30% — подберите сами
-            PreviewCanvas.RenderTransform = new ScaleTransform(displayScale, displayScale);
-            PreviewCanvas.RenderTransformOrigin = new Point(0, 0);
+            if (availableWidth <= 0) availableWidth = 800;
+            if (availableHeight <= 0) availableHeight = 600;
 
-            // Добавляем фон
+            // Вычисляем масштаб, чтобы вписать грамоту в панель
+            double scaleX = availableWidth / realWidth;
+            double scaleY = availableHeight / realHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
+            // Устанавливаем размер Canvas с учётом масштаба
+            double canvasWidth = realWidth * scale;
+            double canvasHeight = realHeight * scale;
+
+            PreviewCanvas.Width = canvasWidth;
+            PreviewCanvas.Height = canvasHeight;
+
+            // Добавляем фон (растягиваем под Canvas)
             if (backgroundImage != null)
             {
                 var image = new System.Windows.Controls.Image
                 {
                     Source = backgroundImage,
                     Stretch = Stretch.Fill,
-                    Width = realWidth,
-                    Height = realHeight
+                    Width = canvasWidth,
+                    Height = canvasHeight
                 };
                 PreviewCanvas.Children.Add(image);
             }
 
-            // Добавляем текстовые блоки (координаты и шрифт — реальные, без масштабирования!)
+            // Добавляем текстовые блоки с масштабированием
             foreach (var block in _currentTemplate.TextBlocks)
             {
                 if (!block.IsVisible) continue;
+
+                double fontSize = block.FontSize * scale;
+                if (fontSize < 4) fontSize = 4;
 
                 var textBlock = new System.Windows.Controls.TextBlock
                 {
                     Text = block.Text,
                     FontFamily = new System.Windows.Media.FontFamily(block.FontFamily),
-                    FontSize = block.FontSize,
+                    FontSize = fontSize,
                     FontWeight = block.IsBold ? FontWeights.Bold : FontWeights.Normal,
                     FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
                     Foreground = block.FontColorBrush,
                     TextAlignment = TextAlignment.Center,
-                    Width = realWidth * 0.8,
+                    Width = canvasWidth * 0.8,
                     TextWrapping = TextWrapping.Wrap,
                     Tag = block
                 };
@@ -206,21 +232,13 @@ namespace Rewards_Fast2._0
                 textBlock.MouseLeftButtonUp += TextBlock_MouseLeftButtonUp;
                 textBlock.Cursor = Cursors.SizeAll;
 
-                // Реальные координаты (без масштабирования)
-                Canvas.SetLeft(textBlock, block.PositionX);
-                Canvas.SetTop(textBlock, block.PositionY);
+                // Масштабируем координаты
+                Canvas.SetLeft(textBlock, block.PositionX * scale);
+                Canvas.SetTop(textBlock, block.PositionY * scale);
                 PreviewCanvas.Children.Add(textBlock);
             }
-        }
 
-
-        private void CenterScrollViewer()
-        {
-            if (PreviewScrollViewer != null)
-            {
-                PreviewScrollViewer.ScrollToHorizontalOffset(PreviewScrollViewer.ScrollableWidth / 2);
-                PreviewScrollViewer.ScrollToVerticalOffset(PreviewScrollViewer.ScrollableHeight / 2);
-            }
+            _currentScale = scale;
         }
 
 
@@ -556,26 +574,30 @@ namespace Rewards_Fast2._0
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
             if (_isUpdatingProperties) return;
-            if (PreviewCanvas.Width <= 0 || PreviewCanvas.Height <= 0) return;
+
+            // Получаем реальные размеры фона
+            double realWidth = 800;
+            double realHeight = 600;
+
+            if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
+            {
+                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                realWidth = tempImage.Width;
+                realHeight = tempImage.Height;
+            }
 
             if (_selectedBlock != null)
             {
                 if (double.TryParse(PositionXBox.Text, out double x))
                 {
-                    double maxX = PreviewCanvas.Width - 200;
-                    if (maxX < 0) maxX = 0;
-                    _selectedBlock.PositionX = Math.Clamp(x, 0, maxX);
+                    // Ограничиваем реальными размерами фона
+                    _selectedBlock.PositionX = Math.Clamp(x, 0, realWidth - 50);
                 }
 
                 if (double.TryParse(PositionYBox.Text, out double y))
                 {
-                    double maxY = PreviewCanvas.Height - 100;
-                    if (maxY < 0) maxY = 0;
-                    _selectedBlock.PositionY = Math.Clamp(y, 0, maxY);
+                    _selectedBlock.PositionY = Math.Clamp(y, 0, realHeight - 50);
                 }
-
-                PositionXBox.Text = _selectedBlock.PositionX.ToString();
-                PositionYBox.Text = _selectedBlock.PositionY.ToString();
 
                 RefreshPreview();
             }
@@ -583,10 +605,32 @@ namespace Rewards_Fast2._0
 
         private void AddBlockButton_Click(object sender, RoutedEventArgs e)
         {
-            _currentTemplate.TextBlocks.Add(new TextBlockData { Id = Guid.NewGuid().ToString(), Text = "Новый блок", PositionX = 200, PositionY = 300 });
+            // Получаем реальные размеры фона
+            double realWidth = 800;
+            double realHeight = 600;
+
+            if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
+            {
+                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                realWidth = tempImage.Width;
+                realHeight = tempImage.Height;
+            }
+
+            var newBlock = new TextBlockData
+            {
+                Id = Guid.NewGuid().ToString(),
+                Text = "Новый блок",
+                PositionX = realWidth / 2 - 100,  // Центр по X
+                PositionY = realHeight / 2 - 20,   // Центр по Y
+                FontSize = 24,
+                FontFamily = "Times New Roman"
+            };
+
+            _currentTemplate.TextBlocks.Add(newBlock);
             RefreshBlocksList();
             RefreshPreview();
         }
+
 
         private void DeleteBlockButton_Click(object sender, RoutedEventArgs e)
         {
@@ -676,6 +720,21 @@ namespace Rewards_Fast2._0
             var textBlock = sender as System.Windows.Controls.TextBlock;
             if (textBlock != null && textBlock.Tag is TextBlockData block)
             {
+                // Автоматически выбираем блок в списке
+                if (_selectedBlock != block)
+                {
+                    _selectedBlock = block;
+                    BlocksListBox.SelectedItem = block;
+                    // Обновляем поля свойств
+                    TextPropertyBox.Text = block.Text;
+                    FontFamilyBox.SelectedItem = block.FontFamily;
+                    FontSizeBox.Text = block.FontSize.ToString();
+                    BoldToggle.IsChecked = block.IsBold;
+                    ItalicToggle.IsChecked = block.IsItalic;
+                    PositionXBox.Text = block.PositionX.ToString();
+                    PositionYBox.Text = block.PositionY.ToString();
+                }
+
                 _isDraggingBlock = true;
                 _draggedBlockData = block;
                 _dragStartPointCanvas = e.GetPosition(PreviewCanvas);
@@ -685,40 +744,50 @@ namespace Rewards_Fast2._0
             }
         }
 
+
         private void TextBlock_MouseMove(object sender, MouseEventArgs e)
         {
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                _isDraggingBlock = false;
+                _draggedBlockData = null;
+                return;
+            }
+
             if (!_isDraggingBlock || _draggedBlockData == null) return;
 
             var textBlock = sender as System.Windows.Controls.TextBlock;
             if (textBlock == null) return;
 
             Point currentPoint = e.GetPosition(PreviewCanvas);
-            Point startPoint = _dragStartPointCanvas;
 
-            double deltaX = currentPoint.X - startPoint.X;
-            double deltaY = currentPoint.Y - startPoint.Y;
+            // Пересчет с правильным учетом масштаба
+            double deltaX = (currentPoint.X - _dragStartPointCanvas.X) / _currentScale;
+            double deltaY = (currentPoint.Y - _dragStartPointCanvas.Y) / _currentScale;
 
-            double newX = _dragStartPointBlock.X + deltaX;
-            double newY = _dragStartPointBlock.Y + deltaY;
+            double newRealX = _dragStartPointBlock.X + deltaX;
+            double newRealY = _dragStartPointBlock.Y + deltaY;
 
-            // Ограничения
-            double blockWidth = textBlock.ActualWidth;
-            double blockHeight = textBlock.ActualHeight;
-            if (double.IsNaN(blockWidth) || blockWidth <= 0) blockWidth = 100;
-            if (double.IsNaN(blockHeight) || blockHeight <= 0) blockHeight = 50;
+            // Получаем реальные размеры фона
+            double realWidth = 800;
+            double realHeight = 600;
 
-            double maxX = PreviewCanvas.Width - blockWidth;
-            double maxY = PreviewCanvas.Height - blockHeight;
+            if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
+            {
+                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                realWidth = tempImage.Width;
+                realHeight = tempImage.Height;
+            }
 
-            newX = Math.Max(0, Math.Min(newX, maxX));
-            newY = Math.Max(0, Math.Min(newY, maxY));
+            // Ограничиваем перемещение границами фона
+            _draggedBlockData.PositionX = Math.Clamp(newRealX, 0, realWidth - 50);
+            _draggedBlockData.PositionY = Math.Clamp(newRealY, 0, realHeight - 50);
 
-            _draggedBlockData.PositionX = newX;
-            _draggedBlockData.PositionY = newY;
+            // Обновляем позицию на Canvas
+            Canvas.SetLeft(textBlock, _draggedBlockData.PositionX * _currentScale);
+            Canvas.SetTop(textBlock, _draggedBlockData.PositionY * _currentScale);
 
-            Canvas.SetLeft(textBlock, newX);
-            Canvas.SetTop(textBlock, newY);
-
+            // Обновляем поля свойств
             if (_selectedBlock == _draggedBlockData)
             {
                 PositionXBox.Text = _draggedBlockData.PositionX.ToString("F0");
@@ -736,6 +805,7 @@ namespace Rewards_Fast2._0
                 textBlock.ReleaseMouseCapture();
             }
         }
+
     }
 
     public class BackgroundItem
