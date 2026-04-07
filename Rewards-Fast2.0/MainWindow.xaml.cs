@@ -36,10 +36,9 @@ namespace Rewards_Fast2._0
         private TextBlockData? _draggedBlockData = null;
         private Point _dragStartPointCanvas;
         private Point _dragStartPointBlock;
-        private double _zoom = 0.3;  // Начальный масштаб (30% от реального размера)
-        private double _minZoom = 0.1;
-        private double _maxZoom = 2.0;
         private double _currentScale = 1.0;
+        private ImageBlockData? _selectedImage;
+        private bool _isUpdatingImageProperties = false;
 
         private static readonly string AppDataFolder =
             System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RewardsFast");
@@ -238,6 +237,32 @@ namespace Rewards_Fast2._0
                 PreviewCanvas.Children.Add(textBlock);
             }
 
+            // Добавляем изображения
+            foreach (var imageBlock in _currentTemplate.ImageBlocks)
+            {
+                if (!imageBlock.IsVisible || imageBlock.Source == null) continue;
+
+                var image = new System.Windows.Controls.Image
+                {
+                    Source = imageBlock.Source,
+                    Width = imageBlock.Width * scale,
+                    Height = imageBlock.Height * scale,
+                    Stretch = Stretch.Fill,
+                    Tag = imageBlock
+                };
+
+                // Добавляем обработчики для перетаскивания
+                image.MouseLeftButtonDown += Image_MouseLeftButtonDown;
+                image.MouseMove += Image_MouseMove;
+                image.MouseLeftButtonUp += Image_MouseLeftButtonUp;
+                image.Cursor = Cursors.SizeAll;
+
+                Canvas.SetLeft(image, imageBlock.PositionX * scale);
+                Canvas.SetTop(image, imageBlock.PositionY * scale);
+                PreviewCanvas.Children.Add(image);
+            }
+
+
             _currentScale = scale;
         }
 
@@ -349,8 +374,11 @@ namespace Rewards_Fast2._0
                 {
                     _currentTemplate = template;
                     RefreshBlocksList();
+                    RefreshImagesList();
+
                     if (!string.IsNullOrEmpty(template.BackgroundPath) && File.Exists(template.BackgroundPath))
                         SetBackground(template.BackgroundPath);
+
                     RefreshPreview();
                     System.Windows.MessageBox.Show("Шаблон загружен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -550,26 +578,50 @@ namespace Rewards_Fast2._0
             return $"{index:0000}_{safeName}.{format.ToLower()}";
         }
 
+        // При выборе текстового блока возвращаем активность
         private void BlocksListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _isUpdatingProperties = true;
 
             _selectedBlock = BlocksListBox.SelectedItem as TextBlockData;
+
+            if (_selectedImage != null)
+            {
+                _selectedImage = null;
+                ImagesListBox.SelectedItem = null;
+            }
+
             if (_selectedBlock != null)
             {
+                // Включаем свойства текста
+                TextPropertyBox.IsEnabled = true;
+                FontFamilyBox.IsEnabled = true;
+                FontSizeBox.IsEnabled = true;
+                FontSizeUp.IsEnabled = true;
+                FontSizeDown.IsEnabled = true;
+                BoldToggle.IsEnabled = true;
+                ItalicToggle.IsEnabled = true;
+
+                // ОТКЛЮЧАЕМ поля размера изображения
+                ImageWidthBox.IsEnabled = false;
+                ImageHeightBox.IsEnabled = false;
+
                 TextPropertyBox.Text = _selectedBlock.Text;
                 FontFamilyBox.SelectedItem = _selectedBlock.FontFamily;
                 FontSizeBox.Text = _selectedBlock.FontSize.ToString();
                 BoldToggle.IsChecked = _selectedBlock.IsBold;
                 ItalicToggle.IsChecked = _selectedBlock.IsItalic;
 
-                // Временно отключаем обновление позиции
-                PositionXBox.Text = _selectedBlock.PositionX.ToString();
-                PositionYBox.Text = _selectedBlock.PositionY.ToString();
+                if (!_isDraggingBlock)
+                {
+                    PositionXBox.Text = _selectedBlock.PositionX.ToString();
+                    PositionYBox.Text = _selectedBlock.PositionY.ToString();
+                }
             }
 
             _isUpdatingProperties = false;
         }
+
 
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
@@ -634,6 +686,17 @@ namespace Rewards_Fast2._0
 
         private void DeleteBlockButton_Click(object sender, RoutedEventArgs e)
         {
+            // Если выбрано изображение
+            if (_selectedImage != null)
+            {
+                _currentTemplate.ImageBlocks.Remove(_selectedImage);
+                _selectedImage = null;
+                RefreshImagesList();
+                RefreshPreview();
+                return;
+            }
+
+            // Если выбран текстовый блок
             if (_selectedBlock != null)
             {
                 if (_selectedBlock.Type == TextBlockType.PersonName)
@@ -743,8 +806,6 @@ namespace Rewards_Fast2._0
                 e.Handled = true;
             }
         }
-
-
         private void TextBlock_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed)
@@ -804,6 +865,159 @@ namespace Rewards_Fast2._0
             {
                 textBlock.ReleaseMouseCapture();
             }
+        }
+
+        private ImageBlockData? _draggedImage = null;
+        private bool _isDraggingImage = false;
+        private Point _dragStartPointImageCanvas;
+        private Point _dragStartPointImageReal;
+
+        private void Image_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var image = sender as System.Windows.Controls.Image;
+            if (image?.Tag is ImageBlockData imageBlock)
+            {
+                _isDraggingImage = true;
+                _draggedImage = imageBlock;
+                _dragStartPointImageCanvas = e.GetPosition(PreviewCanvas);
+                _dragStartPointImageReal = new Point(imageBlock.PositionX, imageBlock.PositionY);
+                image.CaptureMouse();
+                e.Handled = true;
+            }
+        }
+
+        private void Image_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                _isDraggingImage = false;
+                _draggedImage = null;
+                return;
+            }
+
+            if (!_isDraggingImage || _draggedImage == null) return;
+
+            var image = sender as System.Windows.Controls.Image;
+            if (image == null) return;
+
+            Point currentPoint = e.GetPosition(PreviewCanvas);
+            double deltaX = (currentPoint.X - _dragStartPointImageCanvas.X) / _currentScale;
+            double deltaY = (currentPoint.Y - _dragStartPointImageCanvas.Y) / _currentScale;
+
+            double newX = _dragStartPointImageReal.X + deltaX;
+            double newY = _dragStartPointImageReal.Y + deltaY;
+
+            // Ограничения по границам фона
+            double realWidth = 800, realHeight = 600;
+            if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
+            {
+                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                realWidth = tempImage.Width;
+                realHeight = tempImage.Height;
+            }
+
+            _draggedImage.PositionX = Math.Clamp(newX, 0, realWidth - _draggedImage.Width);
+            _draggedImage.PositionY = Math.Clamp(newY, 0, realHeight - _draggedImage.Height);
+
+            Canvas.SetLeft(image, _draggedImage.PositionX * _currentScale);
+            Canvas.SetTop(image, _draggedImage.PositionY * _currentScale);
+        }
+
+        private void Image_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _isDraggingImage = false;
+            _draggedImage = null;
+            var image = sender as System.Windows.Controls.Image;
+            if (image != null) image.ReleaseMouseCapture();
+        }
+
+        private void ImagesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _isUpdatingImageProperties = true;
+
+            _selectedImage = ImagesListBox.SelectedItem as ImageBlockData;
+
+            if (_selectedBlock != null)
+            {
+                _selectedBlock = null;
+                BlocksListBox.SelectedItem = null;
+            }
+
+            if (_selectedImage != null)
+            {
+                TextPropertyBox.IsEnabled = false;
+                FontFamilyBox.IsEnabled = false;
+                FontSizeBox.IsEnabled = false;
+                FontSizeUp.IsEnabled = false;
+                FontSizeDown.IsEnabled = false;
+                BoldToggle.IsEnabled = false;
+                ItalicToggle.IsEnabled = false;
+
+                ImageWidthBox.IsEnabled = true;
+                ImageHeightBox.IsEnabled = true;
+
+                if (!_isDraggingImage)
+                {
+                    PositionXBox.Text = _selectedImage.PositionX.ToString();
+                    PositionYBox.Text = _selectedImage.PositionY.ToString();
+                }
+
+                ImageWidthBox.Text = _selectedImage.Width.ToString();
+                ImageHeightBox.Text = _selectedImage.Height.ToString();
+            }
+
+            _isUpdatingImageProperties = false;
+        }
+
+        private void RefreshImagesList()
+        {
+            ImagesListBox.ItemsSource = null;
+            ImagesListBox.ItemsSource = _currentTemplate.ImageBlocks;
+        }
+
+        private async void AddImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Выберите изображение (печать, подпись, логотип)",
+                Filter = "Изображения (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // Определяем следующий номер для изображения
+                int nextNumber = _currentTemplate.ImageBlocks.Count + 1;
+
+                var newImage = new ImageBlockData
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ImagePath = dialog.FileName,
+                    Name = $"Изображение {nextNumber}",
+                    PositionX = 200,
+                    PositionY = 200,
+                    Width = 80,
+                    Height = 80
+                };
+                newImage.LoadImage();
+
+                _currentTemplate.ImageBlocks.Add(newImage);
+                RefreshImagesList();
+                RefreshPreview();
+            }
+        }
+
+        private void ImageSize_Changed(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingImageProperties) return;
+            if (_selectedImage == null) return;
+
+            if (double.TryParse(ImageWidthBox.Text, out double width))
+                _selectedImage.Width = Math.Clamp(width, 20, 500);
+
+            if (double.TryParse(ImageHeightBox.Text, out double height))
+                _selectedImage.Height = Math.Clamp(height, 20, 500);
+
+            RefreshPreview();
         }
 
     }

@@ -20,7 +20,18 @@ namespace Rewards_Fast2._0.Services
         public async Task<Template?> LoadTemplateAsync(string filePath)
         {
             string json = await File.ReadAllTextAsync(filePath);
-            return JsonSerializer.Deserialize<Template>(json);
+            var template = JsonSerializer.Deserialize<Template>(json);
+
+            // После загрузки восстанавливаем источники изображений
+            if (template != null && template.ImageBlocks != null)
+            {
+                foreach (var image in template.ImageBlocks)
+                {
+                    image.LoadImage(); // Перезагружаем BitmapImage из пути
+                }
+            }
+
+            return template;
         }
     }
 }

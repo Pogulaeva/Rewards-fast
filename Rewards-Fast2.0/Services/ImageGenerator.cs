@@ -144,6 +144,32 @@ namespace Rewards_Fast2._0.Services
                 canvas.Children.Add(textBlock);
             }
 
+            // Добавляем изображения (печать, подпись)
+            foreach (var imageBlock in template.ImageBlocks)
+            {
+                if (!imageBlock.IsVisible || string.IsNullOrEmpty(imageBlock.ImagePath) || !File.Exists(imageBlock.ImagePath))
+                    continue;
+
+                try
+                {
+                    var image = new System.Windows.Controls.Image
+                    {
+                        Source = LoadImage(imageBlock.ImagePath),
+                        Width = imageBlock.Width,
+                        Height = imageBlock.Height,
+                        Stretch = Stretch.Fill
+                    };
+
+                    Canvas.SetLeft(image, imageBlock.PositionX);
+                    Canvas.SetTop(image, imageBlock.PositionY);
+                    canvas.Children.Add(image);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Ошибка загрузки изображения: {ex.Message}");
+                }
+            }
+
             RenderToImage(canvas, outputPath, format);
         }
 

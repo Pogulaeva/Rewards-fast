@@ -27,6 +27,8 @@ namespace Rewards_Fast2._0.Models
         /// <summary>Проверяет, есть ли в шаблоне блок типа PersonName</summary>
         public bool HasPersonNameBlock => TextBlocks.Exists(b => b.Type == TextBlockType.PersonName);
 
+        public List<ImageBlockData> ImageBlocks { get; set; } = new List<ImageBlockData>();
+
         /// <summary>Возвращает блок PersonName (если есть), иначе null</summary>
         public TextBlockData? GetPersonNameBlock()
         {
