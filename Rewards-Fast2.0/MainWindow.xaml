@@ -6,6 +6,23 @@
         WindowStartupLocation="CenterScreen"
         AllowDrop="True">
 
+    <Window.Resources>
+        <ContextMenu x:Key="ImageContextMenu">
+            <MenuItem Header="✏️ Изменить размер" Click="EnterResizeMode_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="📐" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <Separator/>
+            <MenuItem Header="🗑️ Удалить" Click="DeleteImage_Click"/>
+        </ContextMenu>
+
+        <ContextMenu x:Key="TextBlockContextMenu">
+            <MenuItem Header="🗑️ Удалить блок" Click="DeleteTextBlock_Click"/>
+        </ContextMenu>
+
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -54,7 +71,10 @@
                         <TextBlock Grid.Row="0" Text="📝 ТЕКСТ" FontWeight="Bold" FontSize="13" Margin="10,10,10,5"/>
 
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="10,0,10,0">
-                            <ListBox x:Name="BlocksListBox" DisplayMemberPath="Text" SelectionChanged="BlocksListBox_SelectionChanged"/>
+                            <ListBox x:Name="BlocksListBox" DisplayMemberPath="Text" 
+             SelectionChanged="BlocksListBox_SelectionChanged"
+             ContextMenu="{StaticResource TextBlockContextMenu}"
+             PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown"/>
                         </ScrollViewer>
 
                         <Button Grid.Row="2" x:Name="AddBlockButton" Content="+ Добавить текст" Click="AddBlockButton_Click" Margin="10,5,10,5"/>
@@ -65,7 +85,10 @@
                         <TextBlock Grid.Row="4" Text="🖼️ ИЗОБРАЖЕНИЯ" FontWeight="Bold" FontSize="13" Margin="10,10,10,5"/>
 
                         <ScrollViewer Grid.Row="5" VerticalScrollBarVisibility="Auto" Margin="10,0,10,0">
-                            <ListBox x:Name="ImagesListBox" DisplayMemberPath="Name" SelectionChanged="ImagesListBox_SelectionChanged"/>
+                            <ListBox x:Name="ImagesListBox" DisplayMemberPath="Name" 
+             SelectionChanged="ImagesListBox_SelectionChanged"
+             ContextMenu="{StaticResource ImageContextMenu}"
+             PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown"/>
                         </ScrollViewer>
 
                         <Button Grid.Row="6" x:Name="AddImageButton" Content="Вставить печать/подпись" Click="AddImageButton_Click" Margin="10,5,10,5"/>
@@ -86,7 +109,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBox Grid.Column="0" x:Name="TextPropertyBox" TextChanged="TextPropertyBox_TextChanged" Margin="0,0,5,0"/>
-                                <Button Grid.Column="1" x:Name="AiSuggestButton" Content="✨ ИИ" Click="AiSuggestButton_Click" 
+                                <Button Grid.Column="1" x:Name="AiSuggestButton" Content="✨ИИ" Click="AiSuggestButton_Click" 
                         Width="40" ToolTip="Подсказать текст"/>
                             </Grid>
 
@@ -133,9 +156,6 @@
                                 <TextBlock Grid.Column="2" Text="В:" VerticalAlignment="Center" Margin="10,0,5,0"/>
                                 <TextBox Grid.Column="3" x:Name="ImageHeightBox" TextChanged="ImageSize_Changed" IsEnabled="False"/>
                             </Grid>
-
-                            <Button x:Name="DeleteBlockButton" Content="🗑️ Удалить блок" Click="DeleteBlockButton_Click" 
-                    Margin="0,5,0,0" Background="LightCoral"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Border>

@@ -16,6 +16,9 @@ using System.Windows.Media.Imaging;
 using Point = System.Windows.Point;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Cursors = System.Windows.Input.Cursors;
+using Brushes = System.Windows.Media.Brushes;
+using Panel = System.Windows.Controls.Panel;
+using Cursor = System.Windows.Input.Cursor;
 
 namespace Rewards_Fast2._0
 {
@@ -39,6 +42,16 @@ namespace Rewards_Fast2._0
         private double _currentScale = 1.0;
         private ImageBlockData? _selectedImage;
         private bool _isUpdatingImageProperties = false;
+
+        private string _resizeHandle = "";
+        private Point _resizeStartPoint;
+        private double _resizeStartWidth;
+        private double _resizeStartHeight;
+        private bool _isResizeMode = false;
+        private ImageBlockData? _resizingImage = null;
+        private bool _isResizing = false;
+        private double _resizeStartX;
+        private double _resizeStartY;
 
         private static readonly string AppDataFolder =
             System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RewardsFast");
@@ -64,8 +77,8 @@ namespace Rewards_Fast2._0
             SetupDefaultTemplate();
             OutputFolderBox.Text = DefaultOutputFolder;
 
-            // Добавить эту строку ↓
             this.SizeChanged += (s, e) => RefreshPreview();
+            PreviewCanvas.MouseLeftButtonDown += PreviewCanvas_MouseLeftButtonDown;
         }
 
         private void InitializeAppFolders()
@@ -155,6 +168,12 @@ namespace Rewards_Fast2._0
                     tb.MouseMove -= TextBlock_MouseMove;
                     tb.MouseLeftButtonUp -= TextBlock_MouseLeftButtonUp;
                 }
+                else if (child is System.Windows.Controls.Image img)
+                {
+                    img.MouseLeftButtonDown -= Image_MouseLeftButtonDown;
+                    img.MouseMove -= Image_MouseMove;
+                    img.MouseLeftButtonUp -= Image_MouseLeftButtonUp;
+                }
             }
 
             PreviewCanvas.Children.Clear();
@@ -191,7 +210,10 @@ namespace Rewards_Fast2._0
             PreviewCanvas.Width = canvasWidth;
             PreviewCanvas.Height = canvasHeight;
 
-            // Добавляем фон (растягиваем под Canvas)
+            // Сохраняем масштаб
+            _currentScale = scale;
+
+            // Добавляем фон
             if (backgroundImage != null)
             {
                 var image = new System.Windows.Controls.Image
@@ -204,7 +226,7 @@ namespace Rewards_Fast2._0
                 PreviewCanvas.Children.Add(image);
             }
 
-            // Добавляем текстовые блоки с масштабированием
+            // Добавляем текстовые блоки
             foreach (var block in _currentTemplate.TextBlocks)
             {
                 if (!block.IsVisible) continue;
@@ -231,7 +253,6 @@ namespace Rewards_Fast2._0
                 textBlock.MouseLeftButtonUp += TextBlock_MouseLeftButtonUp;
                 textBlock.Cursor = Cursors.SizeAll;
 
-                // Масштабируем координаты
                 Canvas.SetLeft(textBlock, block.PositionX * scale);
                 Canvas.SetTop(textBlock, block.PositionY * scale);
                 PreviewCanvas.Children.Add(textBlock);
@@ -251,7 +272,6 @@ namespace Rewards_Fast2._0
                     Tag = imageBlock
                 };
 
-                // Добавляем обработчики для перетаскивания
                 image.MouseLeftButtonDown += Image_MouseLeftButtonDown;
                 image.MouseMove += Image_MouseMove;
                 image.MouseLeftButtonUp += Image_MouseLeftButtonUp;
@@ -262,10 +282,12 @@ namespace Rewards_Fast2._0
                 PreviewCanvas.Children.Add(image);
             }
 
-
-            _currentScale = scale;
+            // Добавляем маркеры ТОЛЬКО если в режиме редактирования
+            if (_isResizeMode && _resizingImage != null && _currentTemplate.ImageBlocks.Contains(_resizingImage))
+            {
+                AddResizeHandles(_resizingImage);
+            }
         }
-
 
         private BitmapImage LoadBitmapImage(string path)
         {
@@ -445,14 +467,12 @@ namespace Rewards_Fast2._0
 
         private void Case_Changed(object sender, RoutedEventArgs e)
         {
-            // Проверяем, что радиокнопка уже создана
             if (DativeCase == null || NominativeCase == null)
                 return;
 
             _useDative = DativeCase.IsChecked == true;
             RefreshPersonsGrid();
         }
-
 
         private void BrowseFolderButton_Click(object sender, RoutedEventArgs e)
         {
@@ -475,7 +495,6 @@ namespace Rewards_Fast2._0
             string folder = OutputFolderBox.Text;
             if (string.IsNullOrEmpty(folder)) folder = DefaultOutputFolder;
 
-            // Открываем последнюю папку с результатами
             string latestFolder = GetLatestOutputFolder(folder);
             if (Directory.Exists(latestFolder))
                 System.Diagnostics.Process.Start("explorer.exe", latestFolder);
@@ -491,7 +510,6 @@ namespace Rewards_Fast2._0
             var subfolders = Directory.GetDirectories(baseFolder);
             if (subfolders.Length == 0) return baseFolder;
 
-            // Возвращаем самую новую папку (по дате создания)
             return subfolders.OrderByDescending(d => Directory.GetCreationTime(d)).FirstOrDefault() ?? baseFolder;
         }
 
@@ -522,14 +540,12 @@ namespace Rewards_Fast2._0
             {
                 int generated = 0;
 
-                // Запускаем генерацию в UI-потоке, но с обновлением прогресса через Dispatcher
                 await Task.Run(() =>
                 {
                     for (int i = 0; i < _persons.Count; i++)
                     {
                         var person = _persons[i];
 
-                        // Обновляем прогресс через Dispatcher
                         progressWindow.Dispatcher.Invoke(() =>
                         {
                             progressWindow.UpdateProgress(i + 1, _persons.Count);
@@ -539,7 +555,6 @@ namespace Rewards_Fast2._0
                         string fileName = GenerateFileName(person, i + 1, format);
                         string fullPath = System.IO.Path.Combine(dateFolder, fileName);
 
-                        // Генерацию одной грамоты выносим в UI-поток через Dispatcher
                         Dispatcher.Invoke(() =>
                         {
                             _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
@@ -548,9 +563,6 @@ namespace Rewards_Fast2._0
                         generated++;
                     }
                 });
-
-                // Альтернатива — просто синхронный вызов (но тогда прогресс не будет обновляться)
-                // generated = _imageGenerator.GenerateCertificates(_currentTemplate, _persons, dateFolder, _useDative, format);
 
                 progressWindow.Close();
                 System.Windows.MessageBox.Show($"Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -578,9 +590,12 @@ namespace Rewards_Fast2._0
             return $"{index:0000}_{safeName}.{format.ToLower()}";
         }
 
-        // При выборе текстового блока возвращаем активность
         private void BlocksListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            _isResizeMode = false;
+            _resizingImage = null;
+            _isResizing = false;
+
             _isUpdatingProperties = true;
 
             _selectedBlock = BlocksListBox.SelectedItem as TextBlockData;
@@ -593,7 +608,6 @@ namespace Rewards_Fast2._0
 
             if (_selectedBlock != null)
             {
-                // Включаем свойства текста
                 TextPropertyBox.IsEnabled = true;
                 FontFamilyBox.IsEnabled = true;
                 FontSizeBox.IsEnabled = true;
@@ -602,7 +616,6 @@ namespace Rewards_Fast2._0
                 BoldToggle.IsEnabled = true;
                 ItalicToggle.IsEnabled = true;
 
-                // ОТКЛЮЧАЕМ поля размера изображения
                 ImageWidthBox.IsEnabled = false;
                 ImageHeightBox.IsEnabled = false;
 
@@ -620,14 +633,13 @@ namespace Rewards_Fast2._0
             }
 
             _isUpdatingProperties = false;
+            RefreshPreview();
         }
-
 
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
             if (_isUpdatingProperties) return;
 
-            // Получаем реальные размеры фона
             double realWidth = 800;
             double realHeight = 600;
 
@@ -642,7 +654,6 @@ namespace Rewards_Fast2._0
             {
                 if (double.TryParse(PositionXBox.Text, out double x))
                 {
-                    // Ограничиваем реальными размерами фона
                     _selectedBlock.PositionX = Math.Clamp(x, 0, realWidth - 50);
                 }
 
@@ -653,11 +664,24 @@ namespace Rewards_Fast2._0
 
                 RefreshPreview();
             }
+            else if (_selectedImage != null && !_isResizing)
+            {
+                if (double.TryParse(PositionXBox.Text, out double x))
+                {
+                    _selectedImage.PositionX = Math.Clamp(x, 0, realWidth - _selectedImage.Width);
+                }
+
+                if (double.TryParse(PositionYBox.Text, out double y))
+                {
+                    _selectedImage.PositionY = Math.Clamp(y, 0, realHeight - _selectedImage.Height);
+                }
+
+                RefreshPreview();
+            }
         }
 
         private void AddBlockButton_Click(object sender, RoutedEventArgs e)
         {
-            // Получаем реальные размеры фона
             double realWidth = 800;
             double realHeight = 600;
 
@@ -672,8 +696,8 @@ namespace Rewards_Fast2._0
             {
                 Id = Guid.NewGuid().ToString(),
                 Text = "Новый блок",
-                PositionX = realWidth / 2 - 100,  // Центр по X
-                PositionY = realHeight / 2 - 20,   // Центр по Y
+                PositionX = realWidth / 2 - 100,
+                PositionY = realHeight / 2 - 20,
                 FontSize = 24,
                 FontFamily = "Times New Roman"
             };
@@ -683,20 +707,9 @@ namespace Rewards_Fast2._0
             RefreshPreview();
         }
 
-
-        private void DeleteBlockButton_Click(object sender, RoutedEventArgs e)
+        // Удаление текстового блока
+        private void DeleteTextBlock_Click(object sender, RoutedEventArgs e)
         {
-            // Если выбрано изображение
-            if (_selectedImage != null)
-            {
-                _currentTemplate.ImageBlocks.Remove(_selectedImage);
-                _selectedImage = null;
-                RefreshImagesList();
-                RefreshPreview();
-                return;
-            }
-
-            // Если выбран текстовый блок
             if (_selectedBlock != null)
             {
                 if (_selectedBlock.Type == TextBlockType.PersonName)
@@ -725,7 +738,7 @@ namespace Rewards_Fast2._0
 
         private void FontProperty_Changed(object sender, SelectionChangedEventArgs e)
         {
-            if (_isUpdatingProperties) return;  // Добавить
+            if (_isUpdatingProperties) return;
             if (_selectedBlock != null && FontFamilyBox.SelectedItem != null)
             {
                 _selectedBlock.FontFamily = FontFamilyBox.SelectedItem.ToString() ?? "Times New Roman";
@@ -735,13 +748,14 @@ namespace Rewards_Fast2._0
 
         private void FontProperty_Changed(object sender, TextChangedEventArgs e)
         {
-            if (_isUpdatingProperties) return;  // Добавить
+            if (_isUpdatingProperties) return;
             if (_selectedBlock != null && float.TryParse(FontSizeBox.Text, out float size))
             {
                 _selectedBlock.FontSize = size;
                 RefreshPreview();
             }
         }
+
         private void FontSizeUp_Click(object sender, RoutedEventArgs e)
         {
             if (_selectedBlock != null)
@@ -783,12 +797,10 @@ namespace Rewards_Fast2._0
             var textBlock = sender as System.Windows.Controls.TextBlock;
             if (textBlock != null && textBlock.Tag is TextBlockData block)
             {
-                // Автоматически выбираем блок в списке
                 if (_selectedBlock != block)
                 {
                     _selectedBlock = block;
                     BlocksListBox.SelectedItem = block;
-                    // Обновляем поля свойств
                     TextPropertyBox.Text = block.Text;
                     FontFamilyBox.SelectedItem = block.FontFamily;
                     FontSizeBox.Text = block.FontSize.ToString();
@@ -806,6 +818,7 @@ namespace Rewards_Fast2._0
                 e.Handled = true;
             }
         }
+
         private void TextBlock_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed)
@@ -822,14 +835,12 @@ namespace Rewards_Fast2._0
 
             Point currentPoint = e.GetPosition(PreviewCanvas);
 
-            // Пересчет с правильным учетом масштаба
             double deltaX = (currentPoint.X - _dragStartPointCanvas.X) / _currentScale;
             double deltaY = (currentPoint.Y - _dragStartPointCanvas.Y) / _currentScale;
 
             double newRealX = _dragStartPointBlock.X + deltaX;
             double newRealY = _dragStartPointBlock.Y + deltaY;
 
-            // Получаем реальные размеры фона
             double realWidth = 800;
             double realHeight = 600;
 
@@ -840,15 +851,12 @@ namespace Rewards_Fast2._0
                 realHeight = tempImage.Height;
             }
 
-            // Ограничиваем перемещение границами фона
             _draggedBlockData.PositionX = Math.Clamp(newRealX, 0, realWidth - 50);
             _draggedBlockData.PositionY = Math.Clamp(newRealY, 0, realHeight - 50);
 
-            // Обновляем позицию на Canvas
             Canvas.SetLeft(textBlock, _draggedBlockData.PositionX * _currentScale);
             Canvas.SetTop(textBlock, _draggedBlockData.PositionY * _currentScale);
 
-            // Обновляем поля свойств
             if (_selectedBlock == _draggedBlockData)
             {
                 PositionXBox.Text = _draggedBlockData.PositionX.ToString("F0");
@@ -877,6 +885,30 @@ namespace Rewards_Fast2._0
             var image = sender as System.Windows.Controls.Image;
             if (image?.Tag is ImageBlockData imageBlock)
             {
+                if (_selectedImage != imageBlock)
+                {
+                    _selectedImage = imageBlock;
+                    ImagesListBox.SelectedItem = imageBlock;
+                    // Обновляем поля свойств при выборе
+                    PositionXBox.Text = imageBlock.PositionX.ToString("F0");
+                    PositionYBox.Text = imageBlock.PositionY.ToString("F0");
+                    ImageWidthBox.Text = imageBlock.Width.ToString("F0");
+                    ImageHeightBox.Text = imageBlock.Height.ToString("F0");
+
+                    // Если были маркеры - удаляем их
+                    if (_isResizeMode)
+                    {
+                        _isResizeMode = false;
+                        _resizingImage = null;
+                        var handles = PreviewCanvas.Children
+                            .OfType<Border>()
+                            .Where(b => b.Tag is Tuple<ImageBlockData, string>)
+                            .ToList();
+                        foreach (var handle in handles)
+                            PreviewCanvas.Children.Remove(handle);
+                    }
+                }
+
                 _isDraggingImage = true;
                 _draggedImage = imageBlock;
                 _dragStartPointImageCanvas = e.GetPosition(PreviewCanvas);
@@ -901,13 +933,15 @@ namespace Rewards_Fast2._0
             if (image == null) return;
 
             Point currentPoint = e.GetPosition(PreviewCanvas);
+
+            // Вычисляем смещение
             double deltaX = (currentPoint.X - _dragStartPointImageCanvas.X) / _currentScale;
             double deltaY = (currentPoint.Y - _dragStartPointImageCanvas.Y) / _currentScale;
 
             double newX = _dragStartPointImageReal.X + deltaX;
             double newY = _dragStartPointImageReal.Y + deltaY;
 
-            // Ограничения по границам фона
+            // Получаем размеры фона
             double realWidth = 800, realHeight = 600;
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
@@ -916,23 +950,53 @@ namespace Rewards_Fast2._0
                 realHeight = tempImage.Height;
             }
 
+            // Ограничиваем перемещение
             _draggedImage.PositionX = Math.Clamp(newX, 0, realWidth - _draggedImage.Width);
             _draggedImage.PositionY = Math.Clamp(newY, 0, realHeight - _draggedImage.Height);
 
+            // Обновляем позицию изображения на Canvas
             Canvas.SetLeft(image, _draggedImage.PositionX * _currentScale);
             Canvas.SetTop(image, _draggedImage.PositionY * _currentScale);
+
+            // ОБНОВЛЯЕМ ПОЛЯ СВОЙСТВ в реальном времени
+            if (_selectedImage == _draggedImage)
+            {
+                PositionXBox.Text = _draggedImage.PositionX.ToString("F0");
+                PositionYBox.Text = _draggedImage.PositionY.ToString("F0");
+            }
+
+            // Обновляем маркеры, если они есть
+            if (_isResizeMode && _resizingImage == _draggedImage)
+            {
+                UpdateResizeHandles(_draggedImage);
+            }
         }
 
         private void Image_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             _isDraggingImage = false;
-            _draggedImage = null;
+
             var image = sender as System.Windows.Controls.Image;
-            if (image != null) image.ReleaseMouseCapture();
+            if (image != null)
+                image.ReleaseMouseCapture();
+
+            // Убеждаемся, что поля свойств обновлены финальными значениями
+            if (_draggedImage != null && _selectedImage == _draggedImage)
+            {
+                PositionXBox.Text = _draggedImage.PositionX.ToString("F0");
+                PositionYBox.Text = _draggedImage.PositionY.ToString("F0");
+            }
+
+            _draggedImage = null;
         }
+
 
         private void ImagesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            _isResizeMode = false;
+            _resizingImage = null;
+            _isResizing = false;
+
             _isUpdatingImageProperties = true;
 
             _selectedImage = ImagesListBox.SelectedItem as ImageBlockData;
@@ -967,6 +1031,7 @@ namespace Rewards_Fast2._0
             }
 
             _isUpdatingImageProperties = false;
+            RefreshPreview();
         }
 
         private void RefreshImagesList()
@@ -985,7 +1050,6 @@ namespace Rewards_Fast2._0
 
             if (dialog.ShowDialog() == true)
             {
-                // Определяем следующий номер для изображения
                 int nextNumber = _currentTemplate.ImageBlocks.Count + 1;
 
                 var newImage = new ImageBlockData
@@ -1020,6 +1084,321 @@ namespace Rewards_Fast2._0
             RefreshPreview();
         }
 
+        private void AddResizeHandles(ImageBlockData image)
+        {
+            if (image == null) return;
+
+            // Удаляем старые маркеры для этого изображения
+            var oldHandles = PreviewCanvas.Children
+                .OfType<Border>()
+                .Where(b => b.Tag is Tuple<ImageBlockData, string> tuple && tuple.Item1 == image)
+                .ToList();
+
+            foreach (var oldHandle in oldHandles)
+            {
+                PreviewCanvas.Children.Remove(oldHandle);
+            }
+
+            double left = image.PositionX * _currentScale;
+            double top = image.PositionY * _currentScale;
+            double width = image.Width * _currentScale;
+            double height = image.Height * _currentScale;
+            double handleSize = 12;
+
+            var corners = new[] { "tl", "tr", "bl", "br" };
+            var positions = new (double left, double top)[]
+            {
+        (left - handleSize/2, top - handleSize/2),
+        (left + width - handleSize/2, top - handleSize/2),
+        (left - handleSize/2, top + height - handleSize/2),
+        (left + width - handleSize/2, top + height - handleSize/2)
+            };
+
+            for (int i = 0; i < corners.Length; i++)
+            {
+                var handle = new Border
+                {
+                    Width = handleSize,
+                    Height = handleSize,
+                    Background = Brushes.White,
+                    BorderBrush = Brushes.Black,
+                    BorderThickness = new Thickness(2),
+                    CornerRadius = new CornerRadius(handleSize / 2),
+                    Tag = new Tuple<ImageBlockData, string>(image, corners[i])
+                };
+
+                handle.MouseLeftButtonDown += ResizeHandle_MouseLeftButtonDown;
+                handle.MouseMove += ResizeHandle_MouseMove;
+                handle.MouseLeftButtonUp += ResizeHandle_MouseLeftButtonUp;
+                handle.Cursor = GetResizeCursor(corners[i]);
+
+                Canvas.SetLeft(handle, positions[i].left);
+                Canvas.SetTop(handle, positions[i].top);
+                Panel.SetZIndex(handle, 100);
+                PreviewCanvas.Children.Add(handle);
+            }
+        }
+
+        private Cursor GetResizeCursor(string handle)
+        {
+            return handle switch
+            {
+                "tl" or "br" => Cursors.SizeNWSE,
+                "tr" or "bl" => Cursors.SizeNESW,
+                _ => Cursors.Arrow
+            };
+        }
+
+        private void ResizeHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var handle = sender as Border;
+            if (handle?.Tag is Tuple<ImageBlockData, string> data)
+            {
+                _isResizing = true;
+                _resizeHandle = data.Item2;
+                _resizingImage = data.Item1;
+                _resizeStartPoint = e.GetPosition(PreviewCanvas);
+                _resizeStartWidth = _resizingImage.Width;
+                _resizeStartHeight = _resizingImage.Height;
+                _resizeStartX = _resizingImage.PositionX;
+                _resizeStartY = _resizingImage.PositionY;
+
+                handle.CaptureMouse();
+                e.Handled = true;
+            }
+        }
+
+        private void ResizeHandle_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isResizing || _resizingImage == null) return;
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                _isResizing = false;
+                return;
+            }
+
+            Point currentPoint = e.GetPosition(PreviewCanvas);
+            double deltaX = (currentPoint.X - _resizeStartPoint.X) / _currentScale;
+            double deltaY = (currentPoint.Y - _resizeStartPoint.Y) / _currentScale;
+
+            double aspect = _resizeStartWidth / _resizeStartHeight;
+            double newWidth = _resizeStartWidth;
+            double newHeight = _resizeStartHeight;
+            double newX = _resizeStartX;
+            double newY = _resizeStartY;
+
+            switch (_resizeHandle)
+            {
+                case "tl":
+                    newWidth = _resizeStartWidth - deltaX;
+                    newHeight = newWidth / aspect;
+                    newX = _resizeStartX + (_resizeStartWidth - newWidth);
+                    newY = _resizeStartY + (_resizeStartHeight - newHeight);
+                    break;
+                case "tr":
+                    newWidth = _resizeStartWidth + deltaX;
+                    newHeight = newWidth / aspect;
+                    newX = _resizeStartX;
+                    newY = _resizeStartY + (_resizeStartHeight - newHeight);
+                    break;
+                case "bl":
+                    newWidth = _resizeStartWidth - deltaX;
+                    newHeight = newWidth / aspect;
+                    newX = _resizeStartX + (_resizeStartWidth - newWidth);
+                    newY = _resizeStartY;
+                    break;
+                case "br":
+                    newWidth = _resizeStartWidth + deltaX;
+                    newHeight = newWidth / aspect;
+                    newX = _resizeStartX;
+                    newY = _resizeStartY;
+                    break;
+            }
+
+            newWidth = Math.Max(20, newWidth);
+            newHeight = Math.Max(20, newHeight);
+
+            double realWidth = 800;
+            double realHeight = 600;
+            if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
+            {
+                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                realWidth = tempImage.Width;
+                realHeight = tempImage.Height;
+            }
+
+            newX = Math.Clamp(newX, 0, realWidth - newWidth);
+            newY = Math.Clamp(newY, 0, realHeight - newHeight);
+
+            _resizingImage.Width = newWidth;
+            _resizingImage.Height = newHeight;
+            _resizingImage.PositionX = newX;
+            _resizingImage.PositionY = newY;
+
+            var imageElement = PreviewCanvas.Children
+                .OfType<System.Windows.Controls.Image>()
+                .FirstOrDefault(img => img.Tag == _resizingImage);
+
+            if (imageElement != null)
+            {
+                imageElement.Width = newWidth * _currentScale;
+                imageElement.Height = newHeight * _currentScale;
+                Canvas.SetLeft(imageElement, newX * _currentScale);
+                Canvas.SetTop(imageElement, newY * _currentScale);
+            }
+
+            UpdateResizeHandles(_resizingImage);
+
+            if (_selectedImage == _resizingImage)
+            {
+                ImageWidthBox.Text = newWidth.ToString("F0");
+                ImageHeightBox.Text = newHeight.ToString("F0");
+                PositionXBox.Text = newX.ToString("F0");
+                PositionYBox.Text = newY.ToString("F0");
+            }
+        }
+
+        private void UpdateResizeHandles(ImageBlockData image)
+        {
+            // Находим все маркеры для этого изображения
+            var handles = PreviewCanvas.Children
+                .OfType<Border>()
+                .Where(b => b.Tag is Tuple<ImageBlockData, string> tuple && tuple.Item1 == image)
+                .ToList();
+
+            if (handles.Count == 0) return;
+
+            double left = image.PositionX * _currentScale;
+            double top = image.PositionY * _currentScale;
+            double width = image.Width * _currentScale;
+            double height = image.Height * _currentScale;
+            double handleSize = 12;
+
+            // Обновляем позиции маркеров
+            var positions = new (double left, double top)[]
+            {
+        (left - handleSize/2, top - handleSize/2),           // top-left
+        (left + width - handleSize/2, top - handleSize/2),   // top-right
+        (left - handleSize/2, top + height - handleSize/2),  // bottom-left
+        (left + width - handleSize/2, top + height - handleSize/2) // bottom-right
+            };
+
+            for (int i = 0; i < handles.Count && i < positions.Length; i++)
+            {
+                Canvas.SetLeft(handles[i], positions[i].left);
+                Canvas.SetTop(handles[i], positions[i].top);
+            }
+        }
+
+
+        private void ResizeHandle_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _isResizing = false;
+            _isResizeMode = false;
+            _resizingImage = null;
+
+            var handle = sender as Border;
+            handle?.ReleaseMouseCapture();
+
+            // Удаляем ВСЕ маркеры
+            var allHandles = PreviewCanvas.Children
+                .OfType<Border>()
+                .Where(b => b.Tag is Tuple<ImageBlockData, string>)
+                .ToList();
+
+            foreach (var h in allHandles)
+            {
+                PreviewCanvas.Children.Remove(h);
+            }
+
+            // Обновляем поля свойств
+            if (_selectedImage != null)
+            {
+                ImageWidthBox.Text = _selectedImage.Width.ToString("F0");
+                ImageHeightBox.Text = _selectedImage.Height.ToString("F0");
+                PositionXBox.Text = _selectedImage.PositionX.ToString("F0");
+                PositionYBox.Text = _selectedImage.PositionY.ToString("F0");
+            }
+        }
+
+        private void EnterResizeMode_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedImage == null) return;
+
+            _isResizeMode = true;
+            _resizingImage = _selectedImage;
+            AddResizeHandles(_selectedImage); // Добавляем маркеры без перерисовки всего Canvas
+        }
+
+        private void DeleteImage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedImage != null)
+            {
+                _currentTemplate.ImageBlocks.Remove(_selectedImage);
+                _selectedImage = null;
+                _resizingImage = null;
+                _isResizeMode = false;
+                RefreshImagesList();
+                RefreshPreview();
+            }
+        }
+
+        private void PreviewCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Проверяем, был ли клик по маркеру или изображению
+            var hitElement = e.OriginalSource as DependencyObject;
+            bool isHandleClick = false;
+            bool isImageClick = false;
+
+            while (hitElement != null && hitElement != PreviewCanvas)
+            {
+                if (hitElement is Border && (hitElement as Border)?.Tag is Tuple<ImageBlockData, string>)
+                {
+                    isHandleClick = true;
+                    break;
+                }
+                if (hitElement is System.Windows.Controls.Image)
+                {
+                    isImageClick = true;
+                    break;
+                }
+                hitElement = VisualTreeHelper.GetParent(hitElement);
+            }
+
+            // Если кликнули не по маркеру и не по изображению - удаляем маркеры
+            if (!isHandleClick && !isImageClick && _isResizeMode)
+            {
+                _isResizeMode = false;
+                _resizingImage = null;
+                _isResizing = false;
+
+                // Удаляем все маркеры
+                var allHandles = PreviewCanvas.Children
+                    .OfType<Border>()
+                    .Where(b => b.Tag is Tuple<ImageBlockData, string>)
+                    .ToList();
+
+                foreach (var handle in allHandles)
+                {
+                    PreviewCanvas.Children.Remove(handle);
+                }
+            }
+        }
+        // Общий метод для выбора элемента при правом клике в любом ListBox
+        private void ListBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var listBox = sender as System.Windows.Controls.ListBox;
+            if (listBox == null) return;
+
+            // Находим элемент, на который кликнули
+            var item = ItemsControl.ContainerFromElement(listBox, e.OriginalSource as DependencyObject) as ListBoxItem;
+            if (item != null)
+            {
+                // Выбираем этот элемент
+                item.IsSelected = true;
+                e.Handled = true; // Чтобы событие не пошло дальше
+            }
+        }
     }
 
     public class BackgroundItem
@@ -1033,6 +1412,4 @@ namespace Rewards_Fast2._0
         public string FullName { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
     }
-
-
 }
