@@ -638,8 +638,10 @@ namespace Rewards_Fast2._0
 
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
-            if (_isUpdatingProperties) return;
+            if (_isUpdatingProperties || _isUpdatingImageProperties) return;
+            if (_isDraggingBlock || _isDraggingImage) return; // Не обновляем во время перетаскивания
 
+            // Получаем реальные размеры фона
             double realWidth = 800;
             double realHeight = 600;
 
@@ -664,7 +666,7 @@ namespace Rewards_Fast2._0
 
                 RefreshPreview();
             }
-            else if (_selectedImage != null && !_isResizing)
+            else if (_selectedImage != null)
             {
                 if (double.TryParse(PositionXBox.Text, out double x))
                 {
@@ -676,7 +678,22 @@ namespace Rewards_Fast2._0
                     _selectedImage.PositionY = Math.Clamp(y, 0, realHeight - _selectedImage.Height);
                 }
 
-                RefreshPreview();
+                // Обновляем позицию на Canvas без полной перерисовки
+                var imageElement = PreviewCanvas.Children
+                    .OfType<System.Windows.Controls.Image>()
+                    .FirstOrDefault(img => img.Tag == _selectedImage);
+
+                if (imageElement != null)
+                {
+                    Canvas.SetLeft(imageElement, _selectedImage.PositionX * _currentScale);
+                    Canvas.SetTop(imageElement, _selectedImage.PositionY * _currentScale);
+                }
+
+                // Обновляем маркеры, если они есть
+                if (_isResizeMode && _resizingImage == _selectedImage)
+                {
+                    UpdateResizeHandles(_selectedImage);
+                }
             }
         }
 
@@ -990,21 +1007,38 @@ namespace Rewards_Fast2._0
             _draggedImage = null;
         }
 
-
         private void ImagesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _isResizeMode = false;
-            _resizingImage = null;
-            _isResizing = false;
+            // Выходим из режима редактирования при смене выбора
+            if (_isResizeMode)
+            {
+                _isResizeMode = false;
+                _resizingImage = null;
+                _isResizing = false;
+
+                // Удаляем маркеры
+                var handles = PreviewCanvas.Children
+                    .OfType<Border>()
+                    .Where(b => b.Tag is Tuple<ImageBlockData, string>)
+                    .ToList();
+                foreach (var handle in handles)
+                    PreviewCanvas.Children.Remove(handle);
+            }
 
             _isUpdatingImageProperties = true;
 
-            _selectedImage = ImagesListBox.SelectedItem as ImageBlockData;
+            var newSelectedImage = ImagesListBox.SelectedItem as ImageBlockData;
 
-            if (_selectedBlock != null)
+            // Если выбираем другое изображение
+            if (_selectedImage != newSelectedImage)
             {
-                _selectedBlock = null;
-                BlocksListBox.SelectedItem = null;
+                _selectedImage = newSelectedImage;
+
+                if (_selectedBlock != null)
+                {
+                    _selectedBlock = null;
+                    BlocksListBox.SelectedItem = null;
+                }
             }
 
             if (_selectedImage != null)
@@ -1020,17 +1054,22 @@ namespace Rewards_Fast2._0
                 ImageWidthBox.IsEnabled = true;
                 ImageHeightBox.IsEnabled = true;
 
-                if (!_isDraggingImage)
-                {
-                    PositionXBox.Text = _selectedImage.PositionX.ToString();
-                    PositionYBox.Text = _selectedImage.PositionY.ToString();
-                }
-
-                ImageWidthBox.Text = _selectedImage.Width.ToString();
-                ImageHeightBox.Text = _selectedImage.Height.ToString();
+                // Обновляем поля свойств
+                PositionXBox.Text = _selectedImage.PositionX.ToString("F0");
+                PositionYBox.Text = _selectedImage.PositionY.ToString("F0");
+                ImageWidthBox.Text = _selectedImage.Width.ToString("F0");
+                ImageHeightBox.Text = _selectedImage.Height.ToString("F0");
+            }
+            else
+            {
+                // Если ничего не выбрано, отключаем поля
+                ImageWidthBox.IsEnabled = false;
+                ImageHeightBox.IsEnabled = false;
             }
 
             _isUpdatingImageProperties = false;
+
+            // Обновляем превью (без маркеров, так как _isResizeMode = false)
             RefreshPreview();
         }
 
