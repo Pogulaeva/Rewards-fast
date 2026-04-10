@@ -4,7 +4,8 @@
         Title="Rewards Fast — Конструктор наградных материалов" 
         Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
-        AllowDrop="True">
+        AllowDrop="True"
+        Background="{StaticResource BackgroundColor}">
 
     <Window.Resources>
         <ContextMenu x:Key="ImageContextMenu">
@@ -35,7 +36,7 @@
         <!-- Основная горизонтальная панель (левая, центр, правая) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="360"/>
+                <ColumnDefinition Width="370"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="280"/>
             </Grid.ColumnDefinitions>
@@ -43,12 +44,12 @@
             <!-- ЛЕВАЯ ЧАСТЬ: Блоки и Свойства (разделены на две колонки) -->
             <Grid Grid.Column="0" Margin="0,0,10,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="170"/>
-                    <ColumnDefinition Width="170"/>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="180"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- ЛЕВАЯ ПОДПАНЕЛЬ: Блоки -->
-                <Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="1" CornerRadius="8" Margin="0,0,5,0">
+                <Border Grid.Column="0" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" Margin="0,0,5,0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -68,7 +69,7 @@
                         </Grid.RowDefinitions>
 
                         <!-- ТЕКСТОВЫЕ БЛОКИ -->
-                        <TextBlock Grid.Row="0" Text="ТЕКСТ" FontWeight="Bold" FontSize="13" Margin="10,10,10,5"/>
+                        <TextBlock Grid.Row="0" Foreground="{StaticResource TitleColor}" Text="ТЕКСТ" FontWeight="Bold" FontSize="13" Margin="10,10,10,5"/>
 
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="10,0,10,0">
                             <ListBox x:Name="BlocksListBox" DisplayMemberPath="DisplayName" 
@@ -82,7 +83,7 @@
                         <Separator Grid.Row="3" Margin="10,5,10,5"/>
 
                         <!-- ИЗОБРАЖЕНИЯ -->
-                        <TextBlock Grid.Row="4" Text="ИЗОБРАЖЕНИЯ" FontWeight="Bold" FontSize="13" Margin="10,10,10,5"/>
+                        <TextBlock Grid.Row="4" Foreground="{StaticResource TitleColor}" Text="ИЗОБРАЖЕНИЯ" FontWeight="Bold" FontSize="13" Margin="10,10,10,5"/>
 
                         <ScrollViewer Grid.Row="5" VerticalScrollBarVisibility="Auto" Margin="10,0,10,0">
                             <ListBox x:Name="ImagesListBox" DisplayMemberPath="Name" 
@@ -96,43 +97,45 @@
                 </Border>
 
                 <!-- ПРАВАЯ ПОДПАНЕЛЬ: Свойства -->
-                <Border Grid.Column="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="8" Margin="5,0,0,0">
+                <Border Grid.Column="1" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" Margin="5,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="10">
-                            <TextBlock Text="СВОЙСТВА" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+                            <TextBlock Foreground="{StaticResource TitleColor}" Text="СВОЙСТВА" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
 
                             <!-- === СВОЙСТВА ДЛЯ ТЕКСТА === -->
                             <StackPanel x:Name="TextPropertiesPanel" Visibility="Visible">
-                                <TextBlock Text="Текст:" Margin="0,0,0,3"/>
+                                <TextBlock Foreground="{StaticResource TitleColor}" Text="Текст:" Margin="0,0,0,3"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" x:Name="TextPropertyBox" TextChanged="TextPropertyBox_TextChanged" Margin="0,0,5,0"/>
-                                    <Button Grid.Column="1" x:Name="AiSuggestButton" Content="✨ИИ" Click="AiSuggestButton_Click" 
-                            Width="40" ToolTip="Подсказать текст"/>
+                                    <TextBox Grid.Column="0" Foreground="{StaticResource TitleColor}" x:Name="TextPropertyBox" TextChanged="TextPropertyBox_TextChanged" Margin="0,0,5,0"/>
+                                    <Button Grid.Column="1" x:Name="AiSuggestButton" 
+        Style="{StaticResource AiButtonStyle}" 
+        Click="AiSuggestButton_Click" 
+        ToolTip="Подсказать текст"/>
                                 </Grid>
 
-                                <TextBlock Text="Шрифт:" Margin="0,10,0,3"/>
+                                <TextBlock Foreground="{StaticResource TitleColor}" Text="Шрифт:" Margin="0,10,0,3"/>
                                 <ComboBox x:Name="FontFamilyBox" SelectionChanged="FontProperty_Changed" Margin="0,0,0,10"/>
 
-                                <TextBlock Text="Размер:" Margin="0,0,0,3"/>
+                                <TextBlock Foreground="{StaticResource TitleColor}" Text="Размер:" Margin="0,0,0,3"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <TextBox x:Name="FontSizeBox" Width="60" TextChanged="FontProperty_Changed"/>
+                                    <TextBox Foreground="{StaticResource TitleColor}" x:Name="FontSizeBox" Width="60" TextChanged="FontProperty_Changed"/>
                                     <Button x:Name="FontSizeUp" Content="▲" Width="30" Click="FontSizeUp_Click" Margin="5,0,2,0"/>
                                     <Button x:Name="FontSizeDown" Content="▼" Width="30" Click="FontSizeDown_Click"/>
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <ToggleButton x:Name="BoldToggle" Content="B" Width="40" Margin="0,0,5,0" Click="FontStyle_Changed"/>
-                                    <ToggleButton x:Name="ItalicToggle" Content="I" Width="40" Click="FontStyle_Changed"/>
+                                    <ToggleButton Style="{StaticResource ToggleButtonStyle}" x:Name="BoldToggle" Content="B" Width="40" Margin="0,0,5,0" Click="FontStyle_Changed"/>
+                                    <ToggleButton Style="{StaticResource ToggleButtonStyle}" x:Name="ItalicToggle" Content="I" Width="40" Click="FontStyle_Changed"/>
                                 </StackPanel>
                             </StackPanel>
 
                             <!-- === СВОЙСТВА ДЛЯ ИЗОБРАЖЕНИЙ === -->
                             <StackPanel x:Name="ImagePropertiesPanel" Visibility="Collapsed">
-                                <TextBlock Text="Размер изображения:" Margin="0,0,0,3"/>
+                                <TextBlock Foreground="{StaticResource TitleColor}" Text="Размер изображения:" Margin="0,0,0,3"/>
                                 <Grid Margin="0,0,0,10">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -140,15 +143,15 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Ш:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                    <TextBlock Grid.Column="0" Foreground="{StaticResource TitleColor}" Text="Ш:" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                     <TextBox Grid.Column="1" x:Name="ImageWidthBox" TextChanged="ImageSize_Changed"/>
-                                    <TextBlock Grid.Column="2" Text="В:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                                    <TextBlock Grid.Column="2" Foreground="{StaticResource TitleColor}" Text="В:" VerticalAlignment="Center" Margin="10,0,5,0"/>
                                     <TextBox Grid.Column="3" x:Name="ImageHeightBox" TextChanged="ImageSize_Changed"/>
                                 </Grid>
                             </StackPanel>
 
                             <!-- === ОБЩИЕ СВОЙСТВА (только позиция) === -->
-                            <TextBlock Text="Положение:" Margin="0,0,0,3"/>
+                            <TextBlock Foreground="{StaticResource TitleColor}" Text="Положение:" Margin="0,0,0,3"/>
                             <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -156,9 +159,9 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="X:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                <TextBlock Grid.Column="0" Foreground="{StaticResource TitleColor}" Text="X:" VerticalAlignment="Center" Margin="0,0,5,0"/>
                                 <TextBox Grid.Column="1" x:Name="PositionXBox" TextChanged="Position_Changed"/>
-                                <TextBlock Grid.Column="2" Text="Y:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                                <TextBlock Grid.Column="2" Foreground="{StaticResource TitleColor}" Text="Y:" VerticalAlignment="Center" Margin="10,0,5,0"/>
                                 <TextBox Grid.Column="3" x:Name="PositionYBox" TextChanged="Position_Changed"/>
                             </Grid>
 
@@ -168,31 +171,29 @@
             </Grid>
 
             <!-- ЦЕНТРАЛЬНАЯ ПАНЕЛЬ: Превью -->
-            <Border Grid.Column="1" BorderBrush="LightGray" BorderThickness="1" CornerRadius="8" Margin="0,0,10,0"
-        Background="LightGray">
+            <Border Grid.Column="1" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" Margin="0,0,10,0">
                 <Grid>
-                    <Canvas x:Name="PreviewCanvas" Background="LightGray" 
+                    <Canvas x:Name="PreviewCanvas" 
                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
 
             <!-- ПРАВАЯ ПАНЕЛЬ: Фон и шаблон -->
-            <Border Grid.Column="2" BorderBrush="LightGray" BorderThickness="1" CornerRadius="8">
+            <Border Grid.Column="2" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
-                        <TextBlock Text="ФОН НАГРАДНОГО МАТЕРИАЛА" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
+                        <TextBlock Foreground="{StaticResource TitleColor}" Text="ФОН НАГРАДНОГО МАТЕРИАЛА" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
 
                         <!-- Универсальная зона Drag-and-drop -->
-                        <Border BorderBrush="Gray" BorderThickness="2" CornerRadius="8" 
-                        Background="LightGray" Height="120" Margin="0,0,0,10"
+                        <Border Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="2" CornerRadius="8" Height="120" Margin="0,0,0,10"
                         AllowDrop="True" DragOver="UniversalDragOver" Drop="UniversalDrop">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="📸 Перетащите сюда:" TextAlignment="Center" Foreground="Gray"/>
-                                <TextBlock Text="изображение (PNG, JPG)" TextAlignment="Center" Foreground="Gray" FontSize="11"/>
-                                <TextBlock Text="или" TextAlignment="Center" Foreground="Gray"/>
-                                <TextBlock Text="шаблон (JSON)" TextAlignment="Center" Foreground="Gray" FontSize="11"/>
-                                <TextBlock Text="или" TextAlignment="Center" Foreground="Gray"/>
+                                <TextBlock Text="📸 Перетащите сюда:" TextAlignment="Center" Foreground="{StaticResource TitleColor}"/>
+                                <TextBlock Text="изображение (PNG, JPG)" TextAlignment="Center" Foreground="{StaticResource TitleColor}" FontSize="11"/>
+                                <TextBlock Text="или" TextAlignment="Center" Foreground="{StaticResource TitleColor}"/>
+                                <TextBlock Text="шаблон (JSON)" TextAlignment="Center" Foreground="{StaticResource TitleColor}" FontSize="11"/>
+                                <TextBlock Text="или" TextAlignment="Center" Foreground="{StaticResource TitleColor}"/>
                                 <Button x:Name="SelectFileButton" Content="Выбрать файл" 
                                 Margin="10,5,10,5" Click="SelectFileButton_Click"/>
                             </StackPanel>
@@ -202,7 +203,7 @@
                         <Image x:Name="BackgroundThumbnail" Height="80" Stretch="Uniform" Margin="0,0,0,10"/>
 
                         <!-- Библиотека фонов -->
-                        <TextBlock Text="БИБЛИОТЕКА ФОНОВ" FontWeight="Bold" FontSize="12" Margin="0,10,0,5"/>
+                        <TextBlock Foreground="{StaticResource TitleColor}" Text="БИБЛИОТЕКА ФОНОВ" FontWeight="Bold" FontSize="12" Margin="0,10,0,5"/>
                         <ScrollViewer Height="150" VerticalScrollBarVisibility="Auto">
                             <ItemsControl x:Name="BackgroundLibraryItems">
                                 <ItemsControl.ItemsPanel>
@@ -212,7 +213,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" 
+                                        <Border Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="5" 
                                         Margin="5" Cursor="Hand" MouseLeftButtonUp="BackgroundThumbnail_Click">
                                             <Image Source="{Binding Thumbnail}" Width="80" Height="80" Stretch="Uniform"/>
                                         </Border>
@@ -226,28 +227,28 @@
         </Grid>
 
         <!-- НИЖНЯЯ ПАНЕЛЬ: Данные + Генерация -->
-        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="12" Margin="0,10,0,0">
+        <Border Grid.Row="2" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="12" Margin="0,10,0,0">
             <StackPanel Margin="15">
 
                 <TextBlock Text="Данные для генерации" FontWeight="SemiBold" FontSize="14" 
-                           Foreground="#2C3E50" Margin="0,0,0,12"/>
+                           Foreground="{StaticResource TitleColor}" Margin="0,0,0,12"/>
 
                 <!-- Drag-and-drop зона -->
-                <Border BorderBrush="#B0BEC5" BorderThickness="1.5" CornerRadius="10" 
-                        Background="#F8F9FA" Padding="12" Margin="0,0,0,12"
+                <Border Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1.5" CornerRadius="10" 
+                        Padding="12" Margin="0,0,0,12"
                         AllowDrop="True" DragOver="ExcelDragOver" Drop="ExcelDrop">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="📂" FontSize="20" Margin="0,0,8,0"/>
-                        <TextBlock Text="Перетащите Excel/CSV файл сюда или" VerticalAlignment="Center" Foreground="#5D6D7E"/>
+                        <TextBlock Foreground="{StaticResource TitleColor}" Text="📂" FontSize="20" Margin="0,0,8,0"/>
+                        <TextBlock Text="Перетащите Excel/CSV файл сюда или" VerticalAlignment="Center" Foreground="{StaticResource TitleColor}"/>
                         <Button x:Name="SelectExcelButton" Content="Выбрать файл" 
                                 Margin="20,0,0,0" Click="SelectExcelButton_Click"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Падеж -->
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
+                <Border Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Падеж для ФИО:" VerticalAlignment="Center" Margin="0,0,20,0" FontWeight="Medium"/>
+                        <TextBlock Foreground="{StaticResource TitleColor}" Text="Падеж для ФИО:" VerticalAlignment="Center" Margin="0,0,20,0" FontWeight="Medium"/>
                         <RadioButton x:Name="NominativeCase" Content="Именительный (Иванов Иван Иванович)" 
                                      GroupName="Case" IsChecked="True" Checked="Case_Changed" Margin="0,0,20,0"/>
                         <RadioButton x:Name="DativeCase" Content="Дательный (Иванову Ивану Ивановичу)" 
@@ -256,7 +257,7 @@
                 </Border>
 
                 <!-- Таблица -->
-                <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="10" Margin="0,0,0,12">
+                <Border Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="10" Margin="0,0,0,12">
                     <DataGrid x:Name="PersonsGrid" AutoGenerateColumns="False" Height="100" 
                               CanUserAddRows="False" IsReadOnly="True" BorderThickness="0"
                               RowHeight="35" HeadersVisibility="Column">
@@ -275,7 +276,7 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Папка для результатов:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Grid.Column="0" Foreground="{StaticResource TitleColor}" Text="Папка для результатов:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox Grid.Column="1" x:Name="OutputFolderBox" Margin="0,0,10,0"/>
                     <Button Grid.Column="2" x:Name="BrowseFolderButton" Content="Обзор" 
                             Click="BrowseFolderButton_Click" Margin="0,0,10,0" Width="70"/>
@@ -289,7 +290,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Формат изображений:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Grid.Column="0" Foreground="{StaticResource TitleColor}" Text="Формат изображений:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <ComboBox Grid.Column="1" x:Name="ImageFormatBox" Width="100" HorizontalAlignment="Left" SelectedIndex="0">
                         <ComboBoxItem Content="PNG"/>
                         <ComboBoxItem Content="JPG"/>
@@ -309,10 +310,10 @@
                     </Grid.ColumnDefinitions>
 
                     <Button Grid.Column="0" x:Name="SaveTemplateButton" Content="💾 Сохранить только шаблон" 
-                            Click="SaveTemplateButton_Click" Width="180" Margin="0,0,15,0"/>
+                            Click="SaveTemplateButton_Click" Width="200" Margin="0,0,15,0"/>
 
                     <Button Grid.Column="2" x:Name="GenerateButton" Content="✨ Сгенерировать пачку" 
-                            Click="GenerateButton_Click" Width="200" Background="#27AE60" Foreground="White" FontWeight="SemiBold"/>
+                            Click="GenerateButton_Click" Width="200" Style="{StaticResource GenerateButtonStyle}"/>
                 </Grid>
 
             </StackPanel>
