@@ -4,6 +4,121 @@
              xmlns:local="clr-namespace:Rewards_Fast2._0"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <!-- Основные цвета -->
+        <SolidColorBrush x:Key="BackgroundColor" Color="#E8F0E8"/>
+        <SolidColorBrush x:Key="PanelBackground" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#A8C8A8"/>
+        <SolidColorBrush x:Key="TitleColor" Color="#2D6A2D"/>
+
+        <!-- Кнопки -->
+        <SolidColorBrush x:Key="ButtonNormal" Color="#E8F0E8"/>
+        <SolidColorBrush x:Key="ButtonHover" Color="#D0E5D0"/>
+        <SolidColorBrush x:Key="ButtonGenerate" Color="#27AE60"/>
+        <SolidColorBrush x:Key="ButtonGenerateHover" Color="#2ECC71"/>
+        <SolidColorBrush x:Key="ButtonDelete" Color="#F0C0C0"/>
+        <SolidColorBrush x:Key="ButtonAi" Color="#D4AF37"/>
+
+        <!-- Стиль для кнопок -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ButtonNormal}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для кнопки генерации -->
+        <Style x:Key="GenerateButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ButtonGenerate}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                            CornerRadius="8"
+                            Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для кнопки ИИ -->
+        <Style x:Key="AiButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource ButtonAi}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                        CornerRadius="12"
+                        Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="✨" Margin="0,0,4,0"/>
+                                <TextBlock Text="ИИ" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{StaticResource ButtonNormal}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="6"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ButtonGenerate}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ButtonHover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- Стиль для Canvas (фон) -->
+        <Style TargetType="Canvas">
+            <Setter Property="Background" Value="{StaticResource BackgroundColor}"/>
+        </Style>
     </Application.Resources>
 </Application>
