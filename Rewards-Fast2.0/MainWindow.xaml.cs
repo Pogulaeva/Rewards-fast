@@ -107,28 +107,71 @@ namespace Rewards_Fast2._0
         private void LoadBackgroundLibrary()
         {
             var backgrounds = new List<BackgroundItem>();
-            if (!Directory.Exists(BackgroundsFolder)) return;
 
-            foreach (string file in Directory.GetFiles(BackgroundsFolder))
+            // Получаем путь к папке с фонами в выходной директории
+            string backgroundsPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Backgrounds");
+
+            if (Directory.Exists(backgroundsPath))
             {
-                string ext = System.IO.Path.GetExtension(file).ToLower();
-                if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
+                foreach (string file in Directory.GetFiles(backgroundsPath))
                 {
-                    try
+                    string ext = System.IO.Path.GetExtension(file).ToLower();
+                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
                     {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.UriSource = new Uri(file, UriKind.Absolute);
-                        bitmap.DecodePixelWidth = 80;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        backgrounds.Add(new BackgroundItem { FilePath = file, Thumbnail = bitmap });
+                        try
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.UriSource = new Uri(file, UriKind.Absolute);
+                            bitmap.DecodePixelWidth = 80;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                            backgrounds.Add(new BackgroundItem
+                            {
+                                FilePath = file,
+                                Thumbnail = bitmap,
+                                IsBuiltIn = true
+                            });
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
             }
+
+            // Загружаем пользовательские фоны из папки в документах
+            if (Directory.Exists(BackgroundsFolder))
+            {
+                foreach (string file in Directory.GetFiles(BackgroundsFolder))
+                {
+                    string ext = System.IO.Path.GetExtension(file).ToLower();
+                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
+                    {
+                        // Проверяем, не добавили ли уже этот файл
+                        if (backgrounds.Any(b => b.FilePath == file)) continue;
+
+                        try
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.UriSource = new Uri(file, UriKind.Absolute);
+                            bitmap.DecodePixelWidth = 80;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                            backgrounds.Add(new BackgroundItem
+                            {
+                                FilePath = file,
+                                Thumbnail = bitmap,
+                                IsBuiltIn = false
+                            });
+                        }
+                        catch { }
+                    }
+                }
+            }
+
             BackgroundLibraryItems.ItemsSource = backgrounds;
         }
+
 
         private void SetupDefaultTemplate()
         {
@@ -309,7 +352,21 @@ namespace Rewards_Fast2._0
         private void BackgroundThumbnail_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is Border border && border.DataContext is BackgroundItem item)
-                SetBackground(item.FilePath);
+            {
+                if (item.IsBuiltIn)
+                {
+                    // Для встроенных ресурсов — загружаем через URI
+                    var uri = new Uri(item.FilePath, UriKind.Relative);
+                    var bitmap = new BitmapImage(uri);
+                    _currentTemplate.BackgroundPath = item.FilePath; // храним относительный путь
+                    BackgroundThumbnail.Source = bitmap;
+                    RefreshPreview();
+                }
+                else
+                {
+                    SetBackground(item.FilePath);
+                }
+            }
         }
 
         private void UniversalDragOver(object sender, System.Windows.DragEventArgs e)
@@ -1444,6 +1501,7 @@ namespace Rewards_Fast2._0
     {
         public string FilePath { get; set; } = string.Empty;
         public ImageSource? Thumbnail { get; set; }
+        public bool IsBuiltIn { get; set; } = false;
     }
 
     public class PersonDisplay
