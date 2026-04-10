@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
@@ -16,11 +16,21 @@ namespace Rewards_Fast2._0.Models
         /// <summary>Специальный блок для ФИО (заполняется из Excel)</summary>
         PersonName
     }
+
     /// <summary>
     /// Модель текстового блока на шаблоне наградного материала
     /// </summary>
-    public class TextBlockData
+    public class TextBlockData : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private string _text = "Новый блок";
+
         /// <summary>Уникальный идентификатор блока</summary>
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -28,7 +38,19 @@ namespace Rewards_Fast2._0.Models
         public TextBlockType Type { get; set; } = TextBlockType.StaticText;
 
         /// <summary>Текст блока (для PersonName этот текст не используется при генерации)</summary>
-        public string Text { get; set; } = "Новый блок";
+        public string Text
+        {
+            get => _text;
+            set
+            {
+                if (_text != value)
+                {
+                    _text = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(DisplayName)); // Уведомляем об изменении DisplayName
+                }
+            }
+        }
 
         /// <summary>Название шрифта</summary>
         public string FontFamily { get; set; } = "Times New Roman";
@@ -53,6 +75,25 @@ namespace Rewards_Fast2._0.Models
 
         /// <summary>Виден ли блок на превью</summary>
         public bool IsVisible { get; set; } = true;
+
+        public string DisplayName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Text))
+                    return "Новый блок";
+
+                var words = Text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                if (words.Length >= 3)
+                    return $"{words[0]} {words[1]} {words[2]}";
+
+                if (words.Length >= 2)
+                    return $"{words[0]} {words[1]}";
+
+                return Text.Length > 20 ? Text.Substring(0, 20) + "..." : Text;
+            }
+        }
 
         // Вспомогательное свойство для WPF (цвет как Brush)
         [JsonIgnore]

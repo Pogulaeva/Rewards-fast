@@ -665,6 +665,9 @@ namespace Rewards_Fast2._0
 
             if (_selectedBlock != null)
             {
+                // Показываем свойства текста, скрываем свойства изображений
+                ShowTextProperties();
+
                 TextPropertyBox.IsEnabled = true;
                 FontFamilyBox.IsEnabled = true;
                 FontSizeBox.IsEnabled = true;
@@ -692,6 +695,7 @@ namespace Rewards_Fast2._0
             _isUpdatingProperties = false;
             RefreshPreview();
         }
+
 
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
@@ -766,10 +770,12 @@ namespace Rewards_Fast2._0
                 realHeight = tempImage.Height;
             }
 
+            int nextNumber = _currentTemplate.TextBlocks.Count + 1;
+
             var newBlock = new TextBlockData
             {
                 Id = Guid.NewGuid().ToString(),
-                Text = "Новый блок",
+                Text = $"Текстовый блок {nextNumber}",
                 PositionX = realWidth / 2 - 100,
                 PositionY = realHeight / 2 - 20,
                 FontSize = 24,
@@ -806,9 +812,27 @@ namespace Rewards_Fast2._0
             if (_selectedBlock != null)
             {
                 _selectedBlock.Text = TextPropertyBox.Text;
+
+                // Обновляем отображение в списке без пересоздания
+                var listBox = BlocksListBox;
+                if (listBox != null && listBox.ItemsSource != null)
+                {
+                    // Обновляем только текущий элемент
+                    var collection = listBox.ItemsSource as System.Collections.ObjectModel.ObservableCollection<TextBlockData>;
+                    if (collection != null)
+                    {
+                        int index = collection.IndexOf(_selectedBlock);
+                        if (index >= 0)
+                        {
+                            collection[index] = _selectedBlock; // принудительное обновление
+                        }
+                    }
+                }
+
                 RefreshPreview();
             }
         }
+
 
         private void FontProperty_Changed(object sender, SelectionChangedEventArgs e)
         {
@@ -1066,40 +1090,19 @@ namespace Rewards_Fast2._0
 
         private void ImagesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Выходим из режима редактирования при смене выбора
-            if (_isResizeMode)
+            _selectedImage = ImagesListBox.SelectedItem as ImageBlockData;
+
+            if (_selectedBlock != null)
             {
-                _isResizeMode = false;
-                _resizingImage = null;
-                _isResizing = false;
-
-                // Удаляем маркеры
-                var handles = PreviewCanvas.Children
-                    .OfType<Border>()
-                    .Where(b => b.Tag is Tuple<ImageBlockData, string>)
-                    .ToList();
-                foreach (var handle in handles)
-                    PreviewCanvas.Children.Remove(handle);
-            }
-
-            _isUpdatingImageProperties = true;
-
-            var newSelectedImage = ImagesListBox.SelectedItem as ImageBlockData;
-
-            // Если выбираем другое изображение
-            if (_selectedImage != newSelectedImage)
-            {
-                _selectedImage = newSelectedImage;
-
-                if (_selectedBlock != null)
-                {
-                    _selectedBlock = null;
-                    BlocksListBox.SelectedItem = null;
-                }
+                _selectedBlock = null;
+                BlocksListBox.SelectedItem = null;
             }
 
             if (_selectedImage != null)
             {
+                // Показываем свойства изображения, скрываем свойства текста
+                ShowImageProperties();
+
                 TextPropertyBox.IsEnabled = false;
                 FontFamilyBox.IsEnabled = false;
                 FontSizeBox.IsEnabled = false;
@@ -1111,23 +1114,15 @@ namespace Rewards_Fast2._0
                 ImageWidthBox.IsEnabled = true;
                 ImageHeightBox.IsEnabled = true;
 
-                // Обновляем поля свойств
-                PositionXBox.Text = _selectedImage.PositionX.ToString("F0");
-                PositionYBox.Text = _selectedImage.PositionY.ToString("F0");
-                ImageWidthBox.Text = _selectedImage.Width.ToString("F0");
-                ImageHeightBox.Text = _selectedImage.Height.ToString("F0");
-            }
-            else
-            {
-                // Если ничего не выбрано, отключаем поля
-                ImageWidthBox.IsEnabled = false;
-                ImageHeightBox.IsEnabled = false;
-            }
+                if (!_isDraggingImage)
+                {
+                    PositionXBox.Text = _selectedImage.PositionX.ToString();
+                    PositionYBox.Text = _selectedImage.PositionY.ToString();
+                }
 
-            _isUpdatingImageProperties = false;
-
-            // Обновляем превью (без маркеров, так как _isResizeMode = false)
-            RefreshPreview();
+                ImageWidthBox.Text = _selectedImage.Width.ToString();
+                ImageHeightBox.Text = _selectedImage.Height.ToString();
+            }
         }
 
         private void RefreshImagesList()
@@ -1494,6 +1489,18 @@ namespace Rewards_Fast2._0
                 item.IsSelected = true;
                 e.Handled = true; // Чтобы событие не пошло дальше
             }
+        }
+
+        private void ShowTextProperties()
+        {
+            TextPropertiesPanel.Visibility = Visibility.Visible;
+            ImagePropertiesPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowImageProperties()
+        {
+            TextPropertiesPanel.Visibility = Visibility.Collapsed;
+            ImagePropertiesPanel.Visibility = Visibility.Visible;
         }
     }
 
