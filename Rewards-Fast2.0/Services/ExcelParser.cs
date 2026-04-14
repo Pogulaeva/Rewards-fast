@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using System.Linq;
 using Rewards_Fast2._0.Models;
+using OfficeOpenXml;
 
 namespace Rewards_Fast2._0.Services
 {
@@ -20,7 +21,7 @@ namespace Rewards_Fast2._0.Services
         // Статический конструктор для регистрации кодировок
         static ExcelParser()
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            ExcelPackage.License.SetNonCommercialPersonal("RewardsFast");
         }
 
         /// <summary>
@@ -31,14 +32,11 @@ namespace Rewards_Fast2._0.Services
             if (!File.Exists(filePath))
                 throw new FileNotFoundException($"Файл не найден: {filePath}");
 
-            string extension = Path.GetExtension(filePath).ToLower();
+            string extension = System.IO.Path.GetExtension(filePath).ToLower();
 
             if (extension == ".xlsx" || extension == ".xls")
             {
-                // Для настоящих Excel пока заглушка, пока используем CSV
-                throw new NotSupportedException(
-                    "Для работы с .xlsx файлами требуется библиотека EPPlus. " +
-                    "Пока используйте .csv или .txt файлы. ");
+                return ParseExcelFile(filePath);  // ← вызов нового метода
             }
             else if (extension == ".csv" || extension == ".txt")
             {
@@ -46,7 +44,7 @@ namespace Rewards_Fast2._0.Services
             }
             else
             {
-                throw new NotSupportedException($"Формат файла {extension} не поддерживается. Используйте .csv или .txt");
+                throw new NotSupportedException($"Формат файла {extension} не поддерживается. Используйте .xlsx, .xls, .csv или .txt");
             }
         }
 
@@ -96,6 +94,84 @@ namespace Rewards_Fast2._0.Services
                 {
                     persons.Add(person);
                 }
+            }
+
+            return persons;
+        }
+
+        private List<Person> ParseExcelFile(string filePath)
+        {
+            var persons = new List<Person>();
+
+            try
+            {
+                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                {
+                    var worksheet = package.Workbook.Worksheets[0];
+                    int rowCount = worksheet.Dimension.Rows;
+
+                    // Определяем структуру по первой строке
+                    bool hasHeader = false;
+                    bool threeColumns = false;
+
+                    if (rowCount > 0)
+                    {
+                        var cell1 = worksheet.Cells[1, 1]?.Value?.ToString() ?? "";
+                        var cell2 = worksheet.Cells[1, 2]?.Value?.ToString() ?? "";
+                        var cell3 = worksheet.Cells[1, 3]?.Value?.ToString() ?? "";
+
+                        bool firstRowLooksLikeHeader =
+                            cell1.Contains("фамил", StringComparison.OrdinalIgnoreCase) ||
+                            cell1.Contains("Фамилия") ||
+                            cell2.Contains("имя", StringComparison.OrdinalIgnoreCase) ||
+                            cell2.Contains("Имя") ||
+                            cell3.Contains("отчеств", StringComparison.OrdinalIgnoreCase) ||
+                            cell3.Contains("Отчество");
+
+                        threeColumns = !string.IsNullOrEmpty(cell1) &&
+                                       !string.IsNullOrEmpty(cell2) &&
+                                       !string.IsNullOrEmpty(cell3);
+
+                        hasHeader = firstRowLooksLikeHeader;
+                    }
+
+                    int startRow = hasHeader ? 2 : 1;
+
+                    for (int row = startRow; row <= rowCount; row++)
+                    {
+                        string lastName = (worksheet.Cells[row, 1]?.Value?.ToString() ?? "").Trim();
+                        string firstName = (worksheet.Cells[row, 2]?.Value?.ToString() ?? "").Trim();
+                        string middleName = threeColumns ? (worksheet.Cells[row, 3]?.Value?.ToString() ?? "").Trim() : "";
+
+                        if (!string.IsNullOrEmpty(lastName) && !string.IsNullOrEmpty(firstName))
+                        {
+                            persons.Add(new Person
+                            {
+                                LastName = lastName,
+                                FirstName = firstName,
+                                MiddleName = middleName ?? ""
+                            });
+                        }
+                        else if (!string.IsNullOrEmpty(lastName) && string.IsNullOrEmpty(firstName))
+                        {
+                            var parts = lastName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length >= 2)
+                            {
+                                persons.Add(new Person
+                                {
+                                    LastName = parts[0],
+                                    FirstName = parts[1],
+                                    MiddleName = parts.Length >= 3 ? parts[2] : ""
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка чтения Excel: {ex.Message}");
+                throw;
             }
 
             return persons;

@@ -113,18 +113,10 @@ namespace Rewards_Fast2._0.Services
 
             if (gender == Gender.Male)
             {
-                if (lastName.EndsWith("ых") || lastName.EndsWith("их") || lastName.EndsWith("е") ||
-                    lastName.EndsWith("и") || lastName.EndsWith("о") || lastName.EndsWith("у") ||
-                    lastName.EndsWith("ы") || lastName.EndsWith("э") || lastName.EndsWith("ю"))
+                // Правила склонения мужских фамилий в дательном падеже
+                if (lastName.EndsWith("ых") || lastName.EndsWith("их") || lastName.EndsWith("е") || lastName.EndsWith("и") || lastName.EndsWith("о") || lastName.EndsWith("у") || lastName.EndsWith("ы") || lastName.EndsWith("э") || lastName.EndsWith("ю"))
                     return lastName;
-                else if (lastName.EndsWith("ов") || lastName.EndsWith("ев") || lastName.EndsWith("ин") ||
-                         lastName.EndsWith("ын") || lastName.EndsWith("н") || lastName.EndsWith("в") ||
-                         lastName.EndsWith("б") || lastName.EndsWith("г") || lastName.EndsWith("д") ||
-                         lastName.EndsWith("ж") || lastName.EndsWith("з") || lastName.EndsWith("к") ||
-                         lastName.EndsWith("л") || lastName.EndsWith("м") || lastName.EndsWith("п") ||
-                         lastName.EndsWith("р") || lastName.EndsWith("с") || lastName.EndsWith("т") ||
-                         lastName.EndsWith("ф") || lastName.EndsWith("х") || lastName.EndsWith("ц") ||
-                         lastName.EndsWith("ч") || lastName.EndsWith("ш") || lastName.EndsWith("щ"))
+                else if (lastName.EndsWith("ов") || lastName.EndsWith("ев") || lastName.EndsWith("ин") || lastName.EndsWith("ын") || lastName.EndsWith("н") || lastName.EndsWith("в") || lastName.EndsWith("б") || lastName.EndsWith("г") || lastName.EndsWith("д") || lastName.EndsWith("ж") || lastName.EndsWith("з") || lastName.EndsWith("к") || lastName.EndsWith("л") || lastName.EndsWith("м") || lastName.EndsWith("п") || lastName.EndsWith("р") || lastName.EndsWith("с") || lastName.EndsWith("т") || lastName.EndsWith("ф") || lastName.EndsWith("х") || lastName.EndsWith("ц") || lastName.EndsWith("ч") || lastName.EndsWith("ш") || lastName.EndsWith("щ"))
                     return lastName + "у";
                 else if (lastName.EndsWith("ский") || lastName.EndsWith("цкий"))
                     return lastName.Substring(0, lastName.Length - 2) + "ому";
@@ -134,10 +126,10 @@ namespace Rewards_Fast2._0.Services
                     return lastName.Substring(0, lastName.Length - 1) + "му";
                 else if (lastName.EndsWith("й") || lastName.EndsWith("ь"))
                     return lastName.Substring(0, lastName.Length - 1) + "ю";
-                else if (lastName.EndsWith("ия") || lastName.EndsWith("ея") || lastName.EndsWith("ая") ||
-                         lastName.EndsWith("оя") || lastName.EndsWith("уя") || lastName.EndsWith("эя") ||
-                         lastName.EndsWith("юя") || lastName.EndsWith("яя"))
+                else if (lastName.EndsWith("ия") || lastName.EndsWith("ея") || lastName.EndsWith("ая") || lastName.EndsWith("оя") || lastName.EndsWith("уя") || lastName.EndsWith("эя") || lastName.EndsWith("юя") || lastName.EndsWith("яя"))
                     return lastName.Substring(0, lastName.Length - 1) + "е";
+                else if (lastName.EndsWith("иа") || lastName.EndsWith("еа") || lastName.EndsWith("аа") || lastName.EndsWith("оа") || lastName.EndsWith("уа") || lastName.EndsWith("эа") || lastName.EndsWith("юа") || lastName.EndsWith("яа"))
+                    return lastName;
                 else
                     return lastName + "е";
             }
