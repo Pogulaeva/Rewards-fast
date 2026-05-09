@@ -92,7 +92,7 @@
              PreviewMouseRightButtonDown="ListBox_PreviewMouseRightButtonDown"/>
                         </ScrollViewer>
 
-                        <Button Grid.Row="6" x:Name="AddImageButton" Content="Вставить печать/подпись" Click="AddImageButton_Click" Margin="10,5,10,5"/>
+                        <Button Grid.Row="6" x:Name="AddImageButton" Content="+Добавить изображения" Click="AddImageButton_Click" Margin="10,5,10,5"/>
                     </Grid>
                 </Border>
 
@@ -130,6 +130,13 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                                     <ToggleButton Style="{StaticResource ToggleButtonStyle}" x:Name="BoldToggle" Content="B" Width="40" Margin="0,0,5,0" Click="FontStyle_Changed"/>
                                     <ToggleButton Style="{StaticResource ToggleButtonStyle}" x:Name="ItalicToggle" Content="I" Width="40" Click="FontStyle_Changed"/>
+                                </StackPanel>
+                                <TextBlock Foreground="{StaticResource TitleColor}" Text="При генерации выровнять по центру:" Margin="0,10,0,5"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <RadioButton x:Name="CenterYes" Content="Да" GroupName="CenterAtGeneration" 
+                 IsChecked="True" Margin="0,0,15,0" Checked="CenterAtGeneration_Changed"/>
+                                    <RadioButton x:Name="CenterNo" Content="Нет" GroupName="CenterAtGeneration" 
+                 Checked="CenterAtGeneration_Changed"/>
                                 </StackPanel>
                             </StackPanel>
 

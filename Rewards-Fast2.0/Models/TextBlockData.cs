@@ -95,6 +95,24 @@ namespace Rewards_Fast2._0.Models
             }
         }
 
+        private bool _centerAtGeneration = false;
+
+        /// <summary>
+        /// Выравнивать ли текст по центру при генерации (не влияет на превью)
+        /// </summary>
+        public bool CenterAtGeneration
+        {
+            get => _centerAtGeneration;
+            set
+            {
+                if (_centerAtGeneration != value)
+                {
+                    _centerAtGeneration = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         [JsonIgnore]
         public double ActualWidth { get; set; } = 400; // Значение по умолчанию
 

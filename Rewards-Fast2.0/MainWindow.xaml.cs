@@ -719,6 +719,9 @@ namespace Rewards_Fast2._0
                     PositionXBox.Text = _selectedBlock.PositionX.ToString();
                     PositionYBox.Text = _selectedBlock.PositionY.ToString();
                 }
+
+                CenterYes.IsChecked = _selectedBlock.CenterAtGeneration;
+                CenterNo.IsChecked = !_selectedBlock.CenterAtGeneration;
             }
 
             _isUpdatingProperties = false;
@@ -1562,6 +1565,14 @@ namespace Rewards_Fast2._0
         {
             TextPropertiesPanel.Visibility = Visibility.Collapsed;
             ImagePropertiesPanel.Visibility = Visibility.Visible;
+        }
+
+        private void CenterAtGeneration_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isUpdatingProperties) return;
+            if (_selectedBlock == null) return;
+
+            _selectedBlock.CenterAtGeneration = CenterYes.IsChecked == true;
         }
     }
 

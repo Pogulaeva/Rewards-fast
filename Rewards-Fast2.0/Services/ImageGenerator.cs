@@ -1,12 +1,13 @@
-﻿using System.IO;
+﻿using Rewards_Fast2._0.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Rewards_Fast2._0.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using static Rewards_Fast2._0.Models.TextBlockData;
 
 namespace Rewards_Fast2._0.Services
 {
@@ -131,16 +132,22 @@ namespace Rewards_Fast2._0.Services
                     FontWeight = block.IsBold ? FontWeights.Bold : FontWeights.Normal,
                     FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
                     Foreground = block.FontColorBrush,
-                    TextAlignment = TextAlignment.Center,
-                    Width = canvasWidth * 0.8,
                     TextWrapping = TextWrapping.Wrap
                 };
 
-                // Центрируем по горизонтали
-                double blockWidth = canvasWidth * 0.8;
-                Canvas.SetLeft(textBlock, (canvasWidth - blockWidth) / 2);
+                // Новая логика: если CenterAtGeneration = true, центрируем
+                if (block.CenterAtGeneration)
+                {
+                    textBlock.TextAlignment = System.Windows.TextAlignment.Center;
+                    textBlock.Width = canvasWidth * 0.8;
+                    Canvas.SetLeft(textBlock, (canvasWidth - textBlock.Width) / 2);
+                }
+                else
+                {
+                    textBlock.TextAlignment = System.Windows.TextAlignment.Left;
+                    Canvas.SetLeft(textBlock, block.PositionX);
+                }
                 Canvas.SetTop(textBlock, block.PositionY);
-
                 canvas.Children.Add(textBlock);
             }
 
