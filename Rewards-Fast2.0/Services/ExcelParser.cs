@@ -55,29 +55,62 @@ namespace Rewards_Fast2._0.Services
         {
             List<Person> persons = new List<Person>();
 
-            // Пробуем разные кодировки
+            // Пробуем разные кодировки (без 1251, которая вызывает ошибку)
             string[]? lines = null;
-            Encoding[] encodings = { Encoding.UTF8, Encoding.GetEncoding(1251), Encoding.Default };
 
-            foreach (var encoding in encodings)
+            // Сначала пробуем UTF-8
+            try
+            {
+                lines = File.ReadAllLines(filePath, Encoding.UTF8);
+                System.Diagnostics.Debug.WriteLine($"UTF-8: прочитано {lines?.Length ?? 0} строк");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UTF-8 ошибка: {ex.Message}");
+            }
+
+            // Если UTF-8 не дал результата, пробуем системную кодировку (на русской Windows это 1251)
+            if (lines == null || lines.Length == 0)
             {
                 try
                 {
-                    lines = File.ReadAllLines(filePath, encoding);
-                    if (lines.Length > 0)
-                        break;
+                    lines = File.ReadAllLines(filePath, Encoding.Default);
+                    System.Diagnostics.Debug.WriteLine($"Default: прочитано {lines?.Length ?? 0} строк");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Default ошибка: {ex.Message}");
+                }
+            }
+
+            // Если всё ещё нет строк, пробуем без указания кодировки
+            if (lines == null || lines.Length == 0)
+            {
+                try
+                {
+                    lines = File.ReadAllLines(filePath);
+                    System.Diagnostics.Debug.WriteLine($"Без кодировки: прочитано {lines?.Length ?? 0} строк");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Без кодировки ошибка: {ex.Message}");
+                    return persons;
+                }
             }
 
             if (lines == null || lines.Length == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Не удалось прочитать файл");
                 return persons;
+            }
 
             // Определяем разделитель
             char delimiter = DetectDelimiter(lines);
+            System.Diagnostics.Debug.WriteLine($"Разделитель: '{delimiter}'");
 
             // Определяем, есть ли заголовки
             bool hasHeader = DetectHasHeader(lines, delimiter);
+            System.Diagnostics.Debug.WriteLine($"HasHeader: {hasHeader}");
 
             int startRow = hasHeader ? 1 : 0;
 
@@ -105,10 +138,24 @@ namespace Rewards_Fast2._0.Services
 
             try
             {
+                // Проверяем, что это действительно Excel файл
+                string extension = System.IO.Path.GetExtension(filePath).ToLower();
+                if (extension != ".xlsx" && extension != ".xls")
+                {
+                    throw new NotSupportedException($"Файл {extension} не является Excel файлом");
+                }
+
                 using (var package = new ExcelPackage(new FileInfo(filePath)))
                 {
                     var worksheet = package.Workbook.Worksheets[0];
+                    if (worksheet.Dimension == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Excel файл пуст");
+                        return persons;
+                    }
+
                     int rowCount = worksheet.Dimension.Rows;
+                    System.Diagnostics.Debug.WriteLine($"Excel: {rowCount} строк");
 
                     // Определяем структуру по первой строке
                     bool hasHeader = false;
@@ -201,7 +248,7 @@ namespace Rewards_Fast2._0.Services
         }
 
         /// <summary>
-        /// Определение наличия заголовков
+        /// Определение наличия заголовков (более точная версия)
         /// </summary>
         private bool DetectHasHeader(string[] lines, char delimiter)
         {
@@ -216,26 +263,76 @@ namespace Rewards_Fast2._0.Services
 
             // Ключевые слова, по которым определяем заголовок
             string[] headerKeywords = {
-                "фамилия", "имя", "отчество", "фио", "фи",
-                "fio", "last", "first", "middle", "name"
-            };
+        "фамилия", "имя", "отчество", "фио", "фи",
+        "fio", "last", "first", "middle", "name",
+        "фамилию", "имя", "отчество", // возможные варианты
+        "lastname", "firstname", "middlename"
+    };
 
+            // Проверяем, похожа ли первая строка на заголовок
             bool firstLineLooksLikeHeader = false;
+            int headerKeywordCount = 0;
+
             foreach (string part in firstParts)
             {
                 string lowerPart = part.ToLower().Trim('"', '\'', ' ');
                 if (headerKeywords.Any(kw => lowerPart.Contains(kw)))
                 {
-                    firstLineLooksLikeHeader = true;
-                    break;
+                    headerKeywordCount++;
+                    if (headerKeywordCount >= 2) // Хотя бы два слова похожи на заголовки
+                    {
+                        firstLineLooksLikeHeader = true;
+                        break;
+                    }
                 }
             }
 
-            // Если первая строка не похожа на заголовок, но вторая похожа на ФИО
-            bool secondLineLooksLikeFio = secondParts.Length >= 2 && secondParts.Length <= 3;
-            bool firstLineHasLetters = firstParts.Any(p => p.Length > 0 && char.IsLetter(p[0]));
+            // Если первая строка явно похожа на заголовок
+            if (firstLineLooksLikeHeader)
+                return true;
 
-            return firstLineLooksLikeHeader || (firstLineHasLetters && secondLineLooksLikeFio);
+            // Проверяем, что вторая строка похожа на ФИО (содержит буквы и пробелы)
+            bool secondLineLooksLikeFio = false;
+            if (secondParts.Length >= 2 && secondParts.Length <= 3)
+            {
+                // Проверяем, что все части содержат буквы (русские или латинские)
+                bool allPartsHaveLetters = secondParts.All(part =>
+                    !string.IsNullOrWhiteSpace(part) &&
+                    part.Any(c => char.IsLetter(c)));
+
+                if (allPartsHaveLetters)
+                {
+                    // Дополнительно: проверяем, что нет явных признаков заголовка во второй строке
+                    bool secondLineHasHeaderKeywords = secondParts.Any(part =>
+                        headerKeywords.Any(kw => part.ToLower().Contains(kw)));
+
+                    if (!secondLineHasHeaderKeywords)
+                        secondLineLooksLikeFio = true;
+                }
+            }
+
+            // Если первая строка НЕ похожа на заголовок, но вторая похожа на ФИО
+            bool firstLineHasLetters = firstParts.Any(p => p.Length > 0 && p.Any(c => char.IsLetter(c)));
+
+            // Если первая строка имеет нормальную длину и второе поле похоже на имя
+            if (firstLineHasLetters && secondLineLooksLikeFio)
+                return false; // Первая строка - это данные, а не заголовок
+
+            // Если первая строка содержит очень короткие поля (возможно инициалы или буквы) 
+            // и вторая тоже, то скорее всего заголовков нет
+            if (firstParts.Length == secondParts.Length &&
+                firstParts.Length >= 2 && firstParts.Length <= 3)
+            {
+                bool firstHasShortParts = firstParts.Any(p => p.Length <= 2);
+                bool secondHasLongParts = secondParts.All(p => p.Length > 2);
+
+                // Если в первой строке есть короткие части (инициалы), а во второй нет - значит первая строка это данные
+                if (firstHasShortParts && secondHasLongParts)
+                    return false;
+            }
+
+            // По умолчанию считаем, что заголовков нет
+            return false;
         }
 
         /// <summary>

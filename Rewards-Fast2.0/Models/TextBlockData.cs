@@ -95,6 +95,12 @@ namespace Rewards_Fast2._0.Models
             }
         }
 
+        [JsonIgnore]
+        public double ActualWidth { get; set; } = 400; // Значение по умолчанию
+
+        [JsonIgnore]
+        public double ActualHeight { get; set; } = 50; // Значение по умолчанию
+
         // Вспомогательное свойство для WPF (цвет как Brush)
         [JsonIgnore]
         public SolidColorBrush FontColorBrush => new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(FontColorHex));

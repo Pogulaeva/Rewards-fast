@@ -241,19 +241,17 @@ namespace Rewards_Fast2._0
             if (availableWidth <= 0) availableWidth = 800;
             if (availableHeight <= 0) availableHeight = 600;
 
-            // Вычисляем масштаб, чтобы вписать грамоту в панель
+            // Вычисляем масштаб
             double scaleX = availableWidth / realWidth;
             double scaleY = availableHeight / realHeight;
             double scale = Math.Min(scaleX, scaleY);
 
-            // Устанавливаем размер Canvas с учётом масштаба
+            // Устанавливаем размер Canvas
             double canvasWidth = realWidth * scale;
             double canvasHeight = realHeight * scale;
 
             PreviewCanvas.Width = canvasWidth;
             PreviewCanvas.Height = canvasHeight;
-
-            // Сохраняем масштаб
             _currentScale = scale;
 
             // Добавляем фон
@@ -286,22 +284,50 @@ namespace Rewards_Fast2._0
                     FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
                     Foreground = block.FontColorBrush,
                     TextAlignment = TextAlignment.Center,
-                    Width = canvasWidth * 0.8,
                     TextWrapping = TextWrapping.Wrap,
                     Tag = block
                 };
+
+                // ИЗМЕРИМ РЕАЛЬНЫЕ РАЗМЕРЫ ТЕКСТА!
+                textBlock.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
+
+                // Сохраняем реальные размеры в блоке (в координатах фона, без масштаба)
+                block.ActualWidth = textBlock.DesiredSize.Width / scale;
+                block.ActualHeight = textBlock.DesiredSize.Height / scale;
+
+                // Устанавливаем ширину текстового блока (но не ограничиваем, пусть будет сколько нужно)
+                // Если хотим ограничить максимальную ширину:
+                double maxWidth = realWidth * 0.8;
+                if (block.ActualWidth > maxWidth)
+                {
+                    textBlock.Width = maxWidth * scale;
+                    textBlock.TextWrapping = TextWrapping.Wrap;
+                    // Переизмеряем с ограничением ширины
+                    textBlock.Measure(new System.Windows.Size(maxWidth * scale, double.PositiveInfinity));
+                    block.ActualWidth = textBlock.DesiredSize.Width / scale;
+                    block.ActualHeight = textBlock.DesiredSize.Height / scale;
+                }
 
                 textBlock.MouseLeftButtonDown += TextBlock_MouseLeftButtonDown;
                 textBlock.MouseMove += TextBlock_MouseMove;
                 textBlock.MouseLeftButtonUp += TextBlock_MouseLeftButtonUp;
                 textBlock.Cursor = Cursors.SizeAll;
 
+                // Корректируем позицию, если она выходит за границы
+                double maxX = realWidth - block.ActualWidth;
+                double maxY = realHeight - block.ActualHeight;
+
+                if (block.PositionX > maxX) block.PositionX = Math.Max(0, maxX);
+                if (block.PositionY > maxY) block.PositionY = Math.Max(0, maxY);
+                if (block.PositionX < 0) block.PositionX = 0;
+                if (block.PositionY < 0) block.PositionY = 0;
+
                 Canvas.SetLeft(textBlock, block.PositionX * scale);
                 Canvas.SetTop(textBlock, block.PositionY * scale);
                 PreviewCanvas.Children.Add(textBlock);
             }
 
-            // Добавляем изображения
+            // Добавляем изображения (без изменений)
             foreach (var imageBlock in _currentTemplate.ImageBlocks)
             {
                 if (!imageBlock.IsVisible || imageBlock.Source == null) continue;
@@ -325,7 +351,7 @@ namespace Rewards_Fast2._0
                 PreviewCanvas.Children.Add(image);
             }
 
-            // Добавляем маркеры ТОЛЬКО если в режиме редактирования
+            // Добавляем маркеры
             if (_isResizeMode && _resizingImage != null && _currentTemplate.ImageBlocks.Contains(_resizingImage))
             {
                 AddResizeHandles(_resizingImage);
@@ -489,7 +515,10 @@ namespace Rewards_Fast2._0
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Выберите файл с ФИО",
-                Filter = "CSV файлы (*.csv)|*.csv|Текстовые файлы (*.txt)|*.txt"
+                Filter = "Все поддерживаемые файлы (*.xlsx;*.xls;*.csv;*.txt)|*.xlsx;*.xls;*.csv;*.txt|" +
+                         "Excel файлы (*.xlsx;*.xls)|*.xlsx;*.xls|" +
+                         "CSV файлы (*.csv)|*.csv|" +
+                         "Текстовые файлы (*.txt)|*.txt"
             };
             if (dialog.ShowDialog() == true)
                 await LoadExcelFile(dialog.FileName);
@@ -700,9 +729,8 @@ namespace Rewards_Fast2._0
         private void Position_Changed(object sender, TextChangedEventArgs e)
         {
             if (_isUpdatingProperties || _isUpdatingImageProperties) return;
-            if (_isDraggingBlock || _isDraggingImage) return; // Не обновляем во время перетаскивания
+            if (_isDraggingBlock || _isDraggingImage) return;
 
-            // Получаем реальные размеры фона
             double realWidth = 800;
             double realHeight = 600;
 
@@ -715,14 +743,20 @@ namespace Rewards_Fast2._0
 
             if (_selectedBlock != null)
             {
+                // Используем РЕАЛЬНУЮ ширину текстового блока
+                double blockWidth = _selectedBlock.ActualWidth;
+                double blockHeight = _selectedBlock.ActualHeight;
+
                 if (double.TryParse(PositionXBox.Text, out double x))
                 {
-                    _selectedBlock.PositionX = Math.Clamp(x, 0, realWidth - 50);
+                    _selectedBlock.PositionX = Math.Clamp(x, 0, realWidth - blockWidth);
+                    PositionXBox.Text = _selectedBlock.PositionX.ToString("F0"); // Корректируем
                 }
 
                 if (double.TryParse(PositionYBox.Text, out double y))
                 {
-                    _selectedBlock.PositionY = Math.Clamp(y, 0, realHeight - 50);
+                    _selectedBlock.PositionY = Math.Clamp(y, 0, realHeight - blockHeight);
+                    PositionYBox.Text = _selectedBlock.PositionY.ToString("F0"); // Корректируем
                 }
 
                 RefreshPreview();
@@ -739,7 +773,6 @@ namespace Rewards_Fast2._0
                     _selectedImage.PositionY = Math.Clamp(y, 0, realHeight - _selectedImage.Height);
                 }
 
-                // Обновляем позицию на Canvas без полной перерисовки
                 var imageElement = PreviewCanvas.Children
                     .OfType<System.Windows.Controls.Image>()
                     .FirstOrDefault(img => img.Tag == _selectedImage);
@@ -750,12 +783,31 @@ namespace Rewards_Fast2._0
                     Canvas.SetTop(imageElement, _selectedImage.PositionY * _currentScale);
                 }
 
-                // Обновляем маркеры, если они есть
                 if (_isResizeMode && _resizingImage == _selectedImage)
                 {
                     UpdateResizeHandles(_selectedImage);
                 }
             }
+        }
+
+        private void UpdateTextBlockActualSize(TextBlockData block)
+        {
+            // Временно создаём TextBlock для измерения
+            var tempTextBlock = new System.Windows.Controls.TextBlock
+            {
+                Text = block.Text,
+                FontFamily = new System.Windows.Media.FontFamily(block.FontFamily),
+                FontSize = block.FontSize,
+                FontWeight = block.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                FontStyle = block.IsItalic ? FontStyles.Italic : FontStyles.Normal,
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            double maxWidth = 800 * 0.8; // Максимальная ширина относительно фона
+            tempTextBlock.Measure(new System.Windows.Size(maxWidth, double.PositiveInfinity));
+
+            block.ActualWidth = tempTextBlock.DesiredSize.Width;
+            block.ActualHeight = tempTextBlock.DesiredSize.Height;
         }
 
         private void AddBlockButton_Click(object sender, RoutedEventArgs e)
@@ -812,6 +864,7 @@ namespace Rewards_Fast2._0
             if (_selectedBlock != null)
             {
                 _selectedBlock.Text = TextPropertyBox.Text;
+                UpdateTextBlockActualSize(_selectedBlock); // ОБНОВЛЯЕМ РАЗМЕРЫ!
 
                 // Обновляем отображение в списке без пересоздания
                 var listBox = BlocksListBox;
@@ -840,6 +893,7 @@ namespace Rewards_Fast2._0
             if (_selectedBlock != null && FontFamilyBox.SelectedItem != null)
             {
                 _selectedBlock.FontFamily = FontFamilyBox.SelectedItem.ToString() ?? "Times New Roman";
+                UpdateTextBlockActualSize(_selectedBlock); // ОБНОВЛЯЕМ РАЗМЕРЫ!
                 RefreshPreview();
             }
         }
@@ -850,6 +904,7 @@ namespace Rewards_Fast2._0
             if (_selectedBlock != null && float.TryParse(FontSizeBox.Text, out float size))
             {
                 _selectedBlock.FontSize = size;
+                UpdateTextBlockActualSize(_selectedBlock); // ОБНОВЛЯЕМ РАЗМЕРЫ!
                 RefreshPreview();
             }
         }
@@ -939,6 +994,7 @@ namespace Rewards_Fast2._0
             double newRealX = _dragStartPointBlock.X + deltaX;
             double newRealY = _dragStartPointBlock.Y + deltaY;
 
+            // Получаем размеры фона
             double realWidth = 800;
             double realHeight = 600;
 
@@ -949,8 +1005,13 @@ namespace Rewards_Fast2._0
                 realHeight = tempImage.Height;
             }
 
-            _draggedBlockData.PositionX = Math.Clamp(newRealX, 0, realWidth - 50);
-            _draggedBlockData.PositionY = Math.Clamp(newRealY, 0, realHeight - 50);
+            // Используем РЕАЛЬНУЮ ширину текстового блока (как у изображений!)
+            double blockWidth = _draggedBlockData.ActualWidth;
+            double blockHeight = _draggedBlockData.ActualHeight;
+
+            // ТАКИЕ ЖЕ ОГРАНИЧЕНИЯ, КАК У ИЗОБРАЖЕНИЙ
+            _draggedBlockData.PositionX = Math.Clamp(newRealX, 0, realWidth - blockWidth);
+            _draggedBlockData.PositionY = Math.Clamp(newRealY, 0, realHeight - blockHeight);
 
             Canvas.SetLeft(textBlock, _draggedBlockData.PositionX * _currentScale);
             Canvas.SetTop(textBlock, _draggedBlockData.PositionY * _currentScale);
