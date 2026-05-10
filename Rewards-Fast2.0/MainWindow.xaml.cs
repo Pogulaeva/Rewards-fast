@@ -381,10 +381,8 @@ namespace Rewards_Fast2._0
         private void SetBackground(string imagePath)
         {
             _currentTemplate.BackgroundPath = imagePath;
-            BackgroundThumbnail.Source = LoadBitmapImage(imagePath);
             RefreshPreview();
 
-            // Активируем обе кнопки
             GenerateButton.IsEnabled = true;
             GenerateButton.Opacity = 1;
             GenerateButton.ToolTip = null;
@@ -400,13 +398,9 @@ namespace Rewards_Fast2._0
             {
                 if (item.IsBuiltIn)
                 {
-                    var uri = new Uri(item.FilePath, UriKind.Relative);
-                    var bitmap = new BitmapImage(uri);
                     _currentTemplate.BackgroundPath = item.FilePath;
-                    BackgroundThumbnail.Source = bitmap;
                     RefreshPreview();
 
-                    // Активируем обе кнопки
                     GenerateButton.IsEnabled = true;
                     GenerateButton.Opacity = 1;
                     GenerateButton.ToolTip = null;
