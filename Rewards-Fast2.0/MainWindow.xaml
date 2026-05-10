@@ -266,11 +266,36 @@
                 <!-- Таблица -->
                 <Border Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="10" Margin="0,0,0,12">
                     <DataGrid x:Name="PersonsGrid" AutoGenerateColumns="False" Height="100" 
-                              CanUserAddRows="False" IsReadOnly="True" BorderThickness="0"
-                              RowHeight="35" HeadersVisibility="Column">
+          CanUserAddRows="False" IsReadOnly="True" BorderThickness="0"
+          RowHeight="35" HeadersVisibility="Column">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Исходное ФИО" Binding="{Binding FullName}" Width="*"/>
-                            <DataGridTextColumn Header="ФИО в выбранном падеже" Binding="{Binding DisplayName}" Width="*"/>
+                            <DataGridTextColumn Header="Исходное ФИО" Binding="{Binding FullName}" Width="150"/>
+
+                            <DataGridTextColumn Header="ФИО (библиотека NPetrovich)" Binding="{Binding DisplayNameLibrary}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasDeclensionMismatch}" Value="True">
+                                                <Setter Property="Background" Value="#FFFFCCCC"/>
+                                                <Setter Property="ToolTip" Value="Расхождение с резервным методом!"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="ФИО (резервный метод)" Binding="{Binding DisplayNameFallback}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasDeclensionMismatch}" Value="True">
+                                                <Setter Property="Background" Value="#FFFFCCCC"/>
+                                                <Setter Property="ToolTip" Value="Расхождение с библиотечным методом!"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
