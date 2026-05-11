@@ -4,6 +4,7 @@ using Rewards_Fast2._0.Models;
 using Rewards_Fast2._0.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -1191,11 +1192,6 @@ namespace Rewards_Fast2._0
                 _selectedBlock.IsItalic = ItalicToggle.IsChecked ?? false;
                 RefreshPreview();
             }
-        }
-
-        private void AiSuggestButton_Click(object sender, RoutedEventArgs e)
-        {
-            System.Windows.MessageBox.Show("Функция ИИ-помощника в разработке", "В разработке", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

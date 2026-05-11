@@ -99,23 +99,13 @@
                 <!-- ПРАВАЯ ПОДПАНЕЛЬ: Свойства -->
                 <Border Grid.Column="1" Background="{StaticResource PanelBackground}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1" CornerRadius="8" Margin="5,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="10">
+                        <StackPanel Margin="10" Cursor="">
                             <TextBlock Foreground="{StaticResource TitleColor}" Text="СВОЙСТВА" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
 
                             <!-- === СВОЙСТВА ДЛЯ ТЕКСТА === -->
                             <StackPanel x:Name="TextPropertiesPanel" Visibility="Visible">
                                 <TextBlock Foreground="{StaticResource TitleColor}" Text="Текст:" Margin="0,0,0,3"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Foreground="{StaticResource TitleColor}" x:Name="TextPropertyBox" TextChanged="TextPropertyBox_TextChanged" Margin="0,0,5,0"/>
-                                    <Button Grid.Column="1" x:Name="AiSuggestButton" 
-        Style="{StaticResource AiButtonStyle}" 
-        Click="AiSuggestButton_Click" 
-        ToolTip="Подсказать текст"/>
-                                </Grid>
+                                <TextBox Foreground="{StaticResource TitleColor}" x:Name="TextPropertyBox" TextChanged="TextPropertyBox_TextChanged" Margin="0,0,0,0"/>
 
                                 <TextBlock Foreground="{StaticResource TitleColor}" Text="Шрифт:" Margin="0,10,0,3"/>
                                 <ComboBox x:Name="FontFamilyBox" SelectionChanged="FontProperty_Changed" Margin="0,0,0,10"/>
@@ -132,13 +122,11 @@
                                     <ToggleButton Style="{StaticResource ToggleButtonStyle}" x:Name="BoldToggle" Content="Ж" Width="40" Margin="0,0,5,0" Click="FontStyle_Changed" ToolTip="Полужирный"/>
                                     <ToggleButton Style="{StaticResource ToggleButtonStyle}" x:Name="ItalicToggle" Content="К" Width="40" Click="FontStyle_Changed" ToolTip="Курсив"/>
                                 </StackPanel>
-                                <TextBlock Foreground="{StaticResource TitleColor}" Text="При генерации выровнять по центру:" 
-           Margin="0,10,0,5" TextWrapping="Wrap" MaxWidth="160"/>
+
+                                <TextBlock Foreground="{StaticResource TitleColor}" Text="При генерации выровнять по центру:" Margin="0,10,0,5" TextWrapping="Wrap" MaxWidth="160"/>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <RadioButton x:Name="CenterYes" Content="Да" GroupName="CenterAtGeneration" 
-                 IsChecked="True" Margin="0,0,15,0" Checked="CenterAtGeneration_Changed"/>
-                                    <RadioButton x:Name="CenterNo" Content="Нет" GroupName="CenterAtGeneration" 
-                 Checked="CenterAtGeneration_Changed"/>
+                                    <RadioButton x:Name="CenterYes" Content="Да" GroupName="CenterAtGeneration" IsChecked="True" Margin="0,0,15,0" Checked="CenterAtGeneration_Changed"/>
+                                    <RadioButton x:Name="CenterNo" Content="Нет" GroupName="CenterAtGeneration" Checked="CenterAtGeneration_Changed"/>
                                 </StackPanel>
                             </StackPanel>
 
