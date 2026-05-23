@@ -90,6 +90,15 @@ namespace Rewards_Fast2._0
 
             this.SizeChanged += (s, e) => RefreshPreview();
             PreviewCanvas.MouseLeftButtonDown += PreviewCanvas_MouseLeftButtonDown;
+
+            // Обработчик закрытия главного окна
+            this.Closing += (s, e) =>
+            {
+                if (_progressWindow != null && _progressWindow.IsVisible)
+                {
+                    _isGenerationCancelled = true;
+                }
+            };
         }
 
         private void InitializeAppFolders()
@@ -296,7 +305,8 @@ namespace Rewards_Fast2._0
                     Foreground = block.FontColorBrush,
                     TextAlignment = TextAlignment.Center,
                     TextWrapping = TextWrapping.Wrap,
-                    Tag = block
+                    Tag = block,
+                    TextDecorations = block.IsUnderline ? TextDecorations.Underline : null
                 };
 
                 // ИЗМЕРИМ РЕАЛЬНЫЕ РАЗМЕРЫ ТЕКСТА!
@@ -585,14 +595,15 @@ namespace Rewards_Fast2._0
             }
         }
 
-        private void RefreshPersonsGrid()
+        private void RefreshPersonsGrid(bool showMismatch = true)
         {
             var displayList = _persons.Select(p => new PersonDisplay
             {
                 FullName = p.FullName,
                 DisplayNameLibrary = _useDative ? p.FullNameDativeLibrary : p.FullName,
                 DisplayNameFallback = _useDative ? p.FullNameDativeFallback : p.FullName,
-                HasDeclensionMismatch = p.HasDeclensionMismatch
+                // В именительном падеже расхождений быть не может
+                HasDeclensionMismatch = showMismatch && _useDative && p.HasDeclensionMismatch
             }).ToList();
 
             PersonsGrid.ItemsSource = displayList;
@@ -600,12 +611,22 @@ namespace Rewards_Fast2._0
 
         private void Case_Changed(object sender, RoutedEventArgs e)
         {
-            // Проверяем, что элементы существуют и не равны null
             if (DativeCase == null || NominativeCase == null)
                 return;
 
             _useDative = DativeCase.IsChecked == true;
-            RefreshPersonsGrid();
+
+            // Если выбран именительный падеж - сбрасываем флаг расхождения для отображения
+            if (!_useDative)
+            {
+                // Обновляем таблицу без подсветки
+                RefreshPersonsGrid(showMismatch: false);
+            }
+            else
+            {
+                // Для дательного падежа показываем подсветку
+                RefreshPersonsGrid(showMismatch: true);
+            }
         }
 
         private void BrowseFolderButton_Click(object sender, RoutedEventArgs e)
@@ -649,6 +670,9 @@ namespace Rewards_Fast2._0
 
         private List<Person> _personsWithMismatch = new List<Person>();
 
+        private bool _isGenerationCancelled = false;
+        private ProgressWindow? _progressWindow;
+
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
             if (_persons.Count == 0)
@@ -657,140 +681,67 @@ namespace Rewards_Fast2._0
                 return;
             }
 
-            // Склоняем людей ОБОИМИ способами (нужно для дательного падежа и сравнения)
-            _declensionService.DeclinePersonsBothWays(_persons);
+            // Блокируем кнопки
+            GenerateButton.IsEnabled = false;
+            SaveTemplateButton.IsEnabled = false;
 
-            // Если выбран именительный падеж — никаких вопросов, просто генерируем
-            if (!_useDative)
-            {
-                // Заполняем FullNameDative исходными ФИО (без склонения)
-                foreach (var person in _persons)
-                {
-                    person.FullNameDative = person.FullName;
-                }
-
-                RefreshPersonsGrid();
-                await GenerateCertificates(); // Вынести генерацию в отдельный метод
-                return;
-            }
-
-            // Собираем проблемные ФИО (где результаты различаются)
-            var personsWithMismatch = _persons.Where(p => p.HasDeclensionMismatch).ToList();
-
-            // Переменная для хранения выбранного пользователем варианта склонения
-            // true = библиотечный, false = резервный
-            bool useLibraryForMismatch = true;
-
-            if (personsWithMismatch.Any())
-            {
-                var dialog = new ChoiceDialog(personsWithMismatch);
-                var choice = dialog.GetResult();
-
-                switch (choice)
-                {
-                    case ChoiceDialog.UserChoice.Option1:
-                        useLibraryForMismatch = true;
-                        break;
-                    case ChoiceDialog.UserChoice.Option2:
-                        useLibraryForMismatch = false;
-                        break;
-                    case ChoiceDialog.UserChoice.Cancel:
-                        SaveMismatchedPersonsList(personsWithMismatch);
-                        return;
-                    case ChoiceDialog.UserChoice.ClosedByX:
-                        // Просто закрыли окно через крестик — ничего не делаем, просто выходим из генерации
-                        return;
-                }
-            }
-
-            // Применяем выбранный вариант склонения ко всем людям
-            foreach (var person in _persons)
-            {
-                if (person.HasDeclensionMismatch)
-                {
-                    // Для проблемных ФИО используем выбранный пользователем вариант
-                    person.FullNameDative = useLibraryForMismatch ? person.FullNameDativeLibrary : person.FullNameDativeFallback;
-                }
-                else
-                {
-                    // Для корректных ФИО используем библиотечный вариант (он совпадает с резервным)
-                    person.FullNameDative = person.FullNameDativeLibrary;
-                }
-            }
-
-            // Обновляем отображение в таблице
-            RefreshPersonsGrid();
-
-            // Продолжаем генерацию
-            string outputFolder = OutputFolderBox.Text;
-            if (string.IsNullOrEmpty(outputFolder)) outputFolder = DefaultOutputFolder;
-            string dateFolder = System.IO.Path.Combine(outputFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
-            Directory.CreateDirectory(dateFolder);
-
-            // Если включено автосохранение шаблона
-            if (AutoSaveTemplateCheckBox.IsChecked == true)
-            {
-                string autoSavePath = System.IO.Path.Combine(dateFolder, "шаблон.json");
-                await _templateService.SaveTemplateAsync(_currentTemplate, autoSavePath);
-            }
-
-            // Если есть проблемные ФИО и пользователь выбрал вариант, сохраняем отчёт о выборе
-            if (personsWithMismatch.Any())
-            {
-                SaveDeclensionChoiceReport(dateFolder, personsWithMismatch, useLibraryForMismatch);
-            }
-
-            string format = (ImageFormatBox.SelectedItem as ComboBoxItem)?.Content.ToString()?.ToLower() ?? "png";
-            var progressWindow = new ProgressWindow(_persons.Count);
-            progressWindow.Show();
+            _isGenerationCancelled = false;
 
             try
             {
-                int generated = 0;
+                await Task.Run(() => _declensionService.DeclinePersonsBothWays(_persons));
 
-                await Task.Run(() =>
+                if (!_useDative)
                 {
-                    for (int i = 0; i < _persons.Count; i++)
-                    {
-                        var person = _persons[i];
+                    foreach (var person in _persons)
+                        person.FullNameDative = person.FullName;
 
-                        progressWindow.Dispatcher.Invoke(() =>
-                        {
-                            progressWindow.UpdateProgress(i + 1, _persons.Count);
-                        });
-
-                        string nameToInsert = person.FullNameDative; // Используем выбранное склонение
-                        string fileName = GenerateFileName(person, i + 1, format);
-                        string fullPath = System.IO.Path.Combine(dateFolder, fileName);
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
-                        });
-
-                        generated++;
-                    }
-                });
-
-                progressWindow.Close();
-
-                string message = $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}";
-                if (personsWithMismatch.Any())
-                {
-                    message += $"\n\n⚠️ Было {personsWithMismatch.Count} проблемных ФИО. Выбранный вариант склонения сохранён в файле 'отчет_о_выборе_склонения.txt'";
+                    await Dispatcher.InvokeAsync(() => RefreshPersonsGrid());
+                    await GenerateCertificatesAsync();
+                    return;
                 }
 
-                System.Windows.MessageBox.Show(message, "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                System.Diagnostics.Process.Start("explorer.exe", dateFolder);
+                var personsWithMismatch = _persons.Where(p => p.HasDeclensionMismatch).ToList();
+                bool? useLibraryForMismatch = null;
+
+                if (personsWithMismatch.Any())
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        var dialog = new ChoiceDialog(personsWithMismatch);
+                        var choice = dialog.GetResult();
+                        switch (choice)
+                        {
+                            case ChoiceDialog.UserChoice.Option1: useLibraryForMismatch = true; break;
+                            case ChoiceDialog.UserChoice.Option2: useLibraryForMismatch = false; break;
+                            case ChoiceDialog.UserChoice.Cancel: SaveMismatchedPersonsList(personsWithMismatch); return;
+                            case ChoiceDialog.UserChoice.ClosedByX: return;
+                        }
+                    });
+                }
+
+                foreach (var person in _persons)
+                {
+                    if (person.HasDeclensionMismatch && useLibraryForMismatch.HasValue)
+                        person.FullNameDative = useLibraryForMismatch.Value ? person.FullNameDativeLibrary : person.FullNameDativeFallback;
+                    else
+                        person.FullNameDative = person.FullNameDativeLibrary;
+                }
+
+                await Dispatcher.InvokeAsync(() => RefreshPersonsGrid());
+                await GenerateCertificatesAsync(personsWithMismatch, useLibraryForMismatch);
             }
-            catch (Exception ex)
+            finally
             {
-                progressWindow.Close();
-                System.Windows.MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    GenerateButton.IsEnabled = true;
+                    SaveTemplateButton.IsEnabled = !string.IsNullOrEmpty(_currentTemplate.BackgroundPath);
+                });
             }
         }
 
-        private async Task GenerateCertificates()
+        private async Task GenerateCertificatesAsync(List<Person>? personsWithMismatch = null, bool? useLibraryForMismatch = null)
         {
             string outputFolder = OutputFolderBox.Text;
             if (string.IsNullOrEmpty(outputFolder)) outputFolder = DefaultOutputFolder;
@@ -803,49 +754,82 @@ namespace Rewards_Fast2._0
                 await _templateService.SaveTemplateAsync(_currentTemplate, autoSavePath);
             }
 
+            if (personsWithMismatch != null && personsWithMismatch.Any() && useLibraryForMismatch.HasValue)
+            {
+                SaveDeclensionChoiceReport(dateFolder, personsWithMismatch, useLibraryForMismatch.Value);
+            }
+
             string format = (ImageFormatBox.SelectedItem as ComboBoxItem)?.Content.ToString()?.ToLower() ?? "png";
-            var progressWindow = new ProgressWindow(_persons.Count);
-            progressWindow.Show();
 
-            try
+            _progressWindow = new ProgressWindow(_persons.Count);
+            int generated = 0;
+
+            // Показываем окно
+            _progressWindow.Show();
+
+            // Запускаем генерацию
+            var generationTask = Task.Run(() =>
             {
-                int generated = 0;
-
-                await Task.Run(() =>
+                for (int i = 0; i < _persons.Count; i++)
                 {
-                    for (int i = 0; i < _persons.Count; i++)
+                    if (_isGenerationCancelled)
+                        break;
+
+                    var person = _persons[i];
+                    var currentIndex = i + 1;
+
+                    // Обновляем прогресс
+                    _progressWindow.Dispatcher.Invoke(() =>
                     {
-                        var person = _persons[i];
+                        _progressWindow.UpdateProgress(currentIndex, _persons.Count);
+                    });
 
-                        progressWindow.Dispatcher.Invoke(() =>
-                        {
-                            progressWindow.UpdateProgress(i + 1, _persons.Count);
-                        });
+                    string nameToInsert = person.FullNameDative;
+                    string fileName = GenerateFileName(person, currentIndex, format);
+                    string fullPath = System.IO.Path.Combine(dateFolder, fileName);
 
-                        string nameToInsert = person.FullNameDative;
-                        string fileName = GenerateFileName(person, i + 1, format);
-                        string fullPath = System.IO.Path.Combine(dateFolder, fileName);
+                    // Генерируем
+                    _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
+                    generated++;
+                }
+            });
 
-                        Dispatcher.Invoke(() =>
-                        {
-                            _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
-                        });
-
-                        generated++;
-                    }
-                });
-
-                progressWindow.Close();
-
-                string message = $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}";
-                System.Windows.MessageBox.Show(message, "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                System.Diagnostics.Process.Start("explorer.exe", dateFolder);
-            }
-            catch (Exception ex)
+            // Ждём завершения или отмены
+            while (!generationTask.IsCompleted && !_isGenerationCancelled)
             {
-                progressWindow.Close();
-                System.Windows.MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                await Task.Delay(100);
+                // Проверяем, не закрыто ли окно
+                if (!_progressWindow.IsVisible)
+                {
+                    _isGenerationCancelled = true;
+                }
             }
+
+            // Если пользователь закрыл окно, отменяем
+            if (_isGenerationCancelled && !generationTask.IsCompleted)
+            {
+                generationTask = null;
+            }
+            else
+            {
+                await generationTask;
+            }
+
+            _progressWindow.Close();
+
+            string message;
+            if (_isGenerationCancelled)
+            {
+                message = $"⚠️ Генерация прервана!\nСоздано: {generated}\nПапка: {dateFolder}";
+            }
+            else
+            {
+                message = $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}";
+            }
+
+            System.Windows.MessageBox.Show(message, "Результат", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (generated > 0)
+                System.Diagnostics.Process.Start("explorer.exe", dateFolder);
         }
 
         /// <summary>
@@ -964,6 +948,7 @@ namespace Rewards_Fast2._0
                 FontSizeBox.Text = _selectedBlock.FontSize.ToString();
                 BoldToggle.IsChecked = _selectedBlock.IsBold;
                 ItalicToggle.IsChecked = _selectedBlock.IsItalic;
+                UnderlineToggle.IsChecked = _selectedBlock.IsUnderline;
 
                 if (!_isDraggingBlock)
                 {
@@ -1190,6 +1175,7 @@ namespace Rewards_Fast2._0
             {
                 _selectedBlock.IsBold = BoldToggle.IsChecked ?? false;
                 _selectedBlock.IsItalic = ItalicToggle.IsChecked ?? false;
+                _selectedBlock.IsUnderline = UnderlineToggle.IsChecked ?? false;  // ДОБАВЬТЕ ЭТУ СТРОКУ
                 RefreshPreview();
             }
         }
