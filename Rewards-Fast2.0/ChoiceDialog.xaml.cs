@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using Rewards_Fast2._0.Models;
@@ -9,55 +12,115 @@ namespace Rewards_Fast2._0
     {
         public enum UserChoice
         {
-            Option1,
-            Option2,
-            Cancel,
-            ClosedByX  // Новый вариант для закрытия через крестик
+            Generate,      // Сгенерировать с выбранными вариантами
+            Skip,          // Пропустить проблемные, создать файл со списком
+            ClosedByX      // Закрыто через крестик (отмена)
         }
 
-        private UserChoice _result = UserChoice.ClosedByX;  // По умолчанию - закрытие через X
+        public class ProblemPerson : INotifyPropertyChanged
+        {
+            public event PropertyChangedEventHandler? PropertyChanged;
+
+            public string FullName { get; set; } = string.Empty;
+            public string Option1 { get; set; } = string.Empty;
+            public string Option2 { get; set; } = string.Empty;
+
+            private string _selectedOption = "Library";
+            public string SelectedOption
+            {
+                get => _selectedOption;
+                set
+                {
+                    _selectedOption = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedOption)));
+                }
+            }
+
+            public ProblemPerson(Person person)
+            {
+                FullName = person.FullName;
+                Option1 = person.FullNameDativeLibrary;
+                Option2 = person.FullNameDativeFallback;
+                SelectedOption = "Library";
+            }
+        }
+
+        private ObservableCollection<ProblemPerson> _problemPersons = new ObservableCollection<ProblemPerson>();
+
+        public UserChoice Result { get; private set; } = UserChoice.ClosedByX;
+        public Dictionary<string, bool> SelectedOptions { get; private set; } = new Dictionary<string, bool>();
 
         public ChoiceDialog(List<Person> personsWithMismatch)
         {
             InitializeComponent();
 
-            string examples = string.Join("\n", personsWithMismatch.Take(5).Select(p =>
-                $"  • {p.FullName}\n    → Вариант 1: {p.FullNameDativeLibrary}\n    → Вариант 2: {p.FullNameDativeFallback}"));
+            foreach (var person in personsWithMismatch)
+            {
+                _problemPersons.Add(new ProblemPerson(person));
+            }
 
-            if (personsWithMismatch.Count > 5)
-                examples += $"\n  … и ещё {personsWithMismatch.Count - 5} записей";
-
-            ExamplesText.Text = $"📊 Обнаружено {personsWithMismatch.Count} ФИО с расхождениями:\n\n{examples}";
+            ProblemsGrid.ItemsSource = _problemPersons;
+            InfoText.Text = $"📊 Обнаружено {personsWithMismatch.Count} ФИО с расхождениями.\n" +
+                           "Выберите вариант склонения для каждого ФИО индивидуально или используйте кнопки массового выбора.";
         }
 
-        private void Option1Button_Click(object sender, RoutedEventArgs e)
+        private void AllOption1Button_Click(object sender, RoutedEventArgs e)
         {
-            _result = UserChoice.Option1;
+            foreach (var person in _problemPersons)
+            {
+                person.SelectedOption = "Library";
+            }
+        }
+
+        private void AllOption2Button_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var person in _problemPersons)
+            {
+                person.SelectedOption = "Fallback";
+            }
+        }
+
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var person in _problemPersons)
+            {
+                person.SelectedOption = "Library";
+            }
+        }
+
+        private void ProblemsGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var item = ProblemsGrid.SelectedItem as ProblemPerson;
+            if (item != null)
+            {
+                item.SelectedOption = item.SelectedOption == "Library" ? "Fallback" : "Library";
+            }
+        }
+
+        private void GenerateButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (var person in _problemPersons)
+            {
+                SelectedOptions[person.FullName] = person.SelectedOption == "Library";
+            }
+            Result = UserChoice.Generate;
             Close();
         }
 
-        private void Option2Button_Click(object sender, RoutedEventArgs e)
+        private void SkipButton_Click(object sender, RoutedEventArgs e)
         {
-            _result = UserChoice.Option2;
+            Result = UserChoice.Skip;
             Close();
         }
 
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        protected override void OnClosing(CancelEventArgs e)
         {
-            _result = UserChoice.Cancel;
-            Close();
-        }
-
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
-        {
-            // При закрытии через X результат остаётся ClosedByX
+            // Если закрыли через крестик - считаем как отмену
+            if (Result == UserChoice.ClosedByX)
+            {
+                Result = UserChoice.ClosedByX;
+            }
             base.OnClosing(e);
-        }
-
-        public UserChoice GetResult()
-        {
-            ShowDialog();
-            return _result;
         }
     }
 }

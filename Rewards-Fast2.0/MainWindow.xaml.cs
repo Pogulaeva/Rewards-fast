@@ -675,61 +675,136 @@ namespace Rewards_Fast2._0
 
         private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
+            // 1. Проверка: есть ли загруженные люди?
             if (_persons.Count == 0)
             {
                 System.Windows.MessageBox.Show("Сначала загрузите файл с ФИО", "Нет данных", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Блокируем кнопки
+            // Блокируем кнопки во время генерации
             GenerateButton.IsEnabled = false;
             SaveTemplateButton.IsEnabled = false;
 
-            _isGenerationCancelled = false;
-
             try
             {
+                // 2. Склоняем людей ОБОИМИ способами
                 await Task.Run(() => _declensionService.DeclinePersonsBothWays(_persons));
 
+                // 3. Если выбран именительный падеж — просто генерируем
                 if (!_useDative)
                 {
                     foreach (var person in _persons)
+                    {
                         person.FullNameDative = person.FullName;
-
+                    }
                     await Dispatcher.InvokeAsync(() => RefreshPersonsGrid());
                     await GenerateCertificatesAsync();
                     return;
                 }
 
+                // 4. Собираем проблемные ФИО
                 var personsWithMismatch = _persons.Where(p => p.HasDeclensionMismatch).ToList();
-                bool? useLibraryForMismatch = null;
 
+                // 5. Если есть проблемные ФИО — показываем диалог
                 if (personsWithMismatch.Any())
                 {
-                    await Dispatcher.InvokeAsync(() =>
+                    var dialog = new ChoiceDialog(personsWithMismatch);
+                    dialog.ShowDialog();
+
+                    switch (dialog.Result)
                     {
-                        var dialog = new ChoiceDialog(personsWithMismatch);
-                        var choice = dialog.GetResult();
-                        switch (choice)
-                        {
-                            case ChoiceDialog.UserChoice.Option1: useLibraryForMismatch = true; break;
-                            case ChoiceDialog.UserChoice.Option2: useLibraryForMismatch = false; break;
-                            case ChoiceDialog.UserChoice.Cancel: SaveMismatchedPersonsList(personsWithMismatch); return;
-                            case ChoiceDialog.UserChoice.ClosedByX: return;
-                        }
-                    });
-                }
+                        case ChoiceDialog.UserChoice.Skip:
+                            // Создаём папку для всех файлов
+                            string outputFolder = OutputFolderBox.Text;
+                            if (string.IsNullOrEmpty(outputFolder)) outputFolder = DefaultOutputFolder;
 
-                foreach (var person in _persons)
+                            string dateFolder = System.IO.Path.Combine(outputFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+                            Directory.CreateDirectory(dateFolder);
+
+                            // 1. Сохраняем файл с проблемными ФИО (старым методом)
+                            SaveMismatchedPersonsList(personsWithMismatch, dateFolder); // передаём папку параметром
+
+                            // 2. Сохраняем шаблон (если включено автосохранение)
+                            if (AutoSaveTemplateCheckBox.IsChecked == true)
+                            {
+                                string autoSavePath = System.IO.Path.Combine(dateFolder, "шаблон.json");
+                                await _templateService.SaveTemplateAsync(_currentTemplate, autoSavePath);
+                            }
+
+                            // 3. Генерируем ТОЛЬКО для правильных ФИО
+                            var correctPersons = _persons.Where(p => !p.HasDeclensionMismatch).ToList();
+
+                            if (correctPersons.Count == 0)
+                            {
+                                System.Windows.MessageBox.Show("Нет правильных ФИО для генерации. Все ФИО имеют расхождения.\n" +
+                                    $"Файл с проблемными ФИО сохранён в:\n{dateFolder}",
+                                    "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                System.Diagnostics.Process.Start("explorer.exe", dateFolder);
+                                return;
+                            }
+
+                            // Настраиваем склонение для правильных ФИО
+                            foreach (var person in correctPersons)
+                            {
+                                person.FullNameDative = person.FullNameDativeLibrary;
+                            }
+
+                            // Генерируем грамоты только для правильных ФИО
+                            string format = (ImageFormatBox.SelectedItem as ComboBoxItem)?.Content.ToString()?.ToLower() ?? "png";
+                            var progressWindow = new ProgressWindow(correctPersons.Count);
+                            _isGenerationCancelled = false;
+                            int generated = 0;
+
+                            progressWindow.Show();
+
+                            var generationTask = Task.Run(() =>
+                            {
+                                for (int i = 0; i < correctPersons.Count; i++)
+                                {
+                                    if (_isGenerationCancelled) break;
+
+                                    var person = correctPersons[i];
+                                    var currentIndex = i + 1;
+
+                                    progressWindow.Dispatcher.Invoke(() =>
+                                    {
+                                        progressWindow.UpdateProgress(currentIndex, correctPersons.Count);
+                                    });
+
+                                    string nameToInsert = person.FullNameDative;
+                                    string fileName = GenerateFileName(person, currentIndex, format);
+                                    string fullPath = System.IO.Path.Combine(dateFolder, fileName);
+
+                                    _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
+                                    generated++;
+                                }
+                            });
+
+                            await generationTask;
+                            progressWindow.Close();
+
+                            string message = _isGenerationCancelled
+                                ? $"⚠️ Генерация прервана!\nСоздано: {generated} из {correctPersons.Count}\nПапка: {dateFolder}"
+                                : $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}\n\n📁 Файл с проблемными ФИО сохранён в той же папке";
+
+                            System.Windows.MessageBox.Show(message, "Результат", MessageBoxButton.OK, MessageBoxImage.Information);
+                            System.Diagnostics.Process.Start("explorer.exe", dateFolder);
+                            return; // Выходим
+                    }
+                }
+                else
                 {
-                    if (person.HasDeclensionMismatch && useLibraryForMismatch.HasValue)
-                        person.FullNameDative = useLibraryForMismatch.Value ? person.FullNameDativeLibrary : person.FullNameDativeFallback;
-                    else
+                    // Нет проблемных ФИО — всем библиотечный вариант
+                    foreach (var person in _persons)
+                    {
                         person.FullNameDative = person.FullNameDativeLibrary;
+                    }
                 }
 
+                // 6. Запускаем генерацию для всех ФИО
                 await Dispatcher.InvokeAsync(() => RefreshPersonsGrid());
-                await GenerateCertificatesAsync(personsWithMismatch, useLibraryForMismatch);
+                await GenerateCertificatesAsync();
             }
             finally
             {
@@ -745,15 +820,18 @@ namespace Rewards_Fast2._0
         {
             string outputFolder = OutputFolderBox.Text;
             if (string.IsNullOrEmpty(outputFolder)) outputFolder = DefaultOutputFolder;
+
             string dateFolder = System.IO.Path.Combine(outputFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
             Directory.CreateDirectory(dateFolder);
 
+            // Сохраняем копию шаблона
             if (AutoSaveTemplateCheckBox.IsChecked == true)
             {
                 string autoSavePath = System.IO.Path.Combine(dateFolder, "шаблон.json");
                 await _templateService.SaveTemplateAsync(_currentTemplate, autoSavePath);
             }
 
+            // Сохраняем отчёт о выборе склонения (если были проблемы)
             if (personsWithMismatch != null && personsWithMismatch.Any() && useLibraryForMismatch.HasValue)
             {
                 SaveDeclensionChoiceReport(dateFolder, personsWithMismatch, useLibraryForMismatch.Value);
@@ -761,13 +839,14 @@ namespace Rewards_Fast2._0
 
             string format = (ImageFormatBox.SelectedItem as ComboBoxItem)?.Content.ToString()?.ToLower() ?? "png";
 
-            _progressWindow = new ProgressWindow(_persons.Count);
+            var progressWindow = new ProgressWindow(_persons.Count);
+            _isGenerationCancelled = false;
+
             int generated = 0;
 
-            // Показываем окно
-            _progressWindow.Show();
+            progressWindow.Show();
 
-            // Запускаем генерацию
+            // Запускаем генерацию в отдельном потоке
             var generationTask = Task.Run(() =>
             {
                 for (int i = 0; i < _persons.Count; i++)
@@ -778,56 +857,31 @@ namespace Rewards_Fast2._0
                     var person = _persons[i];
                     var currentIndex = i + 1;
 
-                    // Обновляем прогресс
-                    _progressWindow.Dispatcher.Invoke(() =>
+                    progressWindow.Dispatcher.Invoke(() =>
                     {
-                        _progressWindow.UpdateProgress(currentIndex, _persons.Count);
+                        progressWindow.UpdateProgress(currentIndex, _persons.Count);
                     });
 
                     string nameToInsert = person.FullNameDative;
                     string fileName = GenerateFileName(person, currentIndex, format);
                     string fullPath = System.IO.Path.Combine(dateFolder, fileName);
 
-                    // Генерируем
                     _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
                     generated++;
                 }
             });
 
-            // Ждём завершения или отмены
-            while (!generationTask.IsCompleted && !_isGenerationCancelled)
-            {
-                await Task.Delay(100);
-                // Проверяем, не закрыто ли окно
-                if (!_progressWindow.IsVisible)
-                {
-                    _isGenerationCancelled = true;
-                }
-            }
+            // Ждём завершения
+            await generationTask;
 
-            // Если пользователь закрыл окно, отменяем
-            if (_isGenerationCancelled && !generationTask.IsCompleted)
-            {
-                generationTask = null;
-            }
-            else
-            {
-                await generationTask;
-            }
+            progressWindow.Close();
 
-            _progressWindow.Close();
-
-            string message;
-            if (_isGenerationCancelled)
-            {
-                message = $"⚠️ Генерация прервана!\nСоздано: {generated}\nПапка: {dateFolder}";
-            }
-            else
-            {
-                message = $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}";
-            }
+            string message = _isGenerationCancelled
+                ? $"⚠️ Генерация прервана!\nСоздано: {generated}\nПапка: {dateFolder}"
+                : $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}";
 
             System.Windows.MessageBox.Show(message, "Результат", MessageBoxButton.OK, MessageBoxImage.Information);
+
             if (generated > 0)
                 System.Diagnostics.Process.Start("explorer.exe", dateFolder);
         }
@@ -853,17 +907,11 @@ namespace Rewards_Fast2._0
         }
 
         /// <summary>
-        /// Сохраняет список проблемных ФИО построчно (только исходные ФИО)
+        /// Сохраняет список проблемных ФИО построчно (только исходные ФИО) в указанную папку
         /// </summary>
-        private void SaveMismatchedPersonsList(List<Person> personsWithMismatch)
+        private void SaveMismatchedPersonsList(List<Person> personsWithMismatch, string outputFolder)
         {
-            string outputFolder = OutputFolderBox.Text;
-            if (string.IsNullOrEmpty(outputFolder)) outputFolder = DefaultOutputFolder;
-
-            string dateFolder = System.IO.Path.Combine(outputFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
-            Directory.CreateDirectory(dateFolder);
-
-            string mismatchFile = System.IO.Path.Combine(dateFolder, "проблемные_фио.txt");
+            string mismatchFile = System.IO.Path.Combine(outputFolder, "проблемные_фио.txt");
 
             using (var writer = new StreamWriter(mismatchFile, false, Encoding.UTF8))
             {
@@ -872,14 +920,6 @@ namespace Rewards_Fast2._0
                     writer.WriteLine(p.FullName);
                 }
             }
-
-            System.Windows.MessageBox.Show(
-                $"📁 Создан файл с проблемными ФИО:\n{mismatchFile}",
-                "Файл создан",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-
-            System.Diagnostics.Process.Start("explorer.exe", dateFolder);
         }
 
         /// <summary>
