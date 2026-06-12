@@ -1317,7 +1317,7 @@ namespace Rewards_Fast2._0
             double newRealX = _dragStartPointBlock.X + deltaX;
             double newRealY = _dragStartPointBlock.Y + deltaY;
 
-            // Получаем размеры фона
+            // Получаем размеры фона (один раз при старте перетаскивания, но пока оставим так)
             double realWidth = 800;
             double realHeight = 600;
 
@@ -1328,33 +1328,39 @@ namespace Rewards_Fast2._0
                 realHeight = tempImage.Height;
             }
 
-            // Используем РЕАЛЬНУЮ ширину текстового блока (как у изображений!)
             double blockWidth = _draggedBlockData.ActualWidth;
             double blockHeight = _draggedBlockData.ActualHeight;
 
-            // ТАКИЕ ЖЕ ОГРАНИЧЕНИЯ, КАК У ИЗОБРАЖЕНИЙ
             _draggedBlockData.PositionX = Math.Clamp(newRealX, 0, realWidth - blockWidth);
             _draggedBlockData.PositionY = Math.Clamp(newRealY, 0, realHeight - blockHeight);
 
+            // ТОЛЬКО меняем позицию на Canvas — без RefreshPreview!
             Canvas.SetLeft(textBlock, _draggedBlockData.PositionX * _currentScale);
             Canvas.SetTop(textBlock, _draggedBlockData.PositionY * _currentScale);
 
-            if (_selectedBlock == _draggedBlockData)
-            {
-                PositionXBox.Text = _draggedBlockData.PositionX.ToString("F0");
-                PositionYBox.Text = _draggedBlockData.PositionY.ToString("F0");
-            }
+            // НЕ обновляем поля свойств во время движения (убрали)
         }
 
         private void TextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             _isDraggingBlock = false;
-            _draggedBlockData = null;
+
             var textBlock = sender as System.Windows.Controls.TextBlock;
             if (textBlock != null)
             {
                 textBlock.ReleaseMouseCapture();
             }
+
+            // ТОЛЬКО ПРИ ОСТАНОВКЕ обновляем поля свойств
+            if (_draggedBlockData != null && _selectedBlock == _draggedBlockData)
+            {
+                _isUpdatingProperties = true;
+                PositionXBox.Text = _draggedBlockData.PositionX.ToString("F0");
+                PositionYBox.Text = _draggedBlockData.PositionY.ToString("F0");
+                _isUpdatingProperties = false;
+            }
+
+            _draggedBlockData = null;
         }
 
         private ImageBlockData? _draggedImage = null;
@@ -1416,14 +1422,12 @@ namespace Rewards_Fast2._0
 
             Point currentPoint = e.GetPosition(PreviewCanvas);
 
-            // Вычисляем смещение
             double deltaX = (currentPoint.X - _dragStartPointImageCanvas.X) / _currentScale;
             double deltaY = (currentPoint.Y - _dragStartPointImageCanvas.Y) / _currentScale;
 
             double newX = _dragStartPointImageReal.X + deltaX;
             double newY = _dragStartPointImageReal.Y + deltaY;
 
-            // Получаем размеры фона
             double realWidth = 800, realHeight = 600;
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
@@ -1432,26 +1436,20 @@ namespace Rewards_Fast2._0
                 realHeight = tempImage.Height;
             }
 
-            // Ограничиваем перемещение
             _draggedImage.PositionX = Math.Clamp(newX, 0, realWidth - _draggedImage.Width);
             _draggedImage.PositionY = Math.Clamp(newY, 0, realHeight - _draggedImage.Height);
 
-            // Обновляем позицию изображения на Canvas
+            // ТОЛЬКО меняем позицию на Canvas — без RefreshPreview!
             Canvas.SetLeft(image, _draggedImage.PositionX * _currentScale);
             Canvas.SetTop(image, _draggedImage.PositionY * _currentScale);
-
-            // ОБНОВЛЯЕМ ПОЛЯ СВОЙСТВ в реальном времени
-            if (_selectedImage == _draggedImage)
-            {
-                PositionXBox.Text = _draggedImage.PositionX.ToString("F0");
-                PositionYBox.Text = _draggedImage.PositionY.ToString("F0");
-            }
 
             // Обновляем маркеры, если они есть
             if (_isResizeMode && _resizingImage == _draggedImage)
             {
                 UpdateResizeHandles(_draggedImage);
             }
+
+            // НЕ обновляем поля свойств во время движения
         }
 
         private void Image_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -1462,11 +1460,13 @@ namespace Rewards_Fast2._0
             if (image != null)
                 image.ReleaseMouseCapture();
 
-            // Убеждаемся, что поля свойств обновлены финальными значениями
+            // ТОЛЬКО ПРИ ОСТАНОВКЕ обновляем поля свойств
             if (_draggedImage != null && _selectedImage == _draggedImage)
             {
+                _isUpdatingImageProperties = true;
                 PositionXBox.Text = _draggedImage.PositionX.ToString("F0");
                 PositionYBox.Text = _draggedImage.PositionY.ToString("F0");
+                _isUpdatingImageProperties = false;
             }
 
             _draggedImage = null;
