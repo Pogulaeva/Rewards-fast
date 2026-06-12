@@ -221,42 +221,6 @@ namespace Rewards_Fast2._0.Services
         }
 
         /// <summary>
-        /// Рендеринг Canvas в файл
-        /// </summary>
-        private void RenderToImage(Canvas canvas, string outputPath, string format)
-        {
-            // Принудительно обновляем размеры
-            canvas.Measure(new System.Windows.Size(canvas.Width, canvas.Height));
-            canvas.Arrange(new Rect(0, 0, canvas.Width, canvas.Height));
-            canvas.UpdateLayout();
-
-            // Рендерим
-            var renderBitmap = new RenderTargetBitmap(
-                (int)canvas.Width,
-                (int)canvas.Height,
-                96d,
-                96d,
-                PixelFormats.Pbgra32);
-
-            renderBitmap.Render(canvas);
-
-            // Кодируем
-            BitmapEncoder encoder = format.ToLower() switch
-            {
-                "jpg" or "jpeg" => new JpegBitmapEncoder { QualityLevel = 90 },
-                _ => new PngBitmapEncoder()
-            };
-
-            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-            // Сохраняем
-            using (var fileStream = new FileStream(outputPath, FileMode.Create))
-            {
-                encoder.Save(fileStream);
-            }
-        }
-
-        /// <summary>
         /// Генерация имени файла
         /// </summary>
         private string GenerateFileName(Person person, int index, string format)

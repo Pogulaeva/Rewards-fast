@@ -54,6 +54,8 @@ namespace Rewards_Fast2._0
         private double _resizeStartX;
         private double _resizeStartY;
 
+        private Dictionary<string, bool> _selectedDeclensionOptions = new Dictionary<string, bool>();
+
         private static readonly string AppDataFolder =
             System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RewardsFast");
         private static readonly string BackgroundsFolder =
@@ -358,7 +360,7 @@ namespace Rewards_Fast2._0
                     Source = imageBlock.Source,
                     Width = imageBlock.Width * scale,
                     Height = imageBlock.Height * scale,
-                    Stretch = Stretch.Fill,
+                    Stretch = Stretch.Fill,  // Заполняет заданные размеры
                     Tag = imageBlock
                 };
 
@@ -581,18 +583,36 @@ namespace Rewards_Fast2._0
                 }
                 _persons = persons;
 
-                // Склоняем ОБОИМИ способами (нужно для будущей генерации и сравнения)
+                // Склоняем ОБОИМИ способами
                 _declensionService.DeclinePersonsBothWays(_persons);
-
-                // Обновляем таблицу в зависимости от выбранного падежа
                 RefreshPersonsGrid();
 
-                System.Windows.MessageBox.Show($"Загружено {_persons.Count} человек", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                System.Windows.MessageBox.Show($"Загружено {GetPersonCountString(_persons.Count)}", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        /// <summary>
+        /// Возвращает правильную форму слова "человек" в зависимости от числа
+        /// </summary>
+        private string GetPersonCountString(int count)
+        {
+            int lastTwo = Math.Abs(count % 100);
+            int lastOne = lastTwo % 10;
+
+            if (lastTwo >= 11 && lastTwo <= 14)
+                return $"{count} человек";
+
+            if (lastOne == 1)
+                return $"{count} человек";
+
+            if (lastOne >= 2 && lastOne <= 4)
+                return $"{count} человека";
+
+            return $"{count} человек";
         }
 
         private void RefreshPersonsGrid(bool showMismatch = true)
@@ -688,7 +708,7 @@ namespace Rewards_Fast2._0
 
             try
             {
-                // 2. Склоняем людей ОБОИМИ способами
+                // 2. Склоняем людей ОБОИМИ способами (ещё раз, на всякий случай)
                 await Task.Run(() => _declensionService.DeclinePersonsBothWays(_persons));
 
                 // 3. Если выбран именительный падеж — просто генерируем
@@ -710,10 +730,29 @@ namespace Rewards_Fast2._0
                 if (personsWithMismatch.Any())
                 {
                     var dialog = new ChoiceDialog(personsWithMismatch);
+                    dialog.Owner = this;
                     dialog.ShowDialog();
 
                     switch (dialog.Result)
                     {
+                        case ChoiceDialog.UserChoice.Generate:
+                            // СОХРАНЯЕМ ВЫБОР ПОЛЬЗОВАТЕЛЯ
+                            _selectedDeclensionOptions = dialog.SelectedOptions;
+
+                            // Применяем выбранные варианты к Person
+                            foreach (var person in _persons)
+                            {
+                                if (_selectedDeclensionOptions.TryGetValue(person.FullName, out bool useLibrary))
+                                {
+                                    person.FullNameDative = useLibrary ? person.FullNameDativeLibrary : person.FullNameDativeFallback;
+                                }
+                                else
+                                {
+                                    person.FullNameDative = person.FullNameDativeLibrary;
+                                }
+                            }
+                            break;
+
                         case ChoiceDialog.UserChoice.Skip:
                             // Создаём папку для всех файлов
                             string outputFolder = OutputFolderBox.Text;
@@ -722,8 +761,8 @@ namespace Rewards_Fast2._0
                             string dateFolder = System.IO.Path.Combine(outputFolder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
                             Directory.CreateDirectory(dateFolder);
 
-                            // 1. Сохраняем файл с проблемными ФИО (старым методом)
-                            SaveMismatchedPersonsList(personsWithMismatch, dateFolder); // передаём папку параметром
+                            // 1. Сохраняем файл с проблемными ФИО
+                            SaveMismatchedPersonsList(personsWithMismatch, dateFolder);
 
                             // 2. Сохраняем шаблон (если включено автосохранение)
                             if (AutoSaveTemplateCheckBox.IsChecked == true)
@@ -737,7 +776,7 @@ namespace Rewards_Fast2._0
 
                             if (correctPersons.Count == 0)
                             {
-                                System.Windows.MessageBox.Show("Нет правильных ФИО для генерации. Все ФИО имеют расхождения.\n" +
+                                System.Windows.MessageBox.Show($"Нет правильных ФИО для генерации. Все {GetPersonCountString(_persons.Count)} имеют расхождения.\n" +
                                     $"Файл с проблемными ФИО сохранён в:\n{dateFolder}",
                                     "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
                                 System.Diagnostics.Process.Start("explorer.exe", dateFolder);
@@ -790,7 +829,7 @@ namespace Rewards_Fast2._0
 
                             System.Windows.MessageBox.Show(message, "Результат", MessageBoxButton.OK, MessageBoxImage.Information);
                             System.Diagnostics.Process.Start("explorer.exe", dateFolder);
-                            return; // Выходим
+                            return; // Выходим, чтобы не запускать вторую генерацию
                     }
                 }
                 else
@@ -845,6 +884,15 @@ namespace Rewards_Fast2._0
             int generated = 0;
 
             progressWindow.Show();
+
+            foreach (var p in _persons.Take(5))
+            {
+                System.Diagnostics.Debug.WriteLine($"=== {p.FullName} ===");
+                System.Diagnostics.Debug.WriteLine($"Library: {p.FullNameDativeLibrary}");
+                System.Diagnostics.Debug.WriteLine($"Fallback: {p.FullNameDativeFallback}");
+                System.Diagnostics.Debug.WriteLine($"Selected: {p.FullNameDative}");
+                System.Diagnostics.Debug.WriteLine($"HasMismatch: {p.HasDeclensionMismatch}");
+            }
 
             // Запускаем генерацию в отдельном потоке
             var generationTask = Task.Run(() =>
@@ -1436,7 +1484,7 @@ namespace Rewards_Fast2._0
 
             if (_selectedImage != null)
             {
-                // Показываем свойства изображения, скрываем свойства текста
+                // Показываем свойства изображения
                 ShowImageProperties();
 
                 TextPropertyBox.IsEnabled = false;
@@ -1450,14 +1498,15 @@ namespace Rewards_Fast2._0
                 ImageWidthBox.IsEnabled = true;
                 ImageHeightBox.IsEnabled = true;
 
-                if (!_isDraggingImage)
-                {
-                    PositionXBox.Text = _selectedImage.PositionX.ToString();
-                    PositionYBox.Text = _selectedImage.PositionY.ToString();
-                }
+                // ВАЖНО: временно отключаем обработчик, чтобы не было рекурсии
+                _isUpdatingImageProperties = true;
 
-                ImageWidthBox.Text = _selectedImage.Width.ToString();
-                ImageHeightBox.Text = _selectedImage.Height.ToString();
+                PositionXBox.Text = _selectedImage.PositionX.ToString("F0");
+                PositionYBox.Text = _selectedImage.PositionY.ToString("F0");
+                ImageWidthBox.Text = _selectedImage.Width.ToString("F0");
+                ImageHeightBox.Text = _selectedImage.Height.ToString("F0");
+
+                _isUpdatingImageProperties = false;
             }
         }
 
@@ -1479,21 +1528,66 @@ namespace Rewards_Fast2._0
             {
                 int nextNumber = _currentTemplate.ImageBlocks.Count + 1;
 
+                // Загружаем изображение, чтобы получить его реальные размеры
+                BitmapImage? tempImage = null;
+                try
+                {
+                    tempImage = new BitmapImage();
+                    tempImage.BeginInit();
+                    tempImage.UriSource = new Uri(dialog.FileName, UriKind.Absolute);
+                    tempImage.CacheOption = BitmapCacheOption.OnLoad;
+                    tempImage.EndInit();
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"Не удалось загрузить изображение: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Определяем размеры с сохранением пропорций
+                double defaultWidth = 100;
+                double aspect = tempImage.Width / tempImage.Height;
+                double defaultHeight = defaultWidth / aspect;
+
                 var newImage = new ImageBlockData
                 {
                     Id = Guid.NewGuid().ToString(),
                     ImagePath = dialog.FileName,
                     Name = $"Изображение {nextNumber}",
-                    PositionX = 200,
-                    PositionY = 200,
-                    Width = 80,
-                    Height = 80
+                    PositionX = 50,
+                    PositionY = 50,
+                    Width = defaultWidth,
+                    Height = defaultHeight
                 };
                 newImage.LoadImage();
 
+                // ВАЖНО: временно отключаем обновление свойств, чтобы избежать глюков
+                _isUpdatingImageProperties = true;
+
                 _currentTemplate.ImageBlocks.Add(newImage);
+
+                // Сбрасываем выделение
+                _selectedImage = null;
+                _selectedBlock = null;
+                _isResizeMode = false;
+                _resizingImage = null;
+
                 RefreshImagesList();
                 RefreshPreview();
+
+                // Выбираем новое изображение
+                ImagesListBox.SelectedItem = newImage;
+
+                // Теперь принудительно устанавливаем правильные значения в поля свойств
+                if (_selectedImage != null)
+                {
+                    PositionXBox.Text = _selectedImage.PositionX.ToString("F0");
+                    PositionYBox.Text = _selectedImage.PositionY.ToString("F0");
+                    ImageWidthBox.Text = _selectedImage.Width.ToString("F0");
+                    ImageHeightBox.Text = _selectedImage.Height.ToString("F0");
+                }
+
+                _isUpdatingImageProperties = false;
             }
         }
 
@@ -1502,11 +1596,69 @@ namespace Rewards_Fast2._0
             if (_isUpdatingImageProperties) return;
             if (_selectedImage == null) return;
 
+            double newWidth = _selectedImage.Width;
+            double newHeight = _selectedImage.Height;
+
+            // Определяем, какое поле было изменено
+            bool widthChanged = false;
+            bool heightChanged = false;
+
             if (double.TryParse(ImageWidthBox.Text, out double width))
-                _selectedImage.Width = Math.Clamp(width, 20, 500);
+            {
+                if (width != _selectedImage.Width)
+                {
+                    newWidth = Math.Clamp(width, 20, 500);
+                    widthChanged = true;
+                }
+            }
 
             if (double.TryParse(ImageHeightBox.Text, out double height))
-                _selectedImage.Height = Math.Clamp(height, 20, 500);
+            {
+                if (height != _selectedImage.Height)
+                {
+                    newHeight = Math.Clamp(height, 20, 500);
+                    heightChanged = true;
+                }
+            }
+
+            // Вычисляем текущие пропорции
+            double aspect = _selectedImage.Width / _selectedImage.Height;
+
+            // Если изменилась только ширина — пересчитываем высоту с сохранением пропорций
+            if (widthChanged && !heightChanged)
+            {
+                newHeight = newWidth / aspect;
+            }
+            // Если изменилась только высота — пересчитываем ширину с сохранением пропорций
+            else if (heightChanged && !widthChanged)
+            {
+                newWidth = newHeight * aspect;
+            }
+            // Если изменились оба поля — доверяем пользователю, но проверяем, не слишком ли сильно разъехались пропорции
+            else if (widthChanged && heightChanged)
+            {
+                double newAspect = newWidth / newHeight;
+                // Если новое соотношение сильно отличается от старого (>5% разницы), 
+                // то считаем, что пользователь хочет изменить пропорции вручную
+                if (Math.Abs(newAspect - aspect) > 0.05)
+                {
+                    // Оставляем как есть (пользователь сам задал новые пропорции)
+                }
+                else
+                {
+                    // Иначе сохраняем старые пропорции, беря за основу ширину
+                    newHeight = newWidth / aspect;
+                }
+            }
+
+            _selectedImage.Width = Math.Clamp(newWidth, 20, 500);
+            _selectedImage.Height = Math.Clamp(newHeight, 20, 500);
+
+            // Обновляем поля, чтобы показать скорректированные значения
+            _isUpdatingImageProperties = true;
+            ImageWidthBox.Text = _selectedImage.Width.ToString("F0");
+            ImageHeightBox.Text = _selectedImage.Height.ToString("F0");
+            _isUpdatingImageProperties = false;
 
             RefreshPreview();
         }
@@ -1618,25 +1770,25 @@ namespace Rewards_Fast2._0
             {
                 case "tl":
                     newWidth = _resizeStartWidth - deltaX;
-                    newHeight = newWidth / aspect;
+                    newHeight = newWidth / aspect;  // СОХРАНЯЕМ ПРОПОРЦИИ
                     newX = _resizeStartX + (_resizeStartWidth - newWidth);
                     newY = _resizeStartY + (_resizeStartHeight - newHeight);
                     break;
                 case "tr":
                     newWidth = _resizeStartWidth + deltaX;
-                    newHeight = newWidth / aspect;
+                    newHeight = newWidth / aspect;  // СОХРАНЯЕМ ПРОПОРЦИИ
                     newX = _resizeStartX;
                     newY = _resizeStartY + (_resizeStartHeight - newHeight);
                     break;
                 case "bl":
                     newWidth = _resizeStartWidth - deltaX;
-                    newHeight = newWidth / aspect;
+                    newHeight = newWidth / aspect;  // СОХРАНЯЕМ ПРОПОРЦИИ
                     newX = _resizeStartX + (_resizeStartWidth - newWidth);
                     newY = _resizeStartY;
                     break;
                 case "br":
                     newWidth = _resizeStartWidth + deltaX;
-                    newHeight = newWidth / aspect;
+                    newHeight = newWidth / aspect;  // СОХРАНЯЕМ ПРОПОРЦИИ
                     newX = _resizeStartX;
                     newY = _resizeStartY;
                     break;
@@ -1678,10 +1830,12 @@ namespace Rewards_Fast2._0
 
             if (_selectedImage == _resizingImage)
             {
+                _isUpdatingImageProperties = true;
                 ImageWidthBox.Text = newWidth.ToString("F0");
                 ImageHeightBox.Text = newHeight.ToString("F0");
                 PositionXBox.Text = newX.ToString("F0");
                 PositionYBox.Text = newY.ToString("F0");
+                _isUpdatingImageProperties = false;
             }
         }
 
