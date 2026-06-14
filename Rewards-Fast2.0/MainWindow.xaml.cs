@@ -20,6 +20,7 @@ using Cursors = System.Windows.Input.Cursors;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
+using MessageBox = System.Windows.MessageBox;
 
 namespace Rewards_Fast2._0
 {
@@ -34,7 +35,6 @@ namespace Rewards_Fast2._0
         private List<Person> _persons = new List<Person>();
         private bool _useDative = false;
         private TextBlockData? _selectedBlock;
-        private bool _hasGenerated = false;
         private bool _isDraggingBlock = false;
         private bool _isUpdatingProperties = false;
         private TextBlockData? _draggedBlockData = null;
@@ -142,12 +142,7 @@ namespace Rewards_Fast2._0
                     {
                         try
                         {
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.UriSource = new Uri(file, UriKind.Absolute);
-                            bitmap.DecodePixelWidth = 80;
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.EndInit();
+                            var bitmap = ImageHelper.LoadImage(file, 80);
                             backgrounds.Add(new BackgroundItem
                             {
                                 FilePath = file,
@@ -173,12 +168,7 @@ namespace Rewards_Fast2._0
 
                         try
                         {
-                            var bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.UriSource = new Uri(file, UriKind.Absolute);
-                            bitmap.DecodePixelWidth = 80;
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.EndInit();
+                            var bitmap = ImageHelper.LoadImage(file, 80);
                             backgrounds.Add(new BackgroundItem
                             {
                                 FilePath = file,
@@ -250,7 +240,7 @@ namespace Rewards_Fast2._0
 
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
-                backgroundImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                backgroundImage = ImageHelper.LoadImage(_currentTemplate.BackgroundPath);
                 realWidth = backgroundImage.Width;
                 realHeight = backgroundImage.Height;
             }
@@ -379,16 +369,6 @@ namespace Rewards_Fast2._0
             {
                 AddResizeHandles(_resizingImage);
             }
-        }
-
-        private BitmapImage LoadBitmapImage(string path)
-        {
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(path, UriKind.Absolute);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            return bitmap;
         }
 
         private void SetBackground(string imagePath)
@@ -660,22 +640,20 @@ namespace Rewards_Fast2._0
 
         private void OpenOutputFolderButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!_hasGenerated)
-            {
-                System.Windows.MessageBox.Show("Сначала сгенерируйте грамоты", "Нет результатов",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
             string folder = OutputFolderBox.Text;
             if (string.IsNullOrEmpty(folder)) folder = DefaultOutputFolder;
 
             string latestFolder = GetLatestOutputFolder(folder);
+
             if (Directory.Exists(latestFolder))
+            {
                 System.Diagnostics.Process.Start("explorer.exe", latestFolder);
+            }
             else
-                System.Windows.MessageBox.Show("Папка с результатами не найдена", "Ошибка",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+            {
+                System.Windows.MessageBox.Show("Папка с результатами не найдена.\nСначала сгенерируйте грамоты.",
+                    "Нет результатов", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private string GetLatestOutputFolder(string baseFolder)
@@ -687,8 +665,6 @@ namespace Rewards_Fast2._0
 
             return subfolders.OrderByDescending(d => Directory.GetCreationTime(d)).FirstOrDefault() ?? baseFolder;
         }
-
-        private List<Person> _personsWithMismatch = new List<Person>();
 
         private bool _isGenerationCancelled = false;
         private ProgressWindow? _progressWindow;
@@ -885,53 +861,87 @@ namespace Rewards_Fast2._0
 
             progressWindow.Show();
 
-            foreach (var p in _persons.Take(5))
+            try
             {
-                System.Diagnostics.Debug.WriteLine($"=== {p.FullName} ===");
-                System.Diagnostics.Debug.WriteLine($"Library: {p.FullNameDativeLibrary}");
-                System.Diagnostics.Debug.WriteLine($"Fallback: {p.FullNameDativeFallback}");
-                System.Diagnostics.Debug.WriteLine($"Selected: {p.FullNameDative}");
-                System.Diagnostics.Debug.WriteLine($"HasMismatch: {p.HasDeclensionMismatch}");
-            }
-
-            // Запускаем генерацию в отдельном потоке
-            var generationTask = Task.Run(() =>
-            {
-                for (int i = 0; i < _persons.Count; i++)
+                // Запускаем генерацию
+                await Task.Run(() =>
                 {
-                    if (_isGenerationCancelled)
-                        break;
-
-                    var person = _persons[i];
-                    var currentIndex = i + 1;
-
-                    progressWindow.Dispatcher.Invoke(() =>
+                    for (int i = 0; i < _persons.Count; i++)
                     {
+                        // ПРОВЕРКА НА ПАУЗУ (ждём, пока пользователь ответит на вопрос)
+                        progressWindow.PauseEvent.Wait();
+
+                        // Проверяем отмену перед каждой итерацией
+                        if (progressWindow.CancellationToken.IsCancellationRequested)
+                        {
+                            _isGenerationCancelled = true;
+                            break;
+                        }
+
+                        var person = _persons[i];
+                        var currentIndex = i + 1;
+
                         progressWindow.UpdateProgress(currentIndex, _persons.Count);
+
+                        string nameToInsert = person.FullNameDative;
+                        string fileName = GenerateFileName(person, currentIndex, format);
+                        string fullPath = System.IO.Path.Combine(dateFolder, fileName);
+
+                        _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
+                        generated++;
+                    }
+                });
+
+                // Закрываем окно прогресса
+                progressWindow.CloseWindow();
+
+                // Если была отмена
+                if (_isGenerationCancelled)
+                {
+                    // Удаляем папку с результатами
+                    if (Directory.Exists(dateFolder))
+                    {
+                        try
+                        {
+                            await Task.Delay(100);
+                            Directory.Delete(dateFolder, true);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Ошибка удаления: {ex.Message}");
+                        }
+                    }
+
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        MessageBox.Show("⚠️ Генерация прервана пользователем.\nВсе созданные файлы удалены.",
+                            "Отмена", MessageBoxButton.OK, MessageBoxImage.Warning);
                     });
-
-                    string nameToInsert = person.FullNameDative;
-                    string fileName = GenerateFileName(person, currentIndex, format);
-                    string fullPath = System.IO.Path.Combine(dateFolder, fileName);
-
-                    _imageGenerator.GenerateSingleCertificate(_currentTemplate, nameToInsert, fullPath, format);
-                    generated++;
+                    return;
                 }
-            });
 
-            // Ждём завершения
-            await generationTask;
+                // Успешное завершение
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    MessageBox.Show($"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}",
+                        "Результат", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            progressWindow.Close();
+                    System.Diagnostics.Process.Start("explorer.exe", dateFolder);
 
-            string message = _isGenerationCancelled
-                ? $"⚠️ Генерация прервана!\nСоздано: {generated}\nПапка: {dateFolder}"
-                : $"✅ Генерация завершена!\nСоздано: {generated}\nПапка: {dateFolder}";
+                    OpenFolderButton.IsEnabled = true;
+                    OpenFolderButton.ToolTip = "Посмотреть результаты последней генерации";
+                });
+            }
+            catch (Exception ex)
+            {
+                progressWindow.CloseWindow();
 
-            System.Windows.MessageBox.Show(message, "Результат", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            if (generated > 0)
-                System.Diagnostics.Process.Start("explorer.exe", dateFolder);
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    MessageBox.Show($"Ошибка при генерации: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                });
+            }
         }
 
         /// <summary>
@@ -1063,7 +1073,7 @@ namespace Rewards_Fast2._0
 
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
-                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                var tempImage = ImageHelper.LoadImage(_currentTemplate.BackgroundPath);
                 realWidth = tempImage.Width;
                 realHeight = tempImage.Height;
             }
@@ -1144,7 +1154,7 @@ namespace Rewards_Fast2._0
 
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
-                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                var tempImage = ImageHelper.LoadImage(_currentTemplate.BackgroundPath);
                 realWidth = tempImage.Width;
                 realHeight = tempImage.Height;
             }
@@ -1230,8 +1240,11 @@ namespace Rewards_Fast2._0
             if (_isUpdatingProperties) return;
             if (_selectedBlock != null && float.TryParse(FontSizeBox.Text, out float size))
             {
+                // Валидация: минимум 6, максимум 200
+                size = Math.Clamp(size, 6, 200);
                 _selectedBlock.FontSize = size;
-                UpdateTextBlockActualSize(_selectedBlock); // ОБНОВЛЯЕМ РАЗМЕРЫ!
+                FontSizeBox.Text = size.ToString(); // показываем скорректированное значение
+                UpdateTextBlockActualSize(_selectedBlock);
                 RefreshPreview();
             }
         }
@@ -1323,7 +1336,7 @@ namespace Rewards_Fast2._0
 
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
-                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                var tempImage = ImageHelper.LoadImage(_currentTemplate.BackgroundPath);
                 realWidth = tempImage.Width;
                 realHeight = tempImage.Height;
             }
@@ -1337,8 +1350,6 @@ namespace Rewards_Fast2._0
             // ТОЛЬКО меняем позицию на Canvas — без RefreshPreview!
             Canvas.SetLeft(textBlock, _draggedBlockData.PositionX * _currentScale);
             Canvas.SetTop(textBlock, _draggedBlockData.PositionY * _currentScale);
-
-            // НЕ обновляем поля свойств во время движения (убрали)
         }
 
         private void TextBlock_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -1431,7 +1442,7 @@ namespace Rewards_Fast2._0
             double realWidth = 800, realHeight = 600;
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
-                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                var tempImage = ImageHelper.LoadImage(_currentTemplate.BackgroundPath);
                 realWidth = tempImage.Width;
                 realHeight = tempImage.Height;
             }
@@ -1448,8 +1459,6 @@ namespace Rewards_Fast2._0
             {
                 UpdateResizeHandles(_draggedImage);
             }
-
-            // НЕ обновляем поля свойств во время движения
         }
 
         private void Image_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -1532,11 +1541,7 @@ namespace Rewards_Fast2._0
                 BitmapImage? tempImage = null;
                 try
                 {
-                    tempImage = new BitmapImage();
-                    tempImage.BeginInit();
-                    tempImage.UriSource = new Uri(dialog.FileName, UriKind.Absolute);
-                    tempImage.CacheOption = BitmapCacheOption.OnLoad;
-                    tempImage.EndInit();
+                    tempImage = ImageHelper.LoadImage(dialog.FileName);
                 }
                 catch (Exception ex)
                 {
@@ -1801,7 +1806,7 @@ namespace Rewards_Fast2._0
             double realHeight = 600;
             if (!string.IsNullOrEmpty(_currentTemplate.BackgroundPath) && File.Exists(_currentTemplate.BackgroundPath))
             {
-                var tempImage = LoadBitmapImage(_currentTemplate.BackgroundPath);
+                var tempImage = ImageHelper.LoadImage(_currentTemplate.BackgroundPath);
                 realWidth = tempImage.Width;
                 realHeight = tempImage.Height;
             }
@@ -2000,20 +2005,20 @@ namespace Rewards_Fast2._0
 
             _selectedBlock.CenterAtGeneration = CenterYes.IsChecked == true;
         }
-    }
 
-    public class BackgroundItem
-    {
-        public string FilePath { get; set; } = string.Empty;
-        public ImageSource? Thumbnail { get; set; }
-        public bool IsBuiltIn { get; set; } = false;
-    }
+        public class BackgroundItem
+        {
+            public string FilePath { get; set; } = string.Empty;
+            public ImageSource? Thumbnail { get; set; }
+            public bool IsBuiltIn { get; set; } = false;
+        }
 
-    public class PersonDisplay
-    {
-        public string FullName { get; set; } = string.Empty;
-        public string DisplayNameLibrary { get; set; } = string.Empty;
-        public string DisplayNameFallback { get; set; } = string.Empty;
-        public bool HasDeclensionMismatch { get; set; } = false;
+        public class PersonDisplay
+        {
+            public string FullName { get; set; } = string.Empty;
+            public string DisplayNameLibrary { get; set; } = string.Empty;
+            public string DisplayNameFallback { get; set; } = string.Empty;
+            public bool HasDeclensionMismatch { get; set; } = false;
+        }
     }
 }

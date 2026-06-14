@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Rewards_Fast2._0.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Rewards Fast — Конструктор наградных материалов" 
+        Title="Rewards Fast — Конструктор наградных материалов"
         Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
         AllowDrop="True"
