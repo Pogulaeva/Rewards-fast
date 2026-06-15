@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,10 +18,10 @@ using System.Windows.Media.Imaging;
 using Brushes = System.Windows.Media.Brushes;
 using Cursor = System.Windows.Input.Cursor;
 using Cursors = System.Windows.Input.Cursors;
+using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
-using MessageBox = System.Windows.MessageBox;
 
 namespace Rewards_Fast2._0
 {
@@ -68,6 +69,16 @@ namespace Rewards_Fast2._0
         public MainWindow()
         {
             InitializeComponent();
+
+            // Загружаем иконку окна из внедрённого ресурса
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream("Rewards_Fast2._0.Resources.Rewards_fast.ico"))
+            {
+                if (stream != null)
+                {
+                    this.Icon = BitmapFrame.Create(stream);
+                }
+            }
 
             // Кнопка генерации изначально неактивна
             GenerateButton.IsEnabled = false;
@@ -130,42 +141,47 @@ namespace Rewards_Fast2._0
         {
             var backgrounds = new List<BackgroundItem>();
 
-            // Получаем путь к папке с фонами в выходной директории
-            string backgroundsPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Backgrounds");
-
-            if (Directory.Exists(backgroundsPath))
+            // ===== 1. ЗАГРУЖАЕМ ВСТРОЕННЫЕ ФОНЫ (из ресурсов) =====
+            var embeddedBackgrounds = EmbeddedResourceHelper.GetEmbeddedBackgrounds();
+            foreach (var embedded in embeddedBackgrounds)
             {
-                foreach (string file in Directory.GetFiles(backgroundsPath))
+                // Создаём миниатюру 80x80
+                var thumbnail = new BitmapImage();
+                using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(embedded.ResourcePath))
                 {
-                    string ext = System.IO.Path.GetExtension(file).ToLower();
-                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
+                    if (stream != null)
                     {
-                        try
-                        {
-                            var bitmap = ImageHelper.LoadImage(file, 80);
-                            backgrounds.Add(new BackgroundItem
-                            {
-                                FilePath = file,
-                                Thumbnail = bitmap,
-                                IsBuiltIn = true
-                            });
-                        }
-                        catch { }
+                        thumbnail.BeginInit();
+                        thumbnail.StreamSource = stream;
+                        thumbnail.DecodePixelWidth = 80;
+                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                        thumbnail.EndInit();
+                        thumbnail.Freeze();
                     }
                 }
+
+                backgrounds.Add(new BackgroundItem
+                {
+                    FilePath = embedded.Name,  // Сохраняем имя для отображения
+                    Thumbnail = thumbnail,
+                    IsBuiltIn = true,
+                    IsEmbedded = true,
+                    ResourceName = embedded.ResourcePath
+                });
             }
 
-            // Загружаем пользовательские фоны из папки в документах
-            if (Directory.Exists(BackgroundsFolder))
+            // ===== 2. ЗАГРУЖАЕМ ПОЛЬЗОВАТЕЛЬСКИЕ ФОНЫ (из папки в документах) =====
+            string userBackgroundsFolder = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "RewardsFast", "Фоны");
+
+            if (Directory.Exists(userBackgroundsFolder))
             {
-                foreach (string file in Directory.GetFiles(BackgroundsFolder))
+                foreach (string file in Directory.GetFiles(userBackgroundsFolder))
                 {
                     string ext = System.IO.Path.GetExtension(file).ToLower();
                     if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
                     {
-                        // Проверяем, не добавили ли уже этот файл
-                        if (backgrounds.Any(b => b.FilePath == file)) continue;
-
                         try
                         {
                             var bitmap = ImageHelper.LoadImage(file, 80);
@@ -173,7 +189,8 @@ namespace Rewards_Fast2._0
                             {
                                 FilePath = file,
                                 Thumbnail = bitmap,
-                                IsBuiltIn = false
+                                IsBuiltIn = false,
+                                IsEmbedded = false
                             });
                         }
                         catch { }
@@ -389,23 +406,45 @@ namespace Rewards_Fast2._0
         {
             if (sender is Border border && border.DataContext is BackgroundItem item)
             {
-                if (item.IsBuiltIn)
+                if (item.IsEmbedded)
                 {
-                    _currentTemplate.BackgroundPath = item.FilePath;
-                    RefreshPreview();
+                    // Встроенный фон — загружаем из ресурсов
+                    var assembly = Assembly.GetExecutingAssembly();
+                    using (var stream = assembly.GetManifestResourceStream(item.ResourceName))
+                    {
+                        if (stream != null)
+                        {
+                            // Сохраняем временно в файл или работаем из памяти
+                            // Для простоты — сохраним во временную папку
+                            string tempFolder = System.IO.Path.GetTempPath();
+                            string tempFile = System.IO.Path.Combine(tempFolder, item.FilePath);
 
-                    GenerateButton.IsEnabled = true;
-                    GenerateButton.Opacity = 1;
-                    GenerateButton.ToolTip = null;
-
-                    SaveTemplateButton.IsEnabled = true;
-                    SaveTemplateButton.Opacity = 1;
-                    SaveTemplateButton.ToolTip = null;
+                            if (!File.Exists(tempFile))
+                            {
+                                using (var fileStream = File.Create(tempFile))
+                                {
+                                    stream.CopyTo(fileStream);
+                                }
+                            }
+                            _currentTemplate.BackgroundPath = tempFile;
+                        }
+                    }
                 }
                 else
                 {
-                    SetBackground(item.FilePath);
+                    // Обычный файл
+                    _currentTemplate.BackgroundPath = item.FilePath;
                 }
+
+                RefreshPreview();
+
+                GenerateButton.IsEnabled = true;
+                GenerateButton.Opacity = 1;
+                GenerateButton.ToolTip = null;
+
+                SaveTemplateButton.IsEnabled = true;
+                SaveTemplateButton.Opacity = 1;
+                SaveTemplateButton.ToolTip = null;
             }
         }
 
@@ -2011,6 +2050,8 @@ namespace Rewards_Fast2._0
             public string FilePath { get; set; } = string.Empty;
             public ImageSource? Thumbnail { get; set; }
             public bool IsBuiltIn { get; set; } = false;
+            public bool IsEmbedded { get; set; } = false;
+            public string ResourceName { get; set; } = string.Empty;
         }
 
         public class PersonDisplay
